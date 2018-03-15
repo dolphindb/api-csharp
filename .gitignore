@@ -3,3 +3,7 @@
 ################################################################################
 
 /dolphindb_csharpapi/bin/Debug
+/dolphindb_csharpapi/obj/Debug
+/dolphindb_csharpapi_test/bin/Debug
+/dolphindb_csharpapi_test/obj/Debug
+/packages
