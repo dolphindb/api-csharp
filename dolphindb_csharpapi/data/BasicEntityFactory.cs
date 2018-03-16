@@ -50,13 +50,11 @@ namespace dolphindb.data
             }
             else if (form == DATA_FORM.DF_DICTIONARY)
             {
-                //return new BasicDictionary(type, @in);
-                return null;
+                return new BasicDictionary(type, @in);
             }
             else if (form == DATA_FORM.DF_SET)
             {
-                //return new BasicSet(type, @in);
-                return null;
+                return new BasicSet(type, @in);
             }
             else if (form == DATA_FORM.DF_CHUNK)
             {
@@ -65,8 +63,7 @@ namespace dolphindb.data
             }
             else if (type == DATA_TYPE.DT_ANY && form == DATA_FORM.DF_VECTOR)
             {
-                //return new BasicAnyVector(@in);
-                return null;
+                return new BasicAnyVector(@in);
             }
             else if (type == DATA_TYPE.DT_VOID && form == DATA_FORM.DF_SCALAR)
             {
@@ -147,7 +144,6 @@ namespace dolphindb.data
         }
         private class BooleanFactory : TypeFactory
         {
-
             public IScalar createScalar(ExtendedDataInput @in) { return new BasicBoolean(@in); }
             public IVector createVector(ExtendedDataInput @in){ return new BasicBooleanVector(DATA_FORM.DF_VECTOR, @in);}
             public IVector createPair(ExtendedDataInput @in){ return new BasicBooleanVector(DATA_FORM.DF_PAIR, @in);}
@@ -165,7 +161,6 @@ namespace dolphindb.data
             public IVector createPair(ExtendedDataInput @in){ return new BasicByteVector(DATA_FORM.DF_PAIR, @in);}
             public IMatrix createMatrix(ExtendedDataInput @in){ return new BasicByteMatrix(@in);}
             public IScalar createScalarWithDefaultValue() { return new BasicByte((byte)0); }
-
             public IVector createVectorWithDefaultValue(int size) { return new BasicByteVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicByteVector(DATA_FORM.DF_PAIR, 2); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicByteMatrix(rows, columns); }
@@ -179,8 +174,6 @@ namespace dolphindb.data
             public IVector createPair(ExtendedDataInput @in){ return new BasicShortVector(DATA_FORM.DF_PAIR, @in);}
             public IMatrix createMatrix(ExtendedDataInput @in){ return new BasicShortMatrix(@in);}
             public IScalar createScalarWithDefaultValue() { return new BasicShort((short)0); }
-
-            
             public IVector createVectorWithDefaultValue(int size) { return new BasicShortVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicShortVector(DATA_FORM.DF_PAIR, 2); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicShortMatrix(rows, columns); }
@@ -206,7 +199,6 @@ namespace dolphindb.data
             public IVector createPair(ExtendedDataInput @in) { return new BasicLongVector(DATA_FORM.DF_PAIR, @in);}
             public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicLongMatrix(@in);}
             public IScalar createScalarWithDefaultValue() { return new BasicLong(0); }
-            
             public IVector createVectorWithDefaultValue(int size) { return new BasicLongVector(size); }
             public IVector createPairWithDefaultValue(){ return new BasicLongVector(DATA_FORM.DF_PAIR, 2); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicLongMatrix(rows, columns); }
@@ -232,7 +224,6 @@ namespace dolphindb.data
             public IVector createPair(ExtendedDataInput @in) { return new BasicDoubleVector(DATA_FORM.DF_PAIR, @in);}
             public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicDoubleMatrix(@in);}
             public IScalar createScalarWithDefaultValue() { return new BasicDouble(0); }
-                        
             public IVector createVectorWithDefaultValue(int size) { return new BasicDoubleVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicDoubleVector(DATA_FORM.DF_PAIR, 2); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicDoubleMatrix(rows, columns); }
@@ -246,7 +237,6 @@ namespace dolphindb.data
             public IVector createPair(ExtendedDataInput @in) { return new BasicStringVector(DATA_FORM.DF_PAIR, @in);}
             public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicStringMatrix(@in);}
             public IScalar createScalarWithDefaultValue() { return new BasicString(""); }
-           
             public IVector createVectorWithDefaultValue(int size) { return new BasicStringVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicStringVector(DATA_FORM.DF_PAIR, 2, false); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicStringMatrix(rows, columns); }
@@ -260,8 +250,6 @@ namespace dolphindb.data
             public IVector createPair(ExtendedDataInput @in) { return new BasicStringVector(DATA_FORM.DF_PAIR, @in);}
             public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicStringMatrix(@in);}
             public IScalar createScalarWithDefaultValue() { return new BasicString(""); }
-
-           
             public IVector createVectorWithDefaultValue(int size) { return new BasicStringVector(DATA_FORM.DF_VECTOR, size, true); }
             public IVector createPairWithDefaultValue() { return new BasicStringVector(DATA_FORM.DF_PAIR, 2, true); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicStringMatrix(rows, columns); }
@@ -285,7 +273,6 @@ namespace dolphindb.data
             public IVector createPair(ExtendedDataInput @in) { return new BasicDateTimeVector(DATA_FORM.DF_PAIR, @in);}
             public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicDateTimeMatrix(@in);}
             public IScalar createScalarWithDefaultValue() { return new BasicDateTime(0); }
-            
             public IVector createVectorWithDefaultValue(int size) { return new BasicDateTimeVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicDateTimeVector(DATA_FORM.DF_PAIR, 2); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicDateTimeMatrix(rows, columns); }
@@ -298,7 +285,6 @@ namespace dolphindb.data
             public IVector createPair(ExtendedDataInput @in) { return new BasicTimestampVector(DATA_FORM.DF_PAIR, @in);}
             public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicTimestampMatrix(@in);}
             public IScalar createScalarWithDefaultValue() { return new BasicTimestamp(0); }
-
             public IVector createVectorWithDefaultValue(int size) { return new BasicTimestampVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicTimestampVector(DATA_FORM.DF_PAIR, 2); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicTimestampMatrix(rows, columns); }
@@ -317,58 +303,17 @@ namespace dolphindb.data
         }
         private class NanoTimestampFactory : TypeFactory
         {
-            public IMatrix createMatrix(ExtendedDataInput @in)
-            {
-                throw new NotImplementedException();
-            }
-
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns)
-            {
-                throw new NotImplementedException();
-            }
-
             public IScalar createScalar(ExtendedDataInput @in) { return new BasicNanoTimestamp(@in); }
-            //public IVector createVector(ExtendedDataInput @in) { return new BasicNanoTimestampVector(DATA_FORM.DF_VECTOR, @in);}
-            //public IVector createPair(ExtendedDataInput @in) { return new BasicNanoTimestampVector(DATA_FORM.DF_PAIR, @in);}
-            //public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicNanoTimestampMatrix(@in);}
+            public IVector createVector(ExtendedDataInput @in) { return new BasicNanoTimestampVector(DATA_FORM.DF_VECTOR, @in);}
+            public IVector createPair(ExtendedDataInput @in) { return new BasicNanoTimestampVector(DATA_FORM.DF_PAIR, @in);}
+            public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicNanoTimestampMatrix(@in);}
             public IScalar createScalarWithDefaultValue() { return new BasicNanoTimestamp(0); }
-
-            IVector TypeFactory.createPair(ExtendedDataInput @in)
-            {
-                throw new NotImplementedException();
-            }
-
-            IVector TypeFactory.createPairWithDefaultValue()
-            {
-                throw new NotImplementedException();
-            }
-
-            IScalar TypeFactory.createScalar(ExtendedDataInput @in)
-            {
-                throw new NotImplementedException();
-            }
-
-            IScalar TypeFactory.createScalarWithDefaultValue()
-            {
-                throw new NotImplementedException();
-            }
-
-            IVector TypeFactory.createVector(ExtendedDataInput @in)
-            {
-                throw new NotImplementedException();
-            }
-
-            IVector TypeFactory.createVectorWithDefaultValue(int size)
-            {
-                throw new NotImplementedException();
-            }
-            //public IVector createVectorWithDefaultValue(int size) { return new BasicNanoTimestampVector(size); }
-            //public IVector createPairWithDefaultValue() { return new BasicNanoTimestampVector(DATA_FORM.DF_PAIR, 2); }
-            //public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicNanoTimestampMatrix(rows, columns); }
+            public IVector createVectorWithDefaultValue(int size) { return new BasicNanoTimestampVector(size); }
+            public IVector createPairWithDefaultValue() { return new BasicNanoTimestampVector(DATA_FORM.DF_PAIR, 2); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicNanoTimestampMatrix(rows, columns); }
         }
         private class MinuteFactory : TypeFactory
         {
-
             public IScalar createScalar(ExtendedDataInput @in) { return new BasicMinute(@in); }
             public IVector createVector(ExtendedDataInput @in) { return new BasicMinuteVector(DATA_FORM.DF_VECTOR, @in);}
             public IVector createPair(ExtendedDataInput @in) { return new BasicMinuteVector(DATA_FORM.DF_PAIR, @in);}
@@ -381,13 +326,11 @@ namespace dolphindb.data
 
         private class SecondFactory : TypeFactory
         {
-
             public IScalar createScalar(ExtendedDataInput @in) { return new BasicSecond(@in); }
             public IVector createVector(ExtendedDataInput @in) { return new BasicSecondVector(DATA_FORM.DF_VECTOR, @in); }
             public IVector createPair(ExtendedDataInput @in) { return new BasicSecondVector(DATA_FORM.DF_PAIR, @in); }
             public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicSecondMatrix(@in); }
             public IScalar createScalarWithDefaultValue() { return new BasicInt(0); }
-
             public IVector createVectorWithDefaultValue(int size) { return new BasicSecondVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicSecondVector(DATA_FORM.DF_PAIR, 2); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicSecondMatrix(rows, columns); }
@@ -401,69 +344,23 @@ namespace dolphindb.data
             public IVector createPair(ExtendedDataInput @in) { return new BasicTimeVector(DATA_FORM.DF_PAIR, @in); }
             public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicTimeMatrix(@in); }
             public IScalar createScalarWithDefaultValue() { return new BasicTime(0); }
-
-            
             public IVector createVectorWithDefaultValue(int size) { return new BasicTimeVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicTimeVector(DATA_FORM.DF_PAIR, 2); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicTimeMatrix(rows, columns); }
         }
         private class NanoTimeFactory : TypeFactory
         {
-            public IMatrix createMatrix(ExtendedDataInput @in)
-            {
-                throw new NotImplementedException();
-            }
-
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns)
-            {
-                throw new NotImplementedException();
-            }
-
             public IScalar createScalar(ExtendedDataInput @in) { return new BasicNanoTime(@in); }
-            //public IVector createVector(ExtendedDataInput @in) { return new BasicNanoTimeVector(DATA_FORM.DF_VECTOR, @in); }
-            //public IVector createPair(ExtendedDataInput @in) { return new BasicNanoTimeVector(DATA_FORM.DF_PAIR, @in); }
-            //public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicNanoTimeMatrix(@in); }
+            public IVector createVector(ExtendedDataInput @in) { return new BasicNanoTimeVector(DATA_FORM.DF_VECTOR, @in); }
+            public IVector createPair(ExtendedDataInput @in) { return new BasicNanoTimeVector(DATA_FORM.DF_PAIR, @in); }
+            public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicNanoTimeMatrix(@in); }
             public IScalar createScalarWithDefaultValue() { return new BasicNanoTime(0); }
-
-            IVector TypeFactory.createPair(ExtendedDataInput @in)
-            {
-                throw new NotImplementedException();
-            }
-
-            IVector TypeFactory.createPairWithDefaultValue()
-            {
-                throw new NotImplementedException();
-            }
-
-            IScalar TypeFactory.createScalar(ExtendedDataInput @in)
-            {
-                throw new NotImplementedException();
-            }
-
-            IScalar TypeFactory.createScalarWithDefaultValue()
-            {
-                throw new NotImplementedException();
-            }
-
-            IVector TypeFactory.createVector(ExtendedDataInput @in)
-            {
-                throw new NotImplementedException();
-            }
-
-            IVector TypeFactory.createVectorWithDefaultValue(int size)
-            {
-                throw new NotImplementedException();
-            }
-            //public IVector createVectorWithDefaultValue(int size) { return new BasicNanoTimeVector(size); }
-            //public IVector createPairWithDefaultValue() { return new BasicNanoTimeVector(DATA_FORM.DF_PAIR, 2); }
-            //public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicNanoTimeMatrix(rows, columns); }
+            public IVector createVectorWithDefaultValue(int size) { return new BasicNanoTimeVector(size); }
+            public IVector createPairWithDefaultValue() { return new BasicNanoTimeVector(DATA_FORM.DF_PAIR, 2); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicNanoTimeMatrix(rows, columns); }
         }
     }
-
-
-
-
-
+    
     public interface TypeFactory
     {
         IScalar createScalar(ExtendedDataInput @in);

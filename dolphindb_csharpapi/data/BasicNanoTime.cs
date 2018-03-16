@@ -31,7 +31,7 @@ namespace dolphindb.data
 			return DATA_TYPE.DT_NANOTIME;
 		}
 
-		public virtual DateTime getValue()
+		public new  DateTime getValue()
 		{
 				if (isNull())
 				{

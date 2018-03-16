@@ -77,10 +77,15 @@
     <Compile Include="data\BasicMonthMatrix.cs" />
     <Compile Include="data\BasicMonthVector.cs" />
     <Compile Include="data\BasicNanoTime.cs" />
+    <Compile Include="data\BasicNanoTimeMatrix.cs" />
     <Compile Include="data\BasicNanoTimestamp.cs" />
+    <Compile Include="data\BasicNanoTimestampMatrix.cs" />
+    <Compile Include="data\BasicNanoTimestampVector.cs" />
+    <Compile Include="data\BasicNanoTimeVector.cs" />
     <Compile Include="data\BasicSecond.cs" />
     <Compile Include="data\BasicSecondMatrix.cs" />
     <Compile Include="data\BasicSecondVector.cs" />
+    <Compile Include="data\BasicSet.cs" />
     <Compile Include="data\BasicShort.cs" />
     <Compile Include="data\BasicShortMatrix.cs" />
     <Compile Include="data\BasicShortVector.cs" />
@@ -95,7 +100,7 @@
     <Compile Include="data\BasicTimestampMatrix.cs" />
     <Compile Include="data\BasicTimestampVector.cs" />
     <Compile Include="data\BasicTimeVector.cs" />
-    <Compile Include="data\Dictionary.cs" />
+    <Compile Include="data\IDictionary.cs" />
     <Compile Include="data\IEntity.cs" />
     <Compile Include="data\IEntityFactory.cs" />
     <Compile Include="data\EntityUtil.cs" />

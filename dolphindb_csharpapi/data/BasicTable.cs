@@ -12,9 +12,11 @@ namespace dolphindb.data
 		private IList<IVector> columns_ = new List<IVector>();
 		private IList<string> names_ = new List<string>();
 		private IDictionary<string, int?> name2index_ = new Dictionary<string, int?>();
-
+        
+        //
         private string _tableName = "tmpTb_" + System.Guid.NewGuid();
-		public BasicTable(ExtendedDataInput @in)
+
+        public BasicTable(ExtendedDataInput @in)
 		{
 			int rows = @in.readInt();
 			int cols = @in.readInt();

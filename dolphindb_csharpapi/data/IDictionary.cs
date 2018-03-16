@@ -1,10 +1,6 @@
 ﻿namespace dolphindb.data
 {
 
-	/*
-	 * Interface for dictionary object
-	 */
-
 	public interface IDictionary : IEntity
 	{
 		DATA_TYPE KeyDataType {get;}

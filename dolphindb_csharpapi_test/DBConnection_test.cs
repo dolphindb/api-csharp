@@ -16,6 +16,8 @@ namespace dolphindb_csharpapi_test
         [TestMethod]
         public void Test_MyDemo()
         {
+            Assert.AreEqual(1234567866, (long)(123456786669 / 100));
+            return;
 
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -229,8 +231,10 @@ namespace dolphindb_csharpapi_test
         public void Test_run_return_scalar_nanotime()
         {
             DBConnection db = new DBConnection();
-            db.connect("192.168.1.61", 8702);
-            //Assert.AreEqual(new DateTime(565051230000L‭‬), (((BasicNanoTime)db.run("15:41:45.123000001")).getValue()));
+            db.connect("192.168.1.61",8702);
+            DateTime dt = new DateTime(1970,1,1,15,41,45,123);
+            long tickCount = dt.Ticks;
+            Assert.AreEqual(new DateTime(tickCount + 4567L), (((BasicNanoTime)db.run("15:41:45.123456789")).getValue()));
         }
 
         [TestMethod]
@@ -238,7 +242,9 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect("192.168.1.61", 8702);
-            Assert.AreEqual(new DateTime(1521042105123222300L), ((BasicNanoTimestamp)db.run("2018.03.14T15:41:45.123222300")).getValue());
+            DateTime dt = new DateTime(2018, 03, 14, 15, 41, 45, 123);
+            long tickCount = dt.Ticks;
+            Assert.AreEqual(new DateTime(tickCount + 2223L), ((BasicNanoTimestamp)db.run("2018.03.14T15:41:45.123222321")).getValue());
         }
 
         [TestMethod]
@@ -342,6 +348,18 @@ namespace dolphindb_csharpapi_test
         }
 
         [TestMethod]
+        public void Test_run_return_vector_nanotime()
+        {
+            DBConnection db = new DBConnection();
+            db.connect("192.168.1.61", 8702);
+            IVector v = (BasicNanoTimeVector)db.run("15:41:45.123456789 15:41:45.123456889 15:41:45.123456989");
+            Assert.IsTrue(v.isVector());
+            Assert.AreEqual(3, v.rows());
+            DateTime dt = new DateTime(1970, 1, 1, 15, 41, 45, 123);
+            long tickCount = dt.Ticks;
+            Assert.AreEqual(new DateTime(tickCount + 4568L), ((BasicNanoTime)v.get(1)).getValue());
+        }
+        [TestMethod]
         public void Test_run_return_vector_minute()
         {
             DBConnection db = new DBConnection();
@@ -383,6 +401,19 @@ namespace dolphindb_csharpapi_test
             Assert.IsTrue(v.isVector());
             Assert.AreEqual(3, v.rows());
             Assert.AreEqual(new DateTime(2018, 03, 15, 10, 58, 02,002), ((BasicTimestamp)v.get(1)).getValue());
+        }
+
+        [TestMethod]
+        public void Test_run_return_vector_nanotimestamp()
+        {
+            DBConnection db = new DBConnection();
+            db.connect("192.168.1.61", 8702);
+
+            IVector v = (BasicNanoTimestampVector)db.run("2018.03.14T15:41:45.123222321 2018.03.14T15:41:45.123222421 2018.03.14T15:41:45.123222521");
+            Assert.IsTrue(v.isVector());
+            Assert.AreEqual(3, v.rows());
+            DateTime dt = new DateTime(2018, 03, 14, 15, 41, 45, 123);
+            Assert.AreEqual(new DateTime(dt.Ticks + 2224), ((BasicNanoTimestamp)v.get(1)).getValue());
         }
 
         [TestMethod]
@@ -524,6 +555,20 @@ namespace dolphindb_csharpapi_test
         }
 
         [TestMethod]
+        public void Test_run_return_matrix_nanotime()
+        {
+            DBConnection db = new DBConnection();
+            db.connect("192.168.1.61", 8702);
+            IMatrix m = (BasicNanoTimeMatrix)db.run("matrix(15:41:45.123456789 15:41:45.123456789 15:41:45.123456789,15:41:45.123956789 15:41:45.123486789 15:41:45.123476789)");
+            Assert.IsTrue(m.isMatrix());
+            Assert.AreEqual(3, m.rows());
+            Assert.AreEqual(2, m.columns());
+            DateTime dt = new DateTime(1970, 1, 1, 15, 41, 45, 123);
+            long tickCount = dt.Ticks;
+            Assert.AreEqual(new DateTime(tickCount + 9567L), ((BasicNanoTime)m.get(0,1)).getValue());
+        }
+
+        [TestMethod]
         public void Test_run_return_matrix_timestamp()
         {
             DBConnection db = new DBConnection();
@@ -535,6 +580,19 @@ namespace dolphindb_csharpapi_test
             Assert.AreEqual(new DateTime(2018, 3, 14, 10, 57, 01, 001), ((BasicTimestamp)m.get(0, 1)).getValue());
         }
 
+        [TestMethod]
+        public void Test_run_return_matrix_nanotimestamp()
+        {
+            DBConnection db = new DBConnection();
+            db.connect("192.168.1.61", 8702);
+            IMatrix m = (BasicNanoTimestampMatrix)db.run("matrix(2018.03.14T10:57:01.001123456 2018.03.15T10:58:02.002123456 2018.03.16T10:59:03.003123456,2018.03.14T10:57:01.001456789 2018.03.15T10:58:02.002456789 2018.03.16T10:59:03.003456789)");
+            Assert.IsTrue(m.isMatrix());
+            Assert.AreEqual(3, m.rows());
+            Assert.AreEqual(2, m.columns());
+            DateTime dt = new DateTime(2018, 03, 14, 10, 57, 01, 001);
+            long tickCount = dt.Ticks;
+            Assert.AreEqual(new DateTime(tickCount + 4567L), ((BasicNanoTimestamp)m.get(0, 1)).getValue());
+        }
         [TestMethod]
         public void Test_run_return_matrix_month()
         {
@@ -582,6 +640,38 @@ namespace dolphindb_csharpapi_test
             Assert.AreEqual(2, tb.columns());
             Assert.AreEqual(3,((BasicInt)tb.getColumn(0).get(2)).getValue());
         }
+        [TestMethod]
+        public void Test_run_return_dict()
+        {
+            
+            DBConnection db = new DBConnection();
+            db.connect("192.168.1.61", 8702);
+            BasicDictionary dict = (BasicDictionary)db.run("dict(1 2 3, 2.3 3.4 5.5)");
+            BasicDouble v = (BasicDouble)dict.get(new BasicInt(2));
+            Assert.AreEqual(3.4, v.getValue());
+        }
+
+        [TestMethod]
+        public void Test_run_return_set()
+        {
+            DBConnection db = new DBConnection();
+            db.connect("192.168.1.61", 8702);
+            BasicSet dict = (BasicSet)db.run("set(1 3 5)");
+            Assert.AreEqual(3, dict.rows());
+            Assert.AreEqual(1, dict.columns());
+        }
+
+        [TestMethod]
+        public void Test_run_return_anyvector()
+        {
+            DBConnection db = new DBConnection();
+            db.connect("192.168.1.61", 8702);
+            BasicAnyVector v = (BasicAnyVector)db.run("[1 2 3,3.4 3.5 3.6]");
+            Assert.AreEqual(2, v.rows());
+            Assert.AreEqual(1, v.columns());
+            Assert.AreEqual(3.4, ((BasicDouble)((BasicDoubleVector)v.getEntity(1)).get(0)).getValue());
+        }
+   
 
         [TestMethod]
         public void Test_run_return_table_toDataTable()
@@ -598,7 +688,8 @@ namespace dolphindb_csharpapi_test
             Assert.AreEqual(50, drs.Length);
             dt.DefaultView.RowFilter = "id > 50 and name = 'abc'";
             Assert.AreEqual(0, dt.DefaultView.Count);
-
         }
+
+
     }
 }

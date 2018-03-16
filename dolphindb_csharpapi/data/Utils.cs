@@ -212,32 +212,13 @@ namespace dolphindb.data
 		/// </summary>
 		public static DateTime parseNanoTimestamp(long nanoseconds)
 		{
-            //throw new NotImplementedException();
-            return new DateTime(nanoseconds / 100);
-			//int days = (int)Math.Floor(((double)nanoseconds / NANOS_PER_DAY));
-			//DateTime date = Utils.parseDate(days);
-			//nanoseconds = nanoseconds % NANOS_PER_DAY;
-			//if (nanoseconds < 0)
-			//{
-			//	nanoseconds += NANOS_PER_DAY;
-			//}
-			//DateTime time = Utils.parseNanoTime(nanoseconds % NANOS_PER_DAY);
-			//return new DateTime();
-		}
-		//public static int countMilliseconds(DateTime time)
-		//{
-		//	return countMilliseconds(time.Hour, time.Minute, time.Second, time.Nano / 1000000);
-		//}
+            return new DateTime(new DateTime(DEFALUT_YEAR, DEFAULT_MONTH, DEFAULT_DAY).Ticks + (long)(nanoseconds / 100));
+        }
 
-		public static int countMilliseconds(int hour, int minute, int second, int millisecond)
+        public static int countMilliseconds(int hour, int minute, int second, int millisecond)
 		{
 			return ((hour * 60 + minute) * 60 + second) * 1000 + millisecond;
 		}
-
-        //public static long countNanoseconds(DateTime time)
-        //{
-        //	return (long)countMilliseconds(time.Hour, time.Minute, time.Second, 0) * 1000000 + time.Nano;
-        //}
 
         public static DateTime parseTime(int milliseconds)
         {
@@ -246,13 +227,8 @@ namespace dolphindb.data
 
         public static DateTime parseNanoTime(long nanoOfDay)
         {
-            return new DateTime(nanoOfDay);
+            return new DateTime(new DateTime(DEFALUT_YEAR,DEFAULT_MONTH,DEFAULT_DAY).Ticks + (long)(nanoOfDay/100));
         }
-
-        //public static int countSeconds(DateTime time)
-        //{
-        //    return countSeconds(time.Hour, time.Minute, time.Second);
-        //}
 
         public static int countSeconds(int hour, int minute, int second)
 		{
@@ -261,7 +237,6 @@ namespace dolphindb.data
 
 		public static DateTime parseSecond(int seconds)
 		{
-            //throw new NotImplementedException();
 			return new DateTime(DEFALUT_YEAR, DEFAULT_MONTH, DEFAULT_DAY,seconds / 3600, seconds % 3600 / 60, seconds % 60);
 		}
 
