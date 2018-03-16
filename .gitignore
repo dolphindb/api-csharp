@@ -7,3 +7,5 @@
 /dolphindb_csharpapi_test/bin/Debug
 /dolphindb_csharpapi_test/obj/Debug
 /packages
+/.vs/api-csharp/v15
+/dolphindb_csharpapi_test/obj/Release
