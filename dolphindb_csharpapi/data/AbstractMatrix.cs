@@ -293,7 +293,7 @@ namespace dolphindb.data
 		public virtual void write(ExtendedDataOutput @out)
 		{
 			int flag = ((int)DATA_FORM.DF_MATRIX << 8) + (int)getDataType();
-			@out.writeShort((short)flag);
+			@out.writeShort(flag);
 			byte labelFlag = (byte)((hasRowLabel() ? 1 : 0) + (hasColumnLabel() ? 2 : 0));
 			@out.writeByte(labelFlag);
 			if (hasRowLabel())
@@ -304,7 +304,7 @@ namespace dolphindb.data
 			{
 				columnLabels.write(@out);
 			}
-			@out.writeShort((short)flag);
+			@out.writeShort(flag);
 			@out.writeInt(rows());
 			@out.writeInt(columns());
 			writeVectorToOutputStream(@out);

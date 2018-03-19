@@ -261,7 +261,7 @@ namespace dolphindb.data
 			}
 
 			int flag = ((int)DATA_FORM.DF_DICTIONARY << 8) + (int)getDataType();
-			@out.writeShort((short)flag);
+			@out.writeShort(flag);
 
 			keys.write(@out);
 			values.write(@out);

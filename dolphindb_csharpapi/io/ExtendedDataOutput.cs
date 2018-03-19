@@ -5,7 +5,7 @@
 	public interface ExtendedDataOutput
 	{
         void write(byte[] b);
-        void writeShort(short s);
+        void writeShort(int s);
 		void writeString(string str);
         void flush();
         void writeShortArray(short[] A);

@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using dolphindb.io;
 using System.Text;
 using System.Data;
+using System.Collections.Generic;
 
 namespace dolphindb_csharpapi_test
 {
@@ -26,7 +27,7 @@ namespace dolphindb_csharpapi_test
             socket.Connect(SERVER, PORT);
             StreamWriter @out = new StreamWriter(new NetworkStream(socket));
 
-            StreamReader @in = new StreamReader(new NetworkStream(socket),Encoding.Default);
+            StreamReader @in = new StreamReader(new NetworkStream(socket), Encoding.Default);
             string body = "connect\n";
             @out.Write("API 0 ");
             @out.Write(body.Length.ToString());
@@ -80,21 +81,21 @@ namespace dolphindb_csharpapi_test
         public void Test_Connect()
         {
             DBConnection db = new DBConnection();
-            Assert.AreEqual(true,db.connect("localhost", 8900));
+            Assert.AreEqual(true, db.connect("localhost", 8900));
         }
 
         [TestMethod]
         public void Test_Connect_demo()
         {
             DBConnection db = new DBConnection();
-           // Console.Out.WriteLine(db.connect());
+            // Console.Out.WriteLine(db.connect());
         }
 
         [TestMethod]
         public void Test_run_return_scalar_int()
         {
             DBConnection db = new DBConnection();
-            db.connect("localhost", 8900);
+            db.connect(SERVER, PORT);
             Assert.AreEqual(63, ((BasicInt)db.run("63")).getValue());
             Assert.AreEqual(129, ((BasicInt)db.run("129")).getValue());
             Assert.AreEqual(255, ((BasicInt)db.run("255")).getValue());
@@ -102,7 +103,7 @@ namespace dolphindb_csharpapi_test
             Assert.AreEqual(2047, ((BasicInt)db.run("2047")).getValue());
             Assert.AreEqual(-2047, ((BasicInt)db.run("-2047")).getValue());
             Assert.AreEqual(-129, ((BasicInt)db.run("-129")).getValue());
-            Assert.ThrowsException<InvalidCastException>(()=>{ ((BasicInt)db.run("129123456456")).getValue(); });
+            Assert.ThrowsException<InvalidCastException>(() => { ((BasicInt)db.run("129123456456")).getValue(); });
         }
 
         [TestMethod]
@@ -121,7 +122,7 @@ namespace dolphindb_csharpapi_test
             db.connect("localhost", 8900);
             Assert.AreEqual(3, ((BasicDouble)db.run("1.0+2.0")).getValue());
             Assert.AreEqual(129.1, ((BasicDouble)db.run("127.1+2.0")).getValue());
-            Assert.IsTrue(Math.Abs(1114.4-((BasicDouble)db.run("1127.1-12.7")).getValue())<0.000001);
+            Assert.IsTrue(Math.Abs(1114.4 - ((BasicDouble)db.run("1127.1-12.7")).getValue()) < 0.000001);
         }
 
         [TestMethod]
@@ -130,7 +131,7 @@ namespace dolphindb_csharpapi_test
             DBConnection db = new DBConnection();
             db.connect("localhost", 8900);
             Assert.AreEqual(3, ((BasicFloat)db.run("1.0f+2.0f")).getValue());
-            Assert.AreEqual(Math.Round(129.1,1), Math.Round(((BasicFloat)db.run("127.1f+2.0f")).getValue(),1));
+            Assert.AreEqual(Math.Round(129.1, 1), Math.Round(((BasicFloat)db.run("127.1f+2.0f")).getValue(), 1));
         }
 
         [TestMethod]
@@ -158,9 +159,9 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect("localhost", 8900);
-            Assert.AreEqual(1,((BasicShort)db.run("1h")).getValue());
-            Assert.AreEqual(256,((BasicShort)db.run("256h")).getValue());
-            Assert.AreEqual(1024,((BasicShort)db.run("1024h")).getValue());
+            Assert.AreEqual(1, ((BasicShort)db.run("1h")).getValue());
+            Assert.AreEqual(256, ((BasicShort)db.run("256h")).getValue());
+            Assert.AreEqual(1024, ((BasicShort)db.run("1024h")).getValue());
             Assert.ThrowsException<InvalidCastException>(() => { ((BasicShort)db.run("100h+5000h")).getValue(); });
         }
 
@@ -178,7 +179,7 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            Assert.AreEqual(new DateTime(2018,03,14), ((BasicDate)db.run("2018.03.14")).getValue());
+            Assert.AreEqual(new DateTime(2018, 03, 14), ((BasicDate)db.run("2018.03.14")).getValue());
         }
 
         [TestMethod]
@@ -186,7 +187,7 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            Assert.AreEqual(new DateTime(2018, 03, 14,11,28,4), ((BasicDateTime)db.run("2018.03.14T11:28:04")).getValue());
+            Assert.AreEqual(new DateTime(2018, 03, 14, 11, 28, 4), ((BasicDateTime)db.run("2018.03.14T11:28:04")).getValue());
         }
 
         [TestMethod]
@@ -194,7 +195,7 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            Assert.AreEqual(new DateTime(2018, 03,01),((BasicMonth)db.run("2018.03M")).getValue());
+            Assert.AreEqual(new DateTime(2018, 03, 01), ((BasicMonth)db.run("2018.03M")).getValue());
         }
 
         [TestMethod]
@@ -202,7 +203,7 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            Assert.AreEqual(new DateTime(1970, 01, 01,14,48,00), ((BasicMinute)db.run("14:48m")).getValue());
+            Assert.AreEqual(new DateTime(1970, 01, 01, 14, 48, 00), ((BasicMinute)db.run("14:48m")).getValue());
         }
 
         [TestMethod]
@@ -218,7 +219,7 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            Assert.AreEqual(new DateTime(1970, 01, 01, 15, 41, 45,123), ((BasicTime)db.run("15:41:45.123")).getValue());
+            Assert.AreEqual(new DateTime(1970, 01, 01, 15, 41, 45, 123), ((BasicTime)db.run("15:41:45.123")).getValue());
         }
 
         [TestMethod]
@@ -233,8 +234,8 @@ namespace dolphindb_csharpapi_test
         public void Test_run_return_scalar_nanotime()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER,PORT);
-            DateTime dt = new DateTime(1970,1,1,15,41,45,123);
+            db.connect(SERVER, PORT);
+            DateTime dt = new DateTime(1970, 1, 1, 15, 41, 45, 123);
             long tickCount = dt.Ticks;
             Assert.AreEqual(new DateTime(tickCount + 4567L), (((BasicNanoTime)db.run("15:41:45.123456789")).getValue()));
         }
@@ -256,7 +257,7 @@ namespace dolphindb_csharpapi_test
             db.connect(SERVER, PORT);
             IVector v = (BasicBooleanVector)db.run("true false");
             Assert.IsTrue(v.isVector());
-            Assert.AreEqual(2,v.rows());
+            Assert.AreEqual(2, v.rows());
             Assert.AreEqual(true, ((BasicBoolean)v.get(0)).getValue());
         }
 
@@ -335,7 +336,7 @@ namespace dolphindb_csharpapi_test
             IVector v = (BasicMonthVector)db.run("2018.03M 2017.04M 2016.05M");
             Assert.IsTrue(v.isVector());
             Assert.AreEqual(3, v.rows());
-            Assert.AreEqual(new DateTime(2017,04,01,0,0,0), ((BasicMonth)v.get(1)).getValue());
+            Assert.AreEqual(new DateTime(2017, 04, 01, 0, 0, 0), ((BasicMonth)v.get(1)).getValue());
         }
 
         [TestMethod]
@@ -346,7 +347,7 @@ namespace dolphindb_csharpapi_test
             IVector v = (BasicTimeVector)db.run("10:57:01.001 10:58:02.002 10:59:03.003");
             Assert.IsTrue(v.isVector());
             Assert.AreEqual(3, v.rows());
-            Assert.AreEqual(new DateTime(1970, 1, 1, 10, 58, 02,002), ((BasicTime)v.get(1)).getValue());
+            Assert.AreEqual(new DateTime(1970, 1, 1, 10, 58, 02, 002), ((BasicTime)v.get(1)).getValue());
         }
 
         [TestMethod]
@@ -402,7 +403,7 @@ namespace dolphindb_csharpapi_test
             IVector v = (BasicTimestampVector)db.run("2018.03.14T10:57:01.001 2018.03.15T10:58:02.002 2018.03.16T10:59:03.003");
             Assert.IsTrue(v.isVector());
             Assert.AreEqual(3, v.rows());
-            Assert.AreEqual(new DateTime(2018, 03, 15, 10, 58, 02,002), ((BasicTimestamp)v.get(1)).getValue());
+            Assert.AreEqual(new DateTime(2018, 03, 15, 10, 58, 02, 002), ((BasicTimestamp)v.get(1)).getValue());
         }
 
         [TestMethod]
@@ -438,13 +439,13 @@ namespace dolphindb_csharpapi_test
             Assert.IsTrue(m.isMatrix());
             Assert.AreEqual(3, m.rows());
             Assert.AreEqual(2, m.columns());
-            Assert.AreEqual(false, ((BasicBoolean)m.get(0,1)).getValue());
+            Assert.AreEqual(false, ((BasicBoolean)m.get(0, 1)).getValue());
         }
 
         [TestMethod]
         public void Test_run_return_matrix_byte()
         {
-            Assert.Fail("can note defined byte datatype on server");
+            Assert.Fail("can't defined byte datatype on server");
             //DBConnection db = new DBConnection();
             //db.connect(SERVER, PORT);
             //IMatrix m = (BasicBooleanMatrix)db.run("matrix(true false true,false true true)");
@@ -499,7 +500,7 @@ namespace dolphindb_csharpapi_test
             Assert.IsTrue(m.isMatrix());
             Assert.AreEqual(3, m.rows());
             Assert.AreEqual(2, m.columns());
-            Assert.AreEqual(56.123, Math.Round(((BasicDouble)m.get(0, 1)).getValue(),3));
+            Assert.AreEqual(56.123, Math.Round(((BasicDouble)m.get(0, 1)).getValue(), 3));
         }
 
         [TestMethod]
@@ -529,7 +530,7 @@ namespace dolphindb_csharpapi_test
             Assert.IsTrue(m.isMatrix());
             Assert.AreEqual(3, m.rows());
             Assert.AreEqual(2, m.columns());
-            Assert.AreEqual(new DateTime(2018,03,03), ((BasicDate)m.get(0, 1)).getValue());
+            Assert.AreEqual(new DateTime(2018, 03, 03), ((BasicDate)m.get(0, 1)).getValue());
         }
 
         [TestMethod]
@@ -541,7 +542,7 @@ namespace dolphindb_csharpapi_test
             Assert.IsTrue(m.isMatrix());
             Assert.AreEqual(3, m.rows());
             Assert.AreEqual(2, m.columns());
-            Assert.AreEqual(new DateTime(2018,03,14,10,57,01), ((BasicDateTime)m.get(0, 1)).getValue());
+            Assert.AreEqual(new DateTime(2018, 03, 14, 10, 57, 01), ((BasicDateTime)m.get(0, 1)).getValue());
         }
 
         [TestMethod]
@@ -553,7 +554,7 @@ namespace dolphindb_csharpapi_test
             Assert.IsTrue(m.isMatrix());
             Assert.AreEqual(3, m.rows());
             Assert.AreEqual(2, m.columns());
-            Assert.AreEqual(new DateTime(1970,1,1,10,58,01,001), ((BasicTime)m.get(0, 1)).getValue());
+            Assert.AreEqual(new DateTime(1970, 1, 1, 10, 58, 01, 001), ((BasicTime)m.get(0, 1)).getValue());
         }
 
         [TestMethod]
@@ -567,7 +568,7 @@ namespace dolphindb_csharpapi_test
             Assert.AreEqual(2, m.columns());
             DateTime dt = new DateTime(1970, 1, 1, 15, 41, 45, 123);
             long tickCount = dt.Ticks;
-            Assert.AreEqual(new DateTime(tickCount + 9567L), ((BasicNanoTime)m.get(0,1)).getValue());
+            Assert.AreEqual(new DateTime(tickCount + 9567L), ((BasicNanoTime)m.get(0, 1)).getValue());
         }
 
         [TestMethod]
@@ -640,12 +641,12 @@ namespace dolphindb_csharpapi_test
             Assert.IsTrue(tb.isTable());
             Assert.AreEqual(100, tb.rows());
             Assert.AreEqual(2, tb.columns());
-            Assert.AreEqual(3,((BasicInt)tb.getColumn(0).get(2)).getValue());
+            Assert.AreEqual(3, ((BasicInt)tb.getColumn(0).get(2)).getValue());
         }
         [TestMethod]
         public void Test_run_return_dict()
         {
-            
+
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
             BasicDictionary dict = (BasicDictionary)db.run("dict(1 2 3, 2.3 3.4 5.5)");
@@ -673,7 +674,7 @@ namespace dolphindb_csharpapi_test
             Assert.AreEqual(1, v.columns());
             Assert.AreEqual(3.4, ((BasicDouble)((BasicDoubleVector)v.getEntity(1)).get(0)).getValue());
         }
-   
+
 
         [TestMethod]
         public void Test_run_return_table_toDataTable()
@@ -692,6 +693,17 @@ namespace dolphindb_csharpapi_test
             Assert.AreEqual(0, dt.DefaultView.Count);
         }
 
-
+        [TestMethod]
+        public void Test_upload_table()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicTable tb = (BasicTable)db.run("table(1..100 as id,take(`aaa,100) as name)");
+            Dictionary<string, IEntity> upObj = new Dictionary<string, IEntity>();
+            upObj.Add("table_uploaded", (IEntity)tb);
+            db.upload(upObj);
+            BasicIntVector v = (BasicIntVector)db.run("table_uploaded.id");
+            Assert.AreEqual(100, v.rows());
+        }
     }
 }

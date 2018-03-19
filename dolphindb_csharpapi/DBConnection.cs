@@ -74,7 +74,7 @@ namespace dolphindb
                     string body = "connect\n";
                     @out.writeBytes("API 0 ");
                     @out.writeBytes(body.Length.ToString());
-                    @out.writeChar('\n');
+                    @out.writeByte('\n');
                     @out.writeBytes(body);
                     @out.flush();
 
@@ -217,7 +217,7 @@ namespace dolphindb
                 {
                     @out.writeBytes((listener != null ? "API2 " : "API ") + sessionID + " ");
                     @out.writeBytes(AbstractExtendedDataOutputStream.getUTFlength(body, 0, 0).ToString());
-                    @out.writeChar('\n');
+                    @out.writeByte('\n');
                     @out.writeBytes(body);
                     @out.flush();
 
@@ -238,7 +238,7 @@ namespace dolphindb
                         tryReconnect();
                         @out.writeBytes((listener != null ? "API2 " : "API ") + sessionID + " ");
                         @out.writeBytes(AbstractExtendedDataOutputStream.getUTFlength(body, 0, 0).ToString());
-                        @out.writeChar('\n');
+                        @out.writeByte('\n');
                         @out.writeBytes(body);
                         @out.flush();
                         

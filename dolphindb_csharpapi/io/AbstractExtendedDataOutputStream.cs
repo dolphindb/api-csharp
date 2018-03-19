@@ -6,22 +6,22 @@ namespace dolphindb.io
 {
 
 
-	public abstract class AbstractExtendedDataOutputStream : StreamWriter,ExtendedDataOutput
+	public abstract class AbstractExtendedDataOutputStream : BinaryWriter,ExtendedDataOutput
 	{
 		public abstract void writeLongArray(long[] A, int startIdx, int len);
 		public abstract void writeIntArray(int[] A, int startIdx, int len);
 		public abstract void writeShortArray(short[] A, int startIdx, int len);
 		private const int UTF8_STRING_LIMIT = 65535;
 		protected internal const int BUF_SIZE = 4096;
-		protected internal sbyte[] buf;
+		protected internal byte[] buf;
 		private static readonly int longBufSize = BUF_SIZE / 8;
 		private static readonly int intBufSize = BUF_SIZE / 4;
 		private int[] intBuf;
 		private long[] longBuf;
-        protected Stream _outStream;
+        //Stream _outStream;
         public AbstractExtendedDataOutputStream(Stream outStream):base(outStream)
 		{
-            _outStream = outStream;
+          //  _outStream = outStream;
         }
 
 		public void flush()
@@ -36,149 +36,169 @@ namespace dolphindb.io
             }
            
         }
-        public void write(int v)
-        {
-            try
-            {
-                byte[] b = BitConverter.GetBytes(v);
-                _outStream.Write(b, 0, b.Length);
-            }
-            catch (IOException ex)
-            {
-                throw ex;
-            }
-
-        }
-
-        public void write(byte[] b,int offset,int len)
-        {
-            try
-            {
-                _outStream.Write(b, offset, len);
-            }
-            catch (IOException ex)
-            {
-                throw ex;
-            }
-        }
-        
 
         public void writeBoolean(bool v)
 		{
             try
             {
-                byte[] b = BitConverter.GetBytes(v);
-                _outStream.Write(b,0,b.Length);
+                base.Write(v);
             }
             catch (IOException ex)
             {
                 throw ex;
             }
-            
 		}
 
 		public void writeByte(int v)
 		{
-            try
-            {
-                base.Write(v);
-            }
-            catch (IOException ex)
-            {
-                throw ex;
-            }
-            
-		}
+            byte b = (byte)v;
+            base.Write(b);
+        }
 
 		public void writeChar(char v)
 		{
-            try
-            {
-                base.Write(v);
-            }
-            catch (IOException ex)
-            {
-                throw ex;
-            }
-		}
+            writeShort(v);
+        }
 
-		public void writeFloat(float v)
+        public void writeChar(int v)
+        {
+            writeShort(v);
+        }
+
+        public void writeFloat(float v)
 		{
-            try
-            {
-                byte[] b = BitConverter.GetBytes(v);
-                _outStream.Write(b, 0, b.Length);
-            }
-            catch (IOException ex)
-            {
-                throw ex;
-            }
+            base.Write(v);
 		}
 
 		public void writeDouble(double v)
 		{
-            try
-            {
-                byte[] b = BitConverter.GetBytes(v);
-                _outStream.Write(b, 0, b.Length);
-
-            }
-            catch (IOException ex)
-            {
-                throw ex;
-            }
-		}
+            byte[] b = BitConverter.GetBytes(v);
+            base.Write(b);
+        }
 
 		public void writeBytes(string s)
 		{
-            try
+            byte[] b = Encoding.UTF8.GetBytes(s);
+            base.Write(b);
+            /*
+             * int len = s.Length;
+            int i = 0;
+            int pos = 0;
+
+            if (buf == null)
+                buf = new byte[BUF_SIZE];
+            do
             {
-                base.Write(s);
-            }
-            catch (IOException ex)
-            {
-                throw ex;
-            }
-		}
+                while (i < len && pos < buf.Length - 4)
+                {
+                    char c = s[i++];
+                    if (c >= '\u0001' && c <= '\u007f')
+                        buf[pos++] = (byte)c;
+                    else if (c == '\u0000' || (c >= '\u0080' && c <= '\u07ff'))
+                    {
+                        buf[pos++] = (byte)(0xc0 | (0x1f & (c >> 6)));
+                        buf[pos++] = (byte)(0x80 | (0x3f & c));
+                    }
+                    else
+                    {
+                        buf[pos++] = (byte)(0xe0 | (0x0f & (c >> 12)));
+                        buf[pos++] = (byte)(0x80 | (0x3f & (c >> 6)));
+                        buf[pos++] = (byte)(0x80 | (0x3f & c));
+                    }
+                }
+                base.Write(buf, 0, pos);
+                pos = 0;
+            } while (i < len);
+            */
+        }
 
 		public  void writeChars(string s)
 		{
-            try
-            {
-                byte[] b = Encoding.Default.GetBytes(s);
-                _outStream.Write(b, 0, b.Length);
-            }
-            catch (IOException ex)
-            {
-                throw ex;
-            }
-		}
+            int len = s.Length;
+            for (int i = 0; i < len; ++i)
+                writeChar(s[i]);
+        }
 
 		public void writeUTF(string value)
 		{
-            try
-            {
-                byte[] b = Encoding.UTF8.GetBytes(value);
-                _outStream.Write(b, 0, b.Length);
-            }
-            catch (IOException ex)
-            {
-                throw ex;
-            }
+            base.Write(value);
+            //try
+            //{
+            //    int len = value.Length;
+            //    int i = 0;
+            //    int pos = 0;
+            //    bool lengthWritten = false;
+            //    if (buf == null)
+            //        buf = new byte[BUF_SIZE];
+            //    do
+            //    {
+            //        while (i < len && pos < buf.Length - 3)
+            //        {
+            //            char c = value[i++];
+            //            if (c >= '\u0001' && c <= '\u007f')
+            //                buf[pos++] = (byte)c;
+            //            else if (c == '\u0000' || (c >= '\u0080' && c <= '\u07ff'))
+            //            {
+            //                buf[pos++] = (byte)(0xc0 | (0x1f & (c >> 6)));
+            //                buf[pos++] = (byte)(0x80 | (0x3f & c));
+            //            }
+            //            else
+            //            {
+            //                buf[pos++] = (byte)(0xe0 | (0x0f & (c >> 12)));
+            //                buf[pos++] = (byte)(0x80 | (0x3f & (c >> 6)));
+            //                buf[pos++] = (byte)(0x80 | (0x3f & c));
+            //            }
+            //        }
+            //        if (!lengthWritten)
+            //        {
+            //            if (i == len)
+            //                writeShort((short)pos);
+            //            else
+            //                writeShort((short)getUTFlength(value, i, pos));
+            //            lengthWritten = true;
+            //        }
+            //        base.Write(buf, 0, pos);
+            //        pos = 0;
+            //    } while (i < len);
+            //}
+            //catch (IOException ex)
+            //{
+            //    throw ex;
+            //}
 		}
 
 		public void writeString(string value)
 		{
-            try
+            int len = value.Length;
+            int i = 0;
+            int pos = 0;
+            if (buf == null)
+                buf = new byte[BUF_SIZE];
+            do
             {
-                byte[] b = Encoding.Default.GetBytes(value);
-                _outStream.Write(b, 0, b.Length);
-            }
-            catch (IOException ex)
-            {
-                throw ex;
-            }
-		}
+                while (i < len && pos < buf.Length - 4)
+                {
+                    char c = value[i++];
+                    if (c >= '\u0001' && c <= '\u007f')
+                        buf[pos++] = (byte)c;
+                    else if (c == '\u0000' || (c >= '\u0080' && c <= '\u07ff'))
+                    {
+                        buf[pos++] = (byte)(0xc0 | (0x1f & (c >> 6)));
+                        buf[pos++] = (byte)(0x80 | (0x3f & c));
+                    }
+                    else
+                    {
+                        buf[pos++] = (byte)(0xe0 | (0x0f & (c >> 12)));
+                        buf[pos++] = (byte)(0x80 | (0x3f & (c >> 6)));
+                        buf[pos++] = (byte)(0x80 | (0x3f & c));
+                    }
+                }
+                if (i >= len)
+                    buf[pos++] = 0;
+                base.Write(buf, 0, pos);
+                pos = 0;
+            } while (i < len);
+        }
 
 		public static int getUTFlength(string value, int start, int sum)
 		{
@@ -359,7 +379,7 @@ namespace dolphindb.io
             {
                 if (buf == null)
                 {
-                    buf = new sbyte[BUF_SIZE];
+                    buf = new byte[BUF_SIZE];
                 }
                 int end = startIdx + len;
                 int pos = 0;
@@ -375,18 +395,18 @@ namespace dolphindb.io
                             char c = value[i++];
                             if (c >= '\u0001' && c <= '\u007f')
                             {
-                                buf[pos++] = (sbyte)c;
+                                buf[pos++] = (byte)c;
                             }
                             else if (c == '\u0000' || (c >= '\u0080' && c <= '\u07ff'))
                             {
-                                buf[pos++] = unchecked((sbyte)(0xc0 | (0x1f & (c >> 6))));
-                                buf[pos++] = unchecked((sbyte)(0x80 | (0x3f & c)));
+                                buf[pos++] = unchecked((byte)(0xc0 | (0x1f & (c >> 6))));
+                                buf[pos++] = unchecked((byte)(0x80 | (0x3f & c)));
                             }
                             else
                             {
-                                buf[pos++] = unchecked((sbyte)(0xe0 | (0x0f & (c >> 12))));
-                                buf[pos++] = unchecked((sbyte)(0x80 | (0x3f & (c >> 6))));
-                                buf[pos++] = unchecked((sbyte)(0x80 | (0x3f & c)));
+                                buf[pos++] = unchecked((byte)(0xe0 | (0x0f & (c >> 12))));
+                                buf[pos++] = unchecked((byte)(0x80 | (0x3f & (c >> 6))));
+                                buf[pos++] = unchecked((byte)(0x80 | (0x3f & c)));
                             }
                         }
                         if (i >= valueLen)
@@ -395,14 +415,14 @@ namespace dolphindb.io
                         }
                         if (pos + 4 >= buf.Length)
                         {
-                            _outStream.Write((byte[])(Array)buf, 0, pos);
+                            base.Write((byte[])(Array)buf, 0, pos);
                             pos = 0;
                         }
                     } while (i < valueLen);
                 }
                 if (pos > 0)
                 {
-                    _outStream.Write((byte[])(Array)buf, 0, pos);
+                    base.Write((byte[])(Array)buf, 0, pos);
                 }
             }
             catch (IOException ex)
@@ -416,11 +436,21 @@ namespace dolphindb.io
 
         public abstract void writeLong(long value);
 
-        public abstract void writeShort(short s);
+        public abstract void writeShort(int s);
 
         public void write(byte[] b)
         {
-            write(b,0,b.Length);
+            base.Write(b,0,b.Length);
         }
+        public void write(byte[] b,int offset,int length)
+        {
+            base.Write(b, offset, length);
+        }
+        public void write(int b)
+        {
+            base.Write((byte)b);
+        }
+
+
     }
 }

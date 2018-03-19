@@ -240,7 +240,7 @@ namespace dolphindb.data
 		public virtual void write(ExtendedDataOutput @out)
 		{
 			int flag = ((int)DATA_FORM.DF_TABLE << 8) + (int)getDataType();
-			@out.writeShort((short)flag);
+			@out.writeShort(flag);
 			@out.writeInt(rows());
 			@out.writeInt(columns());
 			@out.writeString(""); //table name

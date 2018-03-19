@@ -128,7 +128,7 @@ namespace dolphindb.data
 		{
 			IVector _keys = keys();
 			int flag = ((int)DATA_FORM.DF_SET << 8) + (int)getDataType();
-			@out.writeShort((short)flag);
+			@out.writeShort(flag);
             _keys.write(@out);
 		}
 	}

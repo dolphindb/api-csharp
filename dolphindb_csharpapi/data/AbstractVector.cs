@@ -59,7 +59,7 @@ namespace dolphindb.data
 		public virtual void write(ExtendedDataOutput @out)
 		{
 			int flag = ((int)df_ << 8) + (int)getDataType();
-			@out.writeShort((short)flag);
+			@out.writeShort(flag);
 			@out.writeInt(rows());
 			@out.writeInt(columns());
 			writeVectorToOutputStream(@out);

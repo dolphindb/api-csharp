@@ -12,7 +12,7 @@ namespace dolphindb.io
 		{
   		}
 
-		public override void writeShort(short v)
+		public override void writeShort(int v)
 		{
             write(0xff & (v >> 8));
 			write(0xff & v);
@@ -68,7 +68,7 @@ namespace dolphindb.io
 
             if (buf == null)
 			{
-				buf = new sbyte[BUF_SIZE];
+				buf = new byte[BUF_SIZE];
 			}
 			int end = startIdx + len;
 			int pos = 0;
@@ -80,8 +80,8 @@ namespace dolphindb.io
 					write((byte[])(Array)buf, 0, pos);
 					pos = 0;
 				}
-				buf[pos++] = unchecked((sbyte)(0xFF & (v >> 8)));
-				buf[pos++] = unchecked((sbyte)(0xFF & (v)));
+				buf[pos++] = unchecked((byte)(0xFF & (v >> 8)));
+				buf[pos++] = unchecked((byte)(0xFF & (v)));
 			}
 			if (pos > 0)
 			{
@@ -102,7 +102,7 @@ namespace dolphindb.io
 
             if (buf == null)
 			{
-				buf = new sbyte[BUF_SIZE];
+				buf = new byte[BUF_SIZE];
 			}
 			int end = startIdx + len;
 			int pos = 0;
@@ -114,10 +114,10 @@ namespace dolphindb.io
 					write((byte[])(Array)buf, 0, pos);
 					pos = 0;
 				}
-				buf[pos++] = unchecked((sbyte)(0xFF & (v >> 24)));
-				buf[pos++] = unchecked((sbyte)(0xFF & (v >> 16)));
-				buf[pos++] = unchecked((sbyte)(0xFF & (v >> 8)));
-				buf[pos++] = unchecked((sbyte)(0xFF & (v)));
+				buf[pos++] = unchecked((byte)(0xFF & (v >> 24)));
+				buf[pos++] = unchecked((byte)(0xFF & (v >> 16)));
+				buf[pos++] = unchecked((byte)(0xFF & (v >> 8)));
+				buf[pos++] = unchecked((byte)(0xFF & (v)));
 			}
 			if (pos > 0)
 			{
@@ -131,7 +131,7 @@ namespace dolphindb.io
             {
                 if (buf == null)
                 {
-                    buf = new sbyte[BUF_SIZE];
+                    buf = new byte[BUF_SIZE];
                 }
                 int end = startIdx + len;
                 int pos = 0;
@@ -143,14 +143,14 @@ namespace dolphindb.io
                         write((byte[])(Array)buf, 0, pos);
                         pos = 0;
                     }
-                    buf[pos++] = unchecked((sbyte)(0xFF & (v >> 56)));
-                    buf[pos++] = unchecked((sbyte)(0xFF & (v >> 48)));
-                    buf[pos++] = unchecked((sbyte)(0xFF & (v >> 40)));
-                    buf[pos++] = unchecked((sbyte)(0xFF & (v >> 32)));
-                    buf[pos++] = unchecked((sbyte)(0xFF & (v >> 24)));
-                    buf[pos++] = unchecked((sbyte)(0xFF & (v >> 16)));
-                    buf[pos++] = unchecked((sbyte)(0xFF & (v >> 8)));
-                    buf[pos++] = unchecked((sbyte)(0xFF & (v)));
+                    buf[pos++] = unchecked((byte)(0xFF & (v >> 56)));
+                    buf[pos++] = unchecked((byte)(0xFF & (v >> 48)));
+                    buf[pos++] = unchecked((byte)(0xFF & (v >> 40)));
+                    buf[pos++] = unchecked((byte)(0xFF & (v >> 32)));
+                    buf[pos++] = unchecked((byte)(0xFF & (v >> 24)));
+                    buf[pos++] = unchecked((byte)(0xFF & (v >> 16)));
+                    buf[pos++] = unchecked((byte)(0xFF & (v >> 8)));
+                    buf[pos++] = unchecked((byte)(0xFF & (v)));
                 }
                 if (pos > 0)
                 {
