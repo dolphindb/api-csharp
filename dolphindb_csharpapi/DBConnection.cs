@@ -41,7 +41,18 @@ namespace dolphindb
 		private string hostName;
 		private int port;
 
-		public DBConnection()
+        public bool isConnected
+        {
+            get{
+                if (socket!=null) {
+                    return socket.Connected;
+                }else
+                {
+                    return false;
+                }
+            }
+        }
+        public DBConnection()
 		{
 			factory = new BasicEntityFactory();
 			sessionID = "";
@@ -84,7 +95,8 @@ namespace dolphindb
                     if (endPos <= 0)
                     {
                         close();
-                        return false;
+                        throw new IOException("Invalid ack msg : " + line);
+                        //return false;
                     }
                     sessionID = line.Substring(0, endPos);
 
@@ -93,7 +105,8 @@ namespace dolphindb
                     if (endPos != line.Length - 2)
                     {
                         close();
-                        return false;
+                        throw new IOException("Invalid ack msg : " + line);
+                        //return false;
                     }
 
                     if (line[endPos + 1] == '0')
@@ -600,6 +613,7 @@ namespace dolphindb
                     if (socket != null)
                     {
                         socket.Close();
+                        sessionID = string.Empty;
                         socket = null;
                     }
                 }

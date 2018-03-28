@@ -336,7 +336,7 @@ namespace dolphindb.data
                 case DATA_TYPE.DT_TIMESTAMP:
                 case DATA_TYPE.DT_NANOTIME:
                 case DATA_TYPE.DT_NANOTIMESTAMP:
-                    colType = Type.GetType("System.String");
+                    colType = Type.GetType("System.DateTime");
                     break;
                 case DATA_TYPE.DT_FLOAT:
                     colType = Type.GetType("System.Double");
