@@ -22,7 +22,9 @@ namespace dolphindb_csharpapi_test
             Assert.AreEqual(1234567866, (long)(123456786669 / 100));
             return;
 
+#pragma warning disable CS0162 // 检测到无法访问的代码
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+#pragma warning restore CS0162 // 检测到无法访问的代码
 
             socket.Connect(SERVER, PORT);
             StreamWriter @out = new StreamWriter(new NetworkStream(socket));
@@ -145,14 +147,14 @@ namespace dolphindb_csharpapi_test
             Assert.IsTrue(((BasicBoolean)db.run("2==2")).getValue());
         }
 
-        //[TestMethod]
-        //public void Test_run_return_scalar_byte()
-        //{
-        //    DBConnection db = new DBConnection();
-        //    db.connect("localhost", 8900);
-        //    //Assert.AreEqual(1,((BasicByte)db.run("true")).getValue());
-        //    //Assert.AreEqual(0, ((BasicByte)db.run("false")).getValue());
-        //}
+        [TestMethod]
+        public void Test_run_return_scalar_byte()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            Assert.AreEqual(48,((BasicByte)db.run("'a'")).getValue());
+            Assert.AreEqual("'c'", ((BasicByte)db.run("'c'")).getString());
+        }
 
         [TestMethod]
         public void Test_run_return_scalar_short()
