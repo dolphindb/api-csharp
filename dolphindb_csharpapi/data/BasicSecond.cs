@@ -6,7 +6,7 @@ namespace dolphindb.data
 
 	public class BasicSecond : BasicInt
 	{
-		private static string format = "HH:mm:ss";
+		private static string format = "yyyy.MM.dd HH:mm:ss";
 
 		public BasicSecond(DateTime value) : base(Utils.countSeconds(value))
 		{
