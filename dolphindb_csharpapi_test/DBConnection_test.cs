@@ -14,8 +14,8 @@ namespace dolphindb_csharpapi_test
     [TestClass]
     public class DBConnection_test
     {
-        private readonly string SERVER = "192.168.1.61";
-        private readonly int PORT = 8702;
+        private readonly string SERVER = "localhost";
+        private readonly int PORT = 8081;
         [TestMethod]
         public void Test_MyDemo()
         {
@@ -112,7 +112,7 @@ namespace dolphindb_csharpapi_test
         public void Test_run_return_scalar_long()
         {
             DBConnection db = new DBConnection();
-            db.connect("localhost", 8900);
+            db.connect(SERVER, PORT);
             BasicLong re = (BasicLong)db.run("1l");
             Assert.AreEqual(1, re.getValue());
         }
@@ -121,7 +121,7 @@ namespace dolphindb_csharpapi_test
         public void Test_run_return_scalar_double()
         {
             DBConnection db = new DBConnection();
-            db.connect("localhost", 8900);
+            db.connect(SERVER, PORT);
             Assert.AreEqual(3, ((BasicDouble)db.run("1.0+2.0")).getValue());
             Assert.AreEqual(129.1, ((BasicDouble)db.run("127.1+2.0")).getValue());
             Assert.IsTrue(Math.Abs(1114.4 - ((BasicDouble)db.run("1127.1-12.7")).getValue()) < 0.000001);
@@ -131,7 +131,7 @@ namespace dolphindb_csharpapi_test
         public void Test_run_return_scalar_float()
         {
             DBConnection db = new DBConnection();
-            db.connect("localhost", 8900);
+            db.connect(SERVER, PORT);
             Assert.AreEqual(3, ((BasicFloat)db.run("1.0f+2.0f")).getValue());
             Assert.AreEqual(Math.Round(129.1, 1), Math.Round(((BasicFloat)db.run("127.1f+2.0f")).getValue(), 1));
         }
@@ -140,7 +140,7 @@ namespace dolphindb_csharpapi_test
         public void Test_run_return_scalar_bool()
         {
             DBConnection db = new DBConnection();
-            db.connect("localhost", 8900);
+            db.connect(SERVER, PORT);
             Assert.IsTrue(((BasicBoolean)db.run("true")).getValue());
             Assert.IsFalse(((BasicBoolean)db.run("false")).getValue());
             Assert.IsFalse(((BasicBoolean)db.run("1==2")).getValue());
@@ -152,7 +152,7 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            Assert.AreEqual(48,((BasicByte)db.run("'a'")).getValue());
+            Assert.AreEqual(97,((BasicByte)db.run("'a'")).getValue());
             Assert.AreEqual("'c'", ((BasicByte)db.run("'c'")).getString());
         }
 
@@ -694,7 +694,16 @@ namespace dolphindb_csharpapi_test
             dt.DefaultView.RowFilter = "id > 50 and name = 'abc'";
             Assert.AreEqual(0, dt.DefaultView.Count);
         }
-
+        [TestMethod]
+        public void Test_run_return_table_toDataTable_char()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicTable tb = (BasicTable)db.run("table(1 as id,'a' as name)");
+            DataTable dt = tb.ToDataTable();
+            Assert.AreEqual(1, dt.Rows.Count);
+            Assert.AreEqual(0, dt.DefaultView.Count);
+        }
         [TestMethod]
         public void Test_upload_table()
         {

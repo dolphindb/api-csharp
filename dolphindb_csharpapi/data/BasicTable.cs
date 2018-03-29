@@ -261,7 +261,7 @@ namespace dolphindb.data
             {
                 int i = name2index_[fieldName].Value;
                 DATA_TYPE dtype = columns_[i].getDataType();
-                DataColumn dc = new DataColumn(fieldName, getDataTableType(dtype));
+                DataColumn dc = new DataColumn(fieldName, Utils.getSystemType(dtype));
                 dt.Columns.Add(dc);
             }
             if (columns_.Count == 0) return null;//table columns not exists
@@ -307,59 +307,6 @@ namespace dolphindb.data
             return dt;
         }
 
-        private Type getDataTableType(DATA_TYPE dtype)
-        {
-            Type colType = null;
-            switch (dtype)
-            {
-                case DATA_TYPE.DT_BOOL:
-                    colType = Type.GetType("System.Boolean");
-                    break;
-                case DATA_TYPE.DT_BYTE:
-                    colType = Type.GetType("System.Byte");
-                    break;
-                case DATA_TYPE.DT_SHORT:
-                    colType = Type.GetType("System.Int16");
-                    break;
-                case DATA_TYPE.DT_INT:
-                    colType = Type.GetType("System.Int32");
-                    break;
-                case DATA_TYPE.DT_LONG:
-                    colType = Type.GetType("System.Int64");
-                    break;
-                case DATA_TYPE.DT_DATE:
-                case DATA_TYPE.DT_MONTH:
-                case DATA_TYPE.DT_TIME:
-                case DATA_TYPE.DT_MINUTE:
-                case DATA_TYPE.DT_SECOND:
-                case DATA_TYPE.DT_DATETIME:
-                case DATA_TYPE.DT_TIMESTAMP:
-                case DATA_TYPE.DT_NANOTIME:
-                case DATA_TYPE.DT_NANOTIMESTAMP:
-                    colType = Type.GetType("System.DateTime");
-                    break;
-                case DATA_TYPE.DT_FLOAT:
-                    colType = Type.GetType("System.Double");
-                    break;
-                case DATA_TYPE.DT_DOUBLE:
-                    colType = Type.GetType("System.Double");
-                    break;
-                case DATA_TYPE.DT_SYMBOL:
-                case DATA_TYPE.DT_STRING:
-                case DATA_TYPE.DT_FUNCTIONDEF:
-                case DATA_TYPE.DT_HANDLE:
-                case DATA_TYPE.DT_CODE:
-                case DATA_TYPE.DT_DATASOURCE:
-                case DATA_TYPE.DT_RESOURCE:
-                case DATA_TYPE.DT_ANY:
-                case DATA_TYPE.DT_DICTIONARY:
-                case DATA_TYPE.DT_OBJECT:
-                default:
-                    colType = Type.GetType("System.String");
-                    break;
-            }
-            return colType;
-        }
 	}
 
 }

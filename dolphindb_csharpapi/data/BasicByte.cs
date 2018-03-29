@@ -57,7 +57,12 @@ namespace dolphindb.data
 			throw new Exception("Imcompatible data type");
 		}
 
-		public override string getString()
+
+        public override string ToString()
+        {
+            return this.getString();
+        }
+        public override string getString()
 		{
 			if (isNull())
 				{
