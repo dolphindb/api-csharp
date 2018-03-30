@@ -15,7 +15,10 @@ namespace dolphindb.data
         
         //
         private string _tableName = "tmpTb_" + System.Guid.NewGuid();
-
+        public BasicTable(DataTable dt)
+        {
+            this.loadDataTable(dt);
+        }
         public BasicTable(ExtendedDataInput @in)
 		{
 			int rows = @in.readInt();
@@ -253,8 +256,11 @@ namespace dolphindb.data
 				vector.write(@out);
 			}
 		}
-
-        public DataTable ToDataTable()
+        /// <summary>
+        /// transfer data to datatable
+        /// </summary>
+        /// <returns></returns>
+        public DataTable toDataTable()
         {
             DataTable dt = new DataTable(_tableName);
             foreach (string fieldName in names_)
@@ -306,7 +312,110 @@ namespace dolphindb.data
             }
             return dt;
         }
+        /// <summary>
+        /// load data from datatable
+        /// </summary>
+        /// <param name="dt">the datatable to load into basicTable</param>
+        public void loadDataTable(DataTable dt)
+        {
+            string tableName = dt.TableName;
+            DataView dv = dt.DefaultView;
+            int rowCount = dt.Rows.Count;
+            int colCount = dt.Columns.Count;
+            for (int colIndex = 0;colIndex < colCount; colIndex ++)
+            {
+                
+                Type t = dt.Columns[colIndex].DataType;
+                IVector curColumn = getDolphinDBVectorBySystemType(t, rowCount);
 
-	}
+                for(int rowIndex = 0; rowIndex < rowCount; rowIndex++)
+                {
+                    curColumn.set(rowIndex, getDolphinDBScalarBySystemType(t, dv[rowIndex][colIndex]));
+                }
+                this.columns_.Add(curColumn);
+                this.names_.Add(dt.Columns[colIndex].ColumnName);
+                KeyValuePair<String, int?> colNameIndex = new KeyValuePair<string, int?>(dt.Columns[colIndex].ColumnName, colIndex);
+                this.name2index_.Add(colNameIndex);
+            }
+        }
+
+
+        private IVector getDolphinDBVectorBySystemType(Type stype,int rowCount)
+        {
+            IVector v = null;
+            if (stype == Type.GetType("System.Boolean"))
+            {
+                v = new BasicBooleanVector(rowCount);
+            }
+            else if (stype == Type.GetType("System.Byte"))
+            {
+                v = new BasicByteVector(rowCount);
+            }
+            else if (stype == Type.GetType("System.Double"))
+            {
+                v = new BasicDoubleVector(rowCount);
+            }
+            else if (stype == Type.GetType("System.DateTime"))
+            {
+                v = new BasicDateTimeVector(rowCount);
+            }
+            else if (stype == Type.GetType("System.Int16"))
+            {
+                v = new BasicShortVector(rowCount);
+            }
+            else if (stype == Type.GetType("System.Int32"))
+            {
+                v = new BasicIntVector(rowCount);
+            }
+            else if (stype == Type.GetType("System.Int64"))
+            {
+                v = new BasicLongVector(rowCount);
+            }
+            else
+            {
+                v = new BasicStringVector(rowCount);
+            }
+            return v;
+        }
+
+        private IScalar getDolphinDBScalarBySystemType(Type stype,object value)
+        {
+            IScalar data = null;
+            if (stype == Type.GetType("System.Boolean"))
+            {
+                data = new BasicBoolean(Convert.ToBoolean(value));
+            }
+            else if (stype == Type.GetType("System.Byte"))
+            {
+                data = new BasicByte(Convert.ToByte(value));
+            }
+            else if (stype == Type.GetType("System.Double"))
+            {
+                data = new BasicDouble(Convert.ToDouble(value));
+            }
+            else if (stype == Type.GetType("System.DateTime"))
+            {
+                data = new BasicDateTime(Convert.ToDateTime(value));
+            }
+            else if (stype == Type.GetType("System.Int16"))
+            {
+                data = new BasicShort(Convert.ToInt16(value));
+            }
+            else if (stype == Type.GetType("System.Int32"))
+            {
+                data = new BasicInt(Convert.ToInt32(value));
+            }
+            else if (stype == Type.GetType("System.Int64"))
+            {
+                data = new BasicLong(Convert.ToInt64(value));
+            }
+            else
+            {
+                data = new BasicString(value.ToString());
+            }
+            return data;
+        }
+
+    }
 
 }

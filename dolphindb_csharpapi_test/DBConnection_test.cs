@@ -20,64 +20,7 @@ namespace dolphindb_csharpapi_test
         [TestMethod]
         public void Test_MyDemo()
         {
-            Assert.AreEqual(1234567866, (long)(123456786669 / 100));
-            return;
-
-#pragma warning disable CS0162 // 检测到无法访问的代码
-            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-#pragma warning restore CS0162 // 检测到无法访问的代码
-
-            socket.Connect(SERVER, PORT);
-            StreamWriter @out = new StreamWriter(new NetworkStream(socket));
-
-            StreamReader @in = new StreamReader(new NetworkStream(socket), Encoding.Default);
-            string body = "connect\n";
-            @out.Write("API 0 ");
-            @out.Write(body.Length.ToString());
-            @out.Write('\n');
-            @out.Write(body);
-            @out.Flush();
-
-            string line = @in.ReadLine();
-            int endPos = line.IndexOf(' ');
-            string sessionID = line.Substring(0, endPos);
-
-            BinaryReader binreader = new BinaryReader(new NetworkStream(socket), Encoding.Default);
-            string script = "129";
-            body = "script\n" + script;
-            //string header = null;
-            try
-            {
-                @out.Write("API2 " + sessionID + " ");
-                @out.Write(AbstractExtendedDataOutputStream.getUTFlength(body, 0, 0).ToString());
-                @out.Write('\n');
-                @out.Write(body);
-                @out.Flush();
-
-                //header = @in.ReadLine();
-                //string session = @in.ReadLine();
-                //string msg = @in.ReadLine();
-                //string type = @in.ReadLine();
-                //string res = @in.ReadLine();
-                //long len = @in.BaseStream.Length;
-
-                byte[] result = binreader.ReadBytes(20);
-
-                //int i = 0;
-                //do
-                //{
-                //    if (i>23) break;
-                //    int j = @in.BaseStream.Read(result, i, 1);
-                //    i++;
-                //    //Console.Out.WriteLine(i.ToString() + " : " + Convert.ToString((int)result[i]));
-                //} while (true);
-
-                Assert.AreEqual(129, (int)result[23]);
-            }
-            catch
-            {
-                throw;
-            }
+            
         }
 
         [TestMethod]
@@ -87,12 +30,6 @@ namespace dolphindb_csharpapi_test
             Assert.AreEqual(true, db.connect("localhost", 8900));
         }
 
-        [TestMethod]
-        public void Test_Connect_demo()
-        {
-            DBConnection db = new DBConnection();
-            // Console.Out.WriteLine(db.connect());
-        }
         [TestMethod]
         public void Test_isBusy()
         {
@@ -110,6 +47,48 @@ namespace dolphindb_csharpapi_test
             DBConnection conn = (DBConnection)db;
             bool b = conn.isBusy();
             Assert.IsFalse(b);
+        }
+
+        public void Test_Upload_DataTable()
+        {
+            DataTable dt = new DataTable();
+            DataColumn dc = new DataColumn("dt_string", Type.GetType("System.String"));
+            dt.Columns.Add(dc);
+            dc = new DataColumn("dt_short", Type.GetType("System.Int16"));
+            dt.Columns.Add(dc);
+            dc = new DataColumn("dt_int", Type.GetType("System.Int32"));
+            dt.Columns.Add(dc);
+            dc = new DataColumn("dt_long", Type.GetType("System.Int64"));
+            dt.Columns.Add(dc);
+            dc = new DataColumn("dt_double", Type.GetType("System.Int32"));
+            dt.Columns.Add(dc);
+            dc = new DataColumn("dt_datetime", Type.GetType("System.DateTime"));
+            dt.Columns.Add(dc);
+            dc = new DataColumn("dt_bool", Type.GetType("System.Boolean"));
+            dt.Columns.Add(dc);
+            dc = new DataColumn("dt_byte", Type.GetType("System.Byte"));
+            dt.Columns.Add(dc);
+            dc = new DataColumn("dt_string", Type.GetType("System.String"));
+            dt.Columns.Add(dc);
+            DataRow dr = dt.NewRow();
+            dr["dt_short"] = 1;
+            dr["dt_int"] = 2147483646;
+            dr["dt_long"] = 2147483649;
+            dr["dt_double"] = 3.14159893984;
+            dr["dt_datetime"] = new DateTime(2018,03,30,14,59,02,111);
+            dr["dt_bool"] = false;
+            dr["dt_byte"] = (byte)97;
+            dr["dt_string"] = "test_string";
+            dt.Rows.Add(dr);
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicTable bt = new BasicTable(dt);
+            Dictionary<string, IEntity> obj = new Dictionary<string, IEntity>();
+            obj.Add("up_datatable", (IEntity)bt);
+            db.upload(obj);
+            BasicIntVector v = (BasicIntVector)db.run("up_datatable.dt_int");
+            Assert.AreEqual(2147483646, v.get(0));
+
         }
 
         [TestMethod]
@@ -710,7 +689,7 @@ t.append!(table(take(0b 1b, n) as tBOOL, char(1..n) as tCHAR, short(1..n) as tSH
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
             BasicTable tb = (BasicTable)db.run(script);
-            DataTable dt = tb.ToDataTable();
+            DataTable dt = tb.toDataTable();
             Assert.AreEqual(100, dt.Rows.Count);
             Assert.AreEqual(100, dt.DefaultView.Count);
             dt.Rows[0].Delete();
@@ -721,7 +700,7 @@ t.append!(table(take(0b 1b, n) as tBOOL, char(1..n) as tCHAR, short(1..n) as tSH
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
             BasicTable tb = (BasicTable)db.run("table(1 as id,'a' as name)");
-            DataTable dt = tb.ToDataTable();
+            DataTable dt = tb.toDataTable();
         }
         [TestMethod]
         public void Test_upload_table()

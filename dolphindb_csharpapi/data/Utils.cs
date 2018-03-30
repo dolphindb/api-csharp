@@ -310,6 +310,44 @@ namespace dolphindb.data
             }
             return colType;
         }
+
+        public static DATA_TYPE getDolphinDBType(Type stype)
+        {
+                        
+            if(stype== Type.GetType("System.Boolean"))
+            {
+                return DATA_TYPE.DT_BOOL;
+            }
+            else if(stype == Type.GetType("System.Byte"))
+            {
+                return DATA_TYPE.DT_BYTE;
+            }
+            else if(stype == Type.GetType("System.Double"))
+            {
+                return DATA_TYPE.DT_DOUBLE;
+            }
+            else if (stype == Type.GetType("System.DateTime"))
+            {
+                return DATA_TYPE.DT_DATETIME;
+            }
+            else if (stype == Type.GetType("System.Int16"))
+            {
+                return DATA_TYPE.DT_SHORT;
+            }
+            else if (stype == Type.GetType("System.Int32"))
+            {
+                return DATA_TYPE.DT_INT;
+            }
+            else if (stype == Type.GetType("System.Int64"))
+            {
+                return DATA_TYPE.DT_LONG;
+            }
+            else
+            {
+                return DATA_TYPE.DT_STRING;
+            }
+
+        }
     }
 
 }
