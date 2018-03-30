@@ -254,6 +254,62 @@ namespace dolphindb.data
 		{
 		    return new DateTime(DEFALUT_YEAR,DEFAULT_MONTH,DEFAULT_DAY, minutes / 60, minutes % 60,DEFAULT_SECOND);
 		}
-	}
+
+
+
+        public static Type getSystemType(DATA_TYPE dtype)
+        {
+            Type colType = null;
+            switch (dtype)
+            {
+                case DATA_TYPE.DT_BOOL:
+                    colType = Type.GetType("System.Boolean");
+                    break;
+                case DATA_TYPE.DT_BYTE:
+                    colType = Type.GetType("System.Byte");
+                    break;
+                case DATA_TYPE.DT_SHORT:
+                    colType = Type.GetType("System.Int16");
+                    break;
+                case DATA_TYPE.DT_INT:
+                    colType = Type.GetType("System.Int32");
+                    break;
+                case DATA_TYPE.DT_LONG:
+                    colType = Type.GetType("System.Int64");
+                    break;
+                case DATA_TYPE.DT_DATE:
+                case DATA_TYPE.DT_MONTH:
+                case DATA_TYPE.DT_TIME:
+                case DATA_TYPE.DT_MINUTE:
+                case DATA_TYPE.DT_SECOND:
+                case DATA_TYPE.DT_DATETIME:
+                case DATA_TYPE.DT_TIMESTAMP:
+                case DATA_TYPE.DT_NANOTIME:
+                case DATA_TYPE.DT_NANOTIMESTAMP:
+                    colType = Type.GetType("System.DateTime");
+                    break;
+                case DATA_TYPE.DT_FLOAT:
+                    colType = Type.GetType("System.Double");
+                    break;
+                case DATA_TYPE.DT_DOUBLE:
+                    colType = Type.GetType("System.Double");
+                    break;
+                case DATA_TYPE.DT_SYMBOL:
+                case DATA_TYPE.DT_STRING:
+                case DATA_TYPE.DT_FUNCTIONDEF:
+                case DATA_TYPE.DT_HANDLE:
+                case DATA_TYPE.DT_CODE:
+                case DATA_TYPE.DT_DATASOURCE:
+                case DATA_TYPE.DT_RESOURCE:
+                case DATA_TYPE.DT_ANY:
+                case DATA_TYPE.DT_DICTIONARY:
+                case DATA_TYPE.DT_OBJECT:
+                default:
+                    colType = Type.GetType("System.String");
+                    break;
+            }
+            return colType;
+        }
+    }
 
 }

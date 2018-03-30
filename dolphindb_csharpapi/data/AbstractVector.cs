@@ -1,5 +1,6 @@
 ﻿using dolphindb.io;
 using System;
+using System.Data;
 using System.Text;
 
 namespace dolphindb.data
@@ -15,10 +16,21 @@ namespace dolphindb.data
 		public abstract IScalar get(int index);
         public abstract void setNull(int index);
 		public abstract bool isNull(int index);
+
 		private DATA_FORM df_;
 
+        public virtual DataTable toDataTable()
+        {
+            DataTable dt = buildTable();
+            for(int i = 0; i < this.rows(); i++)
+            {
+                DataRow dr = dt.NewRow();
+                dr[0] = this.get(i).getString();
+            }
+            return dt;
+        }
 
-		protected internal abstract void writeVectorToOutputStream(ExtendedDataOutput @out);
+        protected internal abstract void writeVectorToOutputStream(ExtendedDataOutput @out);
 
 		public AbstractVector(DATA_FORM df)
 		{
@@ -64,6 +76,13 @@ namespace dolphindb.data
 			@out.writeInt(columns());
 			writeVectorToOutputStream(@out);
 		}
+
+        protected DataTable buildTable()
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("dolphinVector", Utils.getSystemType(this.getDataType()));
+            return dt;
+        }
 	}
 
 }

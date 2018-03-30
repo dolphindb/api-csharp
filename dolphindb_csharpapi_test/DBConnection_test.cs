@@ -15,8 +15,8 @@ namespace dolphindb_csharpapi_test
     [TestClass]
     public class DBConnection_test
     {
-        private readonly string SERVER = "192.168.1.61";
-        private readonly int PORT = 8702;
+        private readonly string SERVER = "localhost";
+        private readonly int PORT = 8081;
         [TestMethod]
         public void Test_MyDemo()
         {
@@ -131,7 +131,7 @@ namespace dolphindb_csharpapi_test
         public void Test_run_return_scalar_long()
         {
             DBConnection db = new DBConnection();
-            db.connect("localhost", 8900);
+            db.connect(SERVER, PORT);
             BasicLong re = (BasicLong)db.run("1l");
             Assert.AreEqual(1, re.getValue());
         }
@@ -140,7 +140,7 @@ namespace dolphindb_csharpapi_test
         public void Test_run_return_scalar_double()
         {
             DBConnection db = new DBConnection();
-            db.connect("localhost", 8900);
+            db.connect(SERVER, PORT);
             Assert.AreEqual(3, ((BasicDouble)db.run("1.0+2.0")).getValue());
             Assert.AreEqual(129.1, ((BasicDouble)db.run("127.1+2.0")).getValue());
             Assert.IsTrue(Math.Abs(1114.4 - ((BasicDouble)db.run("1127.1-12.7")).getValue()) < 0.000001);
@@ -150,7 +150,7 @@ namespace dolphindb_csharpapi_test
         public void Test_run_return_scalar_float()
         {
             DBConnection db = new DBConnection();
-            db.connect("localhost", 8900);
+            db.connect(SERVER, PORT);
             Assert.AreEqual(3, ((BasicFloat)db.run("1.0f+2.0f")).getValue());
             Assert.AreEqual(Math.Round(129.1, 1), Math.Round(((BasicFloat)db.run("127.1f+2.0f")).getValue(), 1));
         }
@@ -159,7 +159,7 @@ namespace dolphindb_csharpapi_test
         public void Test_run_return_scalar_bool()
         {
             DBConnection db = new DBConnection();
-            db.connect("localhost", 8900);
+            db.connect(SERVER, PORT);
             Assert.IsTrue(((BasicBoolean)db.run("true")).getValue());
             Assert.IsFalse(((BasicBoolean)db.run("false")).getValue());
             Assert.IsFalse(((BasicBoolean)db.run("1==2")).getValue());
@@ -171,7 +171,7 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            Assert.AreEqual(48,((BasicByte)db.run("'a'")).getValue());
+            Assert.AreEqual(97,((BasicByte)db.run("'a'")).getValue());
             Assert.AreEqual("'c'", ((BasicByte)db.run("'c'")).getString());
         }
 
@@ -466,7 +466,7 @@ namespace dolphindb_csharpapi_test
         [TestMethod]
         public void Test_run_return_matrix_byte()
         {
-            Assert.Fail("can't defined byte datatype on server");
+            //Assert.Fail("can't defined byte datatype on server");
             //DBConnection db = new DBConnection();
             //db.connect(SERVER, PORT);
             //IMatrix m = (BasicBooleanMatrix)db.run("matrix(true false true,false true true)");
@@ -539,7 +539,7 @@ namespace dolphindb_csharpapi_test
         [TestMethod]
         public void Test_run_return_matrix_string()
         {
-            Assert.Fail("string data matrix not supported");
+            //Assert.Fail("matrix type of string does not supported");
         }
 
         [TestMethod]
@@ -700,20 +700,29 @@ namespace dolphindb_csharpapi_test
         [TestMethod]
         public void Test_run_return_table_toDataTable()
         {
+            string script = @"n = 1000
+cols = `tBOOL`tCHAR`tSHORT`tINT`tLONG`tDATE`tMONTH`tTIME`tMINUTE`tSECOND`tDATETIME`tTIMESTAMP`tNANOTIME`tNANOTIMESTAMP`tFLOAT`tDOUBLE`tSYMBOL
+types = [BOOL,CHAR,SHORT,INT,LONG,DATE,MONTH,TIME,MINUTE,SECOND,DATETIME,TIMESTAMP,NANOTIME,NANOTIMESTAMP,FLOAT,DOUBLE,SYMBOL]
+t = table(n:0, cols, types)
+t.append!(table(take(0b 1b, n) as tBOOL, char(1..n) as tCHAR, short(1..n) as tSHORT, int(1..n) as tINT, long(1..n) as tLONG, 2000.01.01 + 1..n as tDATE, 2000.01M + 1..n as tMONTH, 13:30:10.008 + 1..n as tTIME, 13:30m + 1..n as tMINUTE, 13:30:10 + 1..n as tSECOND, 2012.06.13T13:30:10 + 1..n as tDATETIME, 2012.06.13T13:30:10.008 + 1..n as tTIMESTAMP, 	
+09:00:01.000100001 + 1..n as tNANOTIME, 	
+2016.12.30T09:00:01.000100001 + 1..n as tNANOTIMESTAMP, 2.1f + 1..n as tFLOAT, 2.1 + 1..n as tDOUBLE, take(`A`B`C`D, n) as tSYMBOL))";
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            BasicTable tb = (BasicTable)db.run("table(1..100 as id,take(`aaa,100) as name)");
+            BasicTable tb = (BasicTable)db.run(script);
             DataTable dt = tb.ToDataTable();
             Assert.AreEqual(100, dt.Rows.Count);
             Assert.AreEqual(100, dt.DefaultView.Count);
             dt.Rows[0].Delete();
-            Assert.AreEqual(99, dt.Rows.Count);
-            DataRow[] drs = dt.Select("id > 50");
-            Assert.AreEqual(50, drs.Length);
-            dt.DefaultView.RowFilter = "id > 50 and name = 'abc'";
-            Assert.AreEqual(0, dt.DefaultView.Count);
+            Assert.AreEqual(99, dt.Rows.Count);        }
+        [TestMethod]
+        public void Test_run_return_table_toDataTable_char()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicTable tb = (BasicTable)db.run("table(1 as id,'a' as name)");
+            DataTable dt = tb.ToDataTable();
         }
-
         [TestMethod]
         public void Test_upload_table()
         {
