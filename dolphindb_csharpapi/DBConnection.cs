@@ -60,8 +60,16 @@ namespace dolphindb
 
 		public bool isBusy()
 		{
-            return !Monitor.TryEnter(threadLock);
-		}
+            if(Monitor.TryEnter(threadLock))
+            {
+                Monitor.Exit(threadLock);
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
 
 		public bool connect(string hostName, int port)
 		{
