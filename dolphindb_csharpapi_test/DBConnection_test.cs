@@ -735,7 +735,7 @@ t.append!(table(take(0b 1b, n) as tBOOL, char(1..n) as tCHAR, short(1..n) as tSH
             db.connect(SERVER, PORT);
             BasicSet tb = (BasicSet)db.run("set(8 9 9 4 6)");
             DataTable dt = tb.toDataTable();
-            Assert.AreEqual(5, dt.Rows.Count);
+            Assert.AreEqual(4, dt.Rows.Count);
         }
 
         [TestMethod]
