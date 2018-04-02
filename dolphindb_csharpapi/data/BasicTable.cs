@@ -112,7 +112,12 @@ namespace dolphindb.data
 			return columns_.Count;
 		}
 
-		public virtual IVector getColumn(int index)
+        public IList<IVector> getColumns()
+        {
+            return this.columns_;
+        }
+
+        public virtual IVector getColumn(int index)
 		{
 			return columns_[index];
 		}
