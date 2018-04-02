@@ -729,13 +729,52 @@ t.append!(table(take(0b 1b, n) as tBOOL, char(1..n) as tCHAR, short(1..n) as tSH
         }
 
         [TestMethod]
-        public void Test_set_toDataTable()
+        public void Test_set_toDataTable_int()
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            BasicSet tb = (BasicSet)db.run("set(8 9 9 4 6)");
+            BasicSet tb = (BasicSet)db.run("set(8 9 9 5 6)");
             DataTable dt = tb.toDataTable();
             Assert.AreEqual(4, dt.Rows.Count);
+        }
+        [TestMethod]
+        public void Test_set_toDataTable_month()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicSet tb = (BasicSet)db.run("set(2018.09M 2018.08M)");
+            DataTable dt = tb.toDataTable();
+            Assert.AreEqual(2, dt.Rows.Count);
+        }
+
+        [TestMethod]
+        public void Test_set_toDataTable_date()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicSet tb = (BasicSet)db.run("set(2018.09.01 2018.08.01)");
+            DataTable dt = tb.toDataTable();
+            Assert.AreEqual(2, dt.Rows.Count);
+        }
+
+        [TestMethod]
+        public void Test_set_toDataTable_datetime()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicSet tb = (BasicSet)db.run("set(2018.09.01T01:01:01 2018.08.01T01:01:01)");
+            DataTable dt = tb.toDataTable();
+            Assert.AreEqual(2, dt.Rows.Count);
+        }
+
+        [TestMethod]
+        public void Test_set_toDataTable_timestamp()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicSet tb = (BasicSet)db.run("set(2018.09.01T01:01:01.001 2018.08.01T01:01:01.001)");
+            DataTable dt = tb.toDataTable();
+            Assert.AreEqual(2, dt.Rows.Count);
         }
 
         [TestMethod]

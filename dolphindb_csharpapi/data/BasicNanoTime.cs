@@ -31,7 +31,11 @@ namespace dolphindb.data
 			return DATA_TYPE.DT_NANOTIME;
 		}
 
-		public new  DateTime getValue()
+        public override object getObject()
+        {
+            return this.getValue();
+        }
+        public new  DateTime getValue()
 		{
 				if (isNull())
 				{

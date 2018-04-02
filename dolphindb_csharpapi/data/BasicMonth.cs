@@ -23,8 +23,12 @@ namespace dolphindb.data
 		protected internal BasicMonth(int value) : base(value)
 		{
 		}
+        public override object getObject()
+        {
+            return this.getValue();
+        }
 
-		public new DateTime getValue()
+        public new DateTime getValue()
 		{
 				if (isNull())
 				{

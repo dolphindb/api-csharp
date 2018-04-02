@@ -28,6 +28,10 @@ namespace dolphindb.data
         {
             return DATA_TYPE.DT_MINUTE;
         }
+        public override object getObject()
+        {
+            return this.getValue();
+        }
 
         public new DateTime getValue()
         {
