@@ -300,7 +300,7 @@ namespace dolphindb.data
 
         private DataTable buildTable()
         {
-            DataTable dt = buildTable();
+            DataTable dt = new DataTable();
 
             DataColumn dc = new DataColumn("dict_key", Utils.getSystemType(keyType));
             dt.Columns.Add(dc);
