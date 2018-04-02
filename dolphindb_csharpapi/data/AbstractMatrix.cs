@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Data;
 
 namespace dolphindb.data
 {
@@ -309,6 +310,36 @@ namespace dolphindb.data
 			@out.writeInt(columns());
 			writeVectorToOutputStream(@out);
 		}
-	}
+
+        public virtual DataTable toDataTable()
+        {
+            DataTable dt = buildTable();
+            for (int i = 0; i < this.rows(); i++)
+            {
+                DataRow dr = dt.NewRow();
+                for (int j=0;j<this.columns();j++)
+                {
+                    dr[j] = this.get(i,j).getObject();
+                }
+                dt.Rows.Add(dr);
+            }
+            return dt;
+        }
+        protected DataTable buildTable()
+        {
+            DataTable dt = new DataTable();
+            for (int j = 0; j < this.columns(); j++)
+            {
+                dt.Columns.Add(this.columnLabels.get(j).getString(), Utils.getSystemType(this.getDataType()));
+            }
+                
+            return dt;
+        }
+
+        public object getObject()
+        {
+            throw new NotImplementedException();
+        }
+    }
 
 }

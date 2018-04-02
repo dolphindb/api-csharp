@@ -693,7 +693,9 @@ t.append!(table(take(0b 1b, n) as tBOOL, char(1..n) as tCHAR, short(1..n) as tSH
             Assert.AreEqual(100, dt.Rows.Count);
             Assert.AreEqual(100, dt.DefaultView.Count);
             dt.Rows[0].Delete();
-            Assert.AreEqual(99, dt.Rows.Count);        }
+            Assert.AreEqual(99, dt.Rows.Count);
+        }
+
         [TestMethod]
         public void Test_run_return_table_toDataTable_char()
         {
@@ -713,6 +715,47 @@ t.append!(table(take(0b 1b, n) as tBOOL, char(1..n) as tCHAR, short(1..n) as tSH
             db.upload(upObj);
             BasicIntVector v = (BasicIntVector)db.run("table_uploaded.id");
             Assert.AreEqual(100, v.rows());
+        }
+
+
+        [TestMethod]
+        public void Test_dict_toDataTable()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicDictionary tb = (BasicDictionary)db.run("dict(`test,1)");
+            DataTable dt = tb.toDataTable();
+            Assert.AreEqual(1, dt.Rows.Count);
+        }
+
+        [TestMethod]
+        public void Test_set_toDataTable()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicSet tb = (BasicSet)db.run("set(8 9 9 4 6)");
+            DataTable dt = tb.toDataTable();
+            Assert.AreEqual(5, dt.Rows.Count);
+        }
+
+        [TestMethod]
+        public void Test_vector_toDataTable()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicIntVector tb = (BasicIntVector)db.run("1 2 3 4 5");
+            DataTable dt = tb.toDataTable();
+            Assert.AreEqual(5, dt.Rows.Count);
+        }
+        [TestMethod]
+        public void Test_martix_toDataTable()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicIntMatrix tb = (BasicIntMatrix)db.run("matrix(1 2 3, 4 5 6)");
+            DataTable dt = tb.toDataTable();
+            Assert.AreEqual(2, dt.Rows.Count);
+            Assert.AreEqual(3, dt.Columns.Count);
         }
     }
 }

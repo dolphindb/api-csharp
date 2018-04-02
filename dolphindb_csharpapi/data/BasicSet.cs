@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Data;
 
 namespace dolphindb.data
 {
@@ -131,6 +132,32 @@ namespace dolphindb.data
 			@out.writeShort(flag);
             _keys.write(@out);
 		}
-	}
+
+        public DataTable toDataTable()
+        {
+            DataTable dt = buildTable();
+
+            foreach (IScalar item in this.set)
+            {
+                DataRow dr = dt.NewRow();
+                dr["set_key"] = item.getObject();
+                dt.Rows.Add(dr);
+            }
+            return dt;
+        }
+        private DataTable buildTable()
+        {
+            DataTable dt = buildTable();
+
+            DataColumn dc = new DataColumn("set_key", Utils.getSystemType(keyType));
+            dt.Columns.Add(dc);
+
+            return dt;
+        }
+        public object getObject()
+        {
+            throw new NotImplementedException();
+        }
+    }
 
 }

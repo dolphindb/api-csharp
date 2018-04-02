@@ -22,10 +22,12 @@ namespace dolphindb.data
         public virtual DataTable toDataTable()
         {
             DataTable dt = buildTable();
+            
             for(int i = 0; i < this.rows(); i++)
             {
                 DataRow dr = dt.NewRow();
-                dr[0] = this.get(i).getString();
+                dr[0] = this.get(i).getObject();
+                dt.Rows.Add(dr);
             }
             return dt;
         }
@@ -83,6 +85,11 @@ namespace dolphindb.data
             dt.Columns.Add("dolphinVector", Utils.getSystemType(this.getDataType()));
             return dt;
         }
-	}
+
+        public object getObject()
+        {
+            throw new NotImplementedException();
+        }
+    }
 
 }

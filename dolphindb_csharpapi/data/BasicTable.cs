@@ -416,6 +416,10 @@ namespace dolphindb.data
             return data;
         }
 
+        public object getObject()
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

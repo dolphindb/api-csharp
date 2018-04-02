@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Data;
 
 namespace dolphindb.data
 {
@@ -268,6 +269,47 @@ namespace dolphindb.data
 		}
 
         public string getString()
+        {
+            throw new NotImplementedException();
+        }
+
+        public DataTable toDataTable()
+        {
+            DataTable dt = buildTable();
+            int itemCount = this.keys().Count;
+            IScalar[] keys = new IScalar[itemCount];
+            IEntity[] values = new IEntity[itemCount];
+            this.keys().CopyTo(keys,0);
+            this.values().CopyTo(values, 0);
+            if (itemCount > 0)
+            {
+                if (values[0].isScalar() == false)
+                {
+                    throw new InvalidCastException("Only scalar value supported!");
+                }
+            }
+            for (int i=0;i<itemCount;i++)
+            {
+                DataRow dr = dt.NewRow();
+                dr["dict_key"] = keys[i].getObject();
+                dr["dict_value"] = values[i].getObject();
+                dt.Rows.Add(dr);
+            }
+            return dt;
+        }
+
+        private DataTable buildTable()
+        {
+            DataTable dt = buildTable();
+
+            DataColumn dc = new DataColumn("dict_key", Utils.getSystemType(keyType));
+            dt.Columns.Add(dc);
+            dc = new DataColumn("dict_value", Utils.getSystemType(valueType));
+            dt.Columns.Add(dc);
+
+            return dt;
+        }
+        public object getObject()
         {
             throw new NotImplementedException();
         }

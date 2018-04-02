@@ -65,5 +65,12 @@
         }
 
         public abstract string getString();
+
+        public virtual System.Data.DataTable toDataTable()
+        {
+            throw new NotImplementedException("the scalar can not be convert to datatable");
+        }
+
+        public abstract object getObject();
     }
 }

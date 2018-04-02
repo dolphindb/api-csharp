@@ -98,6 +98,11 @@ namespace dolphindb.data
 		{
             return value.CompareTo(o.value);
         }
-	}
+
+        public override object getObject()
+        {
+            return this.getValue();
+        }
+    }
 
 }

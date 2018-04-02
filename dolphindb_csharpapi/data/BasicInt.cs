@@ -93,6 +93,10 @@ namespace dolphindb.data
         {
             return value.ToString();
         }
+        public override object getObject()
+        {
+            return this.getValue();
+        }
     }
 
 }
