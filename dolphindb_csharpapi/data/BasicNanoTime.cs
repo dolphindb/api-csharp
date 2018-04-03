@@ -35,11 +35,11 @@ namespace dolphindb.data
         {
             return this.getValue();
         }
-        public new  DateTime getValue()
+        public new  TimeSpan getValue()
 		{
 				if (isNull())
 				{
-					return DateTime.MinValue;
+					return TimeSpan.MinValue;
 				}
 				else
 				{

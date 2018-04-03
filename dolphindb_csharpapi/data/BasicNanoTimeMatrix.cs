@@ -24,7 +24,7 @@ namespace dolphindb.data
 			setLong(row, column, Utils.countNanoseconds(value));
 		}
 
-		public virtual DateTime getNanoTime(int row, int column)
+		public virtual TimeSpan getNanoTime(int row, int column)
 		{
 			return Utils.parseNanoTime(getLong(row, column));
 		}

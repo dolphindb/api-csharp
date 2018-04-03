@@ -42,11 +42,11 @@ namespace dolphindb.data
 			return new BasicNanoTime(getLong(index));
 		}
 
-		public virtual DateTime getNanoTime(int index)
+		public virtual TimeSpan getNanoTime(int index)
 		{
 			if (isNull(index))
 			{
-				return DateTime.MinValue;
+				return TimeSpan.MinValue;
 			}
 			else
 			{

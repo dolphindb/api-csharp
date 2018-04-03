@@ -203,7 +203,7 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            Assert.AreEqual(new DateTime(1970, 01, 01, 14, 48, 00), ((BasicMinute)db.run("14:48m")).getValue());
+            Assert.AreEqual(new DateTime(1970, 01, 01, 14, 48, 00).TimeOfDay, ((BasicMinute)db.run("14:48m")).getValue());
         }
 
         [TestMethod]
@@ -211,7 +211,7 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            Assert.AreEqual(new DateTime(1970, 01, 01, 15, 41, 45), ((BasicSecond)db.run("15:41:45")).getValue());
+            Assert.AreEqual(new DateTime(1970, 01, 01, 15, 41, 45).TimeOfDay, ((BasicSecond)db.run("15:41:45")).getValue());
         }
 
         [TestMethod]
@@ -219,7 +219,7 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            Assert.AreEqual(new DateTime(1970, 01, 01, 15, 41, 45, 123), ((BasicTime)db.run("15:41:45.123")).getValue());
+            Assert.AreEqual(new DateTime(1970, 01, 01, 15, 41, 45, 123).TimeOfDay, ((BasicTime)db.run("15:41:45.123")).getValue());
         }
 
         [TestMethod]
@@ -237,7 +237,7 @@ namespace dolphindb_csharpapi_test
             db.connect(SERVER, PORT);
             DateTime dt = new DateTime(1970, 1, 1, 15, 41, 45, 123);
             long tickCount = dt.Ticks;
-            Assert.AreEqual(new DateTime(tickCount + 4567L), (((BasicNanoTime)db.run("15:41:45.123456789")).getValue()));
+            Assert.AreEqual(new DateTime(tickCount + 4567L).TimeOfDay, (((BasicNanoTime)db.run("15:41:45.123456789")).getValue()));
         }
 
         [TestMethod]
@@ -347,7 +347,7 @@ namespace dolphindb_csharpapi_test
             IVector v = (BasicTimeVector)db.run("10:57:01.001 10:58:02.002 10:59:03.003");
             Assert.IsTrue(v.isVector());
             Assert.AreEqual(3, v.rows());
-            Assert.AreEqual(new DateTime(1970, 1, 1, 10, 58, 02, 002), ((BasicTime)v.get(1)).getValue());
+            Assert.AreEqual(new DateTime(1970, 1, 1, 10, 58, 02, 002).TimeOfDay, ((BasicTime)v.get(1)).getValue());
         }
 
         [TestMethod]
@@ -360,7 +360,7 @@ namespace dolphindb_csharpapi_test
             Assert.AreEqual(3, v.rows());
             DateTime dt = new DateTime(1970, 1, 1, 15, 41, 45, 123);
             long tickCount = dt.Ticks;
-            Assert.AreEqual(new DateTime(tickCount + 4568L), ((BasicNanoTime)v.get(1)).getValue());
+            Assert.AreEqual(new DateTime(tickCount + 4568L).TimeOfDay, ((BasicNanoTime)v.get(1)).getValue());
         }
         [TestMethod]
         public void Test_run_return_vector_minute()
@@ -370,7 +370,7 @@ namespace dolphindb_csharpapi_test
             IVector v = (BasicMinuteVector)db.run("10:47m 10:48m 10:49m");
             Assert.IsTrue(v.isVector());
             Assert.AreEqual(3, v.rows());
-            Assert.AreEqual(new DateTime(1970, 01, 01, 10, 48, 0), ((BasicMinute)v.get(1)).getValue());
+            Assert.AreEqual(new DateTime(1970, 01, 01, 10, 48, 0).TimeOfDay, ((BasicMinute)v.get(1)).getValue());
         }
 
         [TestMethod]
@@ -381,7 +381,7 @@ namespace dolphindb_csharpapi_test
             IVector v = (BasicSecondVector)db.run("10:47:02 10:48:03 10:49:04");
             Assert.IsTrue(v.isVector());
             Assert.AreEqual(3, v.rows());
-            Assert.AreEqual(new DateTime(1970, 01, 01, 10, 48, 03), ((BasicSecond)v.get(1)).getValue());
+            Assert.AreEqual(new DateTime(1970, 01, 01, 10, 48, 03).TimeOfDay, ((BasicSecond)v.get(1)).getValue());
         }
 
         [TestMethod]
@@ -554,7 +554,8 @@ namespace dolphindb_csharpapi_test
             Assert.IsTrue(m.isMatrix());
             Assert.AreEqual(3, m.rows());
             Assert.AreEqual(2, m.columns());
-            Assert.AreEqual(new DateTime(1970, 1, 1, 10, 58, 01, 001), ((BasicTime)m.get(0, 1)).getValue());
+            BasicTime bt = (BasicTime)m.get(0, 1);
+            Assert.AreEqual(new DateTime(1970, 1, 1, 10, 58, 01, 001).TimeOfDay, bt.getValue());
         }
 
         [TestMethod]
@@ -568,7 +569,7 @@ namespace dolphindb_csharpapi_test
             Assert.AreEqual(2, m.columns());
             DateTime dt = new DateTime(1970, 1, 1, 15, 41, 45, 123);
             long tickCount = dt.Ticks;
-            Assert.AreEqual(new DateTime(tickCount + 9567L), ((BasicNanoTime)m.get(0, 1)).getValue());
+            Assert.AreEqual(new DateTime(tickCount + 9567L).TimeOfDay, ((BasicNanoTime)m.get(0, 1)).getValue());
         }
 
         [TestMethod]
@@ -617,7 +618,7 @@ namespace dolphindb_csharpapi_test
             Assert.IsTrue(m.isMatrix());
             Assert.AreEqual(3, m.rows());
             Assert.AreEqual(2, m.columns());
-            Assert.AreEqual(new DateTime(1970, 1, 1, 16, 47, 0), ((BasicMinute)m.get(0, 1)).getValue());
+            Assert.AreEqual(new TimeSpan(16, 47, 0), ((BasicMinute)m.get(0, 1)).getValue());
         }
 
         [TestMethod]
@@ -629,7 +630,7 @@ namespace dolphindb_csharpapi_test
             Assert.IsTrue(m.isMatrix());
             Assert.AreEqual(3, m.rows());
             Assert.AreEqual(2, m.columns());
-            Assert.AreEqual(new DateTime(1970, 1, 1, 16, 47, 02), ((BasicSecond)m.get(0, 1)).getValue());
+            Assert.AreEqual(new TimeSpan(16, 47, 02), ((BasicSecond)m.get(0, 1)).getValue());
         }
 
         [TestMethod]
@@ -795,6 +796,18 @@ t.append!(table(take(0b 1b, n) as tBOOL, char(1..n) as tCHAR, short(1..n) as tSH
             DataTable dt = tb.toDataTable();
             Assert.AreEqual(3, dt.Rows.Count);
             Assert.AreEqual(2, dt.Columns.Count);
+        }
+
+        [TestMethod]
+        public void Test_pair_getString_int()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            IEntity tb = (IEntity)db.run("1:2");
+            if (tb.isPair())
+            {
+                Assert.AreEqual("[1,2]", tb.getString());
+            }
         }
     }
 }

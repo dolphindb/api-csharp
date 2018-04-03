@@ -122,6 +122,7 @@ namespace dolphindb.data
             return this.getValue();
         }
 
+
     }
 
 }

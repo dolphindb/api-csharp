@@ -7,7 +7,7 @@ namespace dolphindb.data
     {
         private static string format = "yyyy.MM.dd HH:mm";
 
-        public BasicMinute(DateTime value) : base(Utils.countMinutes(value))
+        public BasicMinute(TimeSpan value) : base(Utils.countMinutes(value))
         {
         }
 
@@ -33,11 +33,11 @@ namespace dolphindb.data
             return this.getValue();
         }
 
-        public new DateTime getValue()
+        public new TimeSpan getValue()
         {
             if (isNull())
             {
-                return DateTime.MinValue;
+                return TimeSpan.MinValue;
             }
             else
             {

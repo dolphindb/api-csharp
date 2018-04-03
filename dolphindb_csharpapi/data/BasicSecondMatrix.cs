@@ -18,12 +18,12 @@ namespace dolphindb.data
         {
         }
 
-        public virtual void setSecond(int row, int column, DateTime value)
+        public virtual void setSecond(int row, int column, TimeSpan value)
         {
-            setInt(row, column, Utils.countSeconds(value));
+            setInt(row, column, Utils.countSeconds(value.Hours,value.Minutes,value.Seconds));
         }
 
-        public virtual DateTime getSecond(int row, int column)
+        public virtual TimeSpan getSecond(int row, int column)
         {
             return Utils.parseSecond(getInt(row, column));
         }

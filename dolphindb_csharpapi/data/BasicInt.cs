@@ -97,6 +97,11 @@ namespace dolphindb.data
         {
             return this.getValue();
         }
+
+        public override string ToString()
+        {
+            return this.getString(); 
+        }
     }
 
 }

@@ -220,14 +220,15 @@ namespace dolphindb.data
 			return ((hour * 60 + minute) * 60 + second) * 1000 + millisecond;
 		}
 
-        public static DateTime parseTime(int milliseconds)
+        public static TimeSpan parseTime(int milliseconds)
         {
-            return new DateTime(1970,1,1,milliseconds / 3600000, milliseconds / 60000 % 60, milliseconds / 1000 % 60, milliseconds % 1000);
+            return new TimeSpan(0,milliseconds / 3600000, milliseconds / 60000 % 60, milliseconds / 1000 % 60, milliseconds % 1000);
         }
 
-        public static DateTime parseNanoTime(long nanoOfDay)
+        public static TimeSpan parseNanoTime(long nanoOfDay)
         {
-            return new DateTime(new DateTime(DEFALUT_YEAR,DEFAULT_MONTH,DEFAULT_DAY).Ticks + (long)(nanoOfDay/100));
+            DateTime dt = new DateTime(new DateTime(DEFALUT_YEAR, DEFAULT_MONTH, DEFAULT_DAY).Ticks + (long)(nanoOfDay / 100));
+            return dt.TimeOfDay;
         }
 
         public static int countSeconds(int hour, int minute, int second)
@@ -235,14 +236,14 @@ namespace dolphindb.data
 			return (hour * 60 + minute) * 60 + second;
 		}
 
-		public static DateTime parseSecond(int seconds)
+		public static TimeSpan parseSecond(int seconds)
 		{
-			return new DateTime(DEFALUT_YEAR, DEFAULT_MONTH, DEFAULT_DAY,seconds / 3600, seconds % 3600 / 60, seconds % 60);
+			return new TimeSpan(seconds / 3600, seconds % 3600 / 60, seconds % 60);
 		}
 
-		public static int countMinutes(DateTime time)
+		public static int countMinutes(TimeSpan time)
 		{
-			return countMinutes(time.Hour, time.Minute);
+			return countMinutes(time.Hours, time.Minutes);
 		}
 
 		public static int countMinutes(int hour, int minute)
@@ -250,9 +251,9 @@ namespace dolphindb.data
 			return hour * 60 + minute;
 		}
 
-		public static DateTime parseMinute(int minutes)
+		public static TimeSpan parseMinute(int minutes)
 		{
-		    return new DateTime(DEFALUT_YEAR,DEFAULT_MONTH,DEFAULT_DAY, minutes / 60, minutes % 60,DEFAULT_SECOND);
+		    return new TimeSpan(minutes / 60, minutes % 60,DEFAULT_SECOND);
 		}
 
 
