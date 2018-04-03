@@ -280,14 +280,17 @@ namespace dolphindb.data
                     break;
                 case DATA_TYPE.DT_DATE:
                 case DATA_TYPE.DT_MONTH:
+
+                case DATA_TYPE.DT_DATETIME:
+                case DATA_TYPE.DT_TIMESTAMP:
+                case DATA_TYPE.DT_NANOTIMESTAMP:
+                    colType = Type.GetType("System.DateTime");
+                    break;
                 case DATA_TYPE.DT_TIME:
                 case DATA_TYPE.DT_MINUTE:
                 case DATA_TYPE.DT_SECOND:
-                case DATA_TYPE.DT_DATETIME:
-                case DATA_TYPE.DT_TIMESTAMP:
                 case DATA_TYPE.DT_NANOTIME:
-                case DATA_TYPE.DT_NANOTIMESTAMP:
-                    colType = Type.GetType("System.DateTime");
+                    colType = Type.GetType("System.TimeSpan");
                     break;
                 case DATA_TYPE.DT_FLOAT:
                     colType = Type.GetType("System.Double");
@@ -330,6 +333,10 @@ namespace dolphindb.data
             else if (stype == Type.GetType("System.DateTime"))
             {
                 return DATA_TYPE.DT_DATETIME;
+            }
+            else if (stype == Type.GetType("System.TimeSpan"))
+            {
+                return DATA_TYPE.DT_SECOND;
             }
             else if (stype == Type.GetType("System.Int16"))
             {
