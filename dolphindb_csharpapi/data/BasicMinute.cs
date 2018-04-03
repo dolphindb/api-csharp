@@ -5,7 +5,7 @@ namespace dolphindb.data
 {
     public class BasicMinute : BasicInt
     {
-        private static string format = "HH:mm";
+        private static string format = "c";
 
         public BasicMinute(TimeSpan value) : base(Utils.countMinutes(value))
         {

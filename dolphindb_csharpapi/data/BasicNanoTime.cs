@@ -6,7 +6,7 @@ namespace dolphindb.data
 
 	public class BasicNanoTime : BasicLong
 	{
-		private static string format = "HH:mm:ss.fffffff";
+		private static string format = "c";
 
 		public BasicNanoTime(DateTime value) : base(Utils.countNanoseconds(value))
 		{
