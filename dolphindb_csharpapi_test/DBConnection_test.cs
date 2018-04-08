@@ -15,8 +15,8 @@ namespace dolphindb_csharpapi_test
     [TestClass]
     public class DBConnection_test
     {
-        private readonly string SERVER = "localhost";
-        private readonly int PORT = 8081;
+        private readonly string SERVER = "192.168.1.61";
+        private readonly int PORT = 8702;
         [TestMethod]
         public void Test_MyDemo()
         {
@@ -792,10 +792,11 @@ t.append!(table(take(0b 1b, n) as tBOOL, char(1..n) as tCHAR, short(1..n) as tSH
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            BasicIntMatrix tb = (BasicIntMatrix)db.run("matrix(1 2 3, 4 5 6)");
+            BasicIntMatrix tb = (BasicIntMatrix)db.run("rename!(1..9$3:3,`a`b`c)");
             DataTable dt = tb.toDataTable();
             Assert.AreEqual(3, dt.Rows.Count);
-            Assert.AreEqual(2, dt.Columns.Count);
+            Assert.AreEqual(3, dt.Columns.Count);
+            Assert.AreEqual("a", dt.Columns[0].ColumnName);
         }
 
         [TestMethod]

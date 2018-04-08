@@ -330,23 +330,14 @@ namespace dolphindb.data
             DataTable dt = new DataTable();
             string[] colnames = new string[this._columns];
             if(this.columnLabels == null)
-            {
                 for (int c = 0; c < this._columns; c++)
-                {
-                    if(this.columnLabels == null)
-                    { 
-                        colnames[c] = "col" + c.ToString();
-                    }
-                    else
-                    {
-                        colnames[c] = this.columnLabels.get(c).getString();
-                    }
-                }
-            }
+                    colnames[c] = "col" + c.ToString();
+            else
+                for (int c = 0;c < this._columns; c++)
+                    colnames[c] = this.columnLabels.get(c).getString();
+
             for (int j = 0; j < this.columns(); j++)
-            {
                 dt.Columns.Add(colnames[j], Utils.getSystemType(this.getDataType()));
-            }
                 
             return dt;
         }
