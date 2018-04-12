@@ -9,3 +9,6 @@
 /packages
 /.vs/api-csharp/v15
 /dolphindb_csharpapi_test/obj/Release
+*.cache
+*.cache
+.vs/dolphindb_csharpapi/v15/.suo
