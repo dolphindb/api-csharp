@@ -70,11 +70,11 @@ public void testStringVector(){
 
 IVector v = (BasicStringVector)conn.run("take(`IBM`MSFT`GOOG`BIDU, 10)");
 
-       Assert.IsTrue(v.isVector());
+		Assert.IsTrue(v.isVector());
 
-      Assert.AreEqual(10, v.rows());
+		Assert.AreEqual(10, v.rows());
 
-      Assert.AreEqual("MSFT", ((BasicString)v.get(1)).getValue());
+		Assert.AreEqual("MSFT", ((BasicString)v.get(1)).getValue());
 
 }
 ```
@@ -85,26 +85,26 @@ Similarly, you can work with a double vector or a tuple.
 ```
 public void testDoubleVector(){
 
-        IVector v = (BasicDoubleVector)conn.run("1.123 2.2234 3.4567");
+		IVector v = (BasicDoubleVector)conn.run("1.123 2.2234 3.4567");
 
-       Assert.IsTrue(v.isVector());
+		Assert.IsTrue(v.isVector());
 
-       Assert.AreEqual(3, v.rows());
+		Assert.AreEqual(3, v.rows());
 
-       Assert.AreEqual(2.2234, Math.Round(((BasicDouble)v.get(1)).getValue(), 4));
+		Assert.AreEqual(2.2234, Math.Round(((BasicDouble)v.get(1)).getValue(), 4));
 
 }
 
 
 public void testAnyVector(){
 
-       BasicAnyVector v = (BasicAnyVector)conn.run("[1 2 3,3.4 3.5 3.6]");
+		BasicAnyVector v = (BasicAnyVector)conn.run("[1 2 3,3.4 3.5 3.6]");
 
-      Assert.AreEqual(2, v.rows());
+		Assert.AreEqual(2, v.rows());
 
-      Assert.AreEqual(1, v.columns());
+		Assert.AreEqual(1, v.columns());
 
-      Assert.AreEqual(3.4, ((BasicDouble)((BasicDoubleVector)v.getEntity(1)).get(0)).getValue());
+		Assert.AreEqual(3.4, ((BasicDouble)((BasicDoubleVector)v.getEntity(1)).get(0)).getValue());
 
 }
 ```
@@ -116,11 +116,11 @@ public void testAnyVector(){
 ```
 public void testSet(){
 
-       BasicSet tb = (BasicSet)conn.run("set(8 9 9 5 6)");
+		BasicSet tb = (BasicSet)conn.run("set(8 9 9 5 6)");
 
-      DataTable dt = tb.toDataTable();
+		DataTable dt = tb.toDataTable();
 
-      Assert.AreEqual(4, dt.Rows.Count);
+		Assert.AreEqual(4, dt.Rows.Count);
 
 }
 ```
@@ -136,13 +136,13 @@ To access an element from an integer matrix, use getInt(row, col). To get the nu
 ```
 public void testIntMatrix(){
 
-       BasicIntMatrix tb = (BasicIntMatrix)conn.run("1..9$3:3");
+		BasicIntMatrix tb = (BasicIntMatrix)conn.run("1..9$3:3");
 
-      DataTable dt = tb.toDataTable();
+		DataTable dt = tb.toDataTable();
 
-      Assert.AreEqual(3, dt.Rows.Count);
+		Assert.AreEqual(3, dt.Rows.Count);
 
-      Assert.AreEqual(3, dt.Columns.Count);
+		Assert.AreEqual(3, dt.Columns.Count);
 
 }
 ```
@@ -155,7 +155,7 @@ To get all keys and values from a dictionary, use functions keys() and values() 
 ```
 public void testDictionary(){
 
-       BasicDictionary tb = (BasicDictionary)conn.run("dict(1 2 3 4,5 6 7 8)");
+      BasicDictionary tb = (BasicDictionary)conn.run("dict(1 2 3 4,5 6 7 8)");
 
       DataTable dt = tb.toDataTable();
 
@@ -174,11 +174,11 @@ To get a table column, use method table.getColumn(index); to get column names, u
 ```
 public void testTable(){
 
-BasicTable tb = (BasicTable)conn.run("table(1 as id,'a' as name)");
+		BasicTable tb = (BasicTable)conn.run("table(1 as id,'a' as name)");
 
-DataTable dt = tb.toDataTable();
+		DataTable dt = tb.toDataTable();
 
-Assert.AreEqual(1, dt.Rows.Count);
+		Assert.AreEqual(1, dt.Rows.Count);
 }
 
 
@@ -215,7 +215,7 @@ We can call either a DolphinDB built-in function or a user defined function. The
 ```
 public void testFunction(){
 
-       List<IEntity> args = new List<IEntity>(1);
+      List<IEntity> args = new List<IEntity>(1);
 
       BasicDoubleVector vec = new BasicDoubleVector(3);
 
@@ -247,7 +247,7 @@ We can upload a binary data object to a DolphinDB server and assign it to a vari
 ```
 public void testUpload(){
 
-       BasicTable tb = (BasicTable)conn.run("table(1..100 as id,take(`aaa,100) as name)");
+      BasicTable tb = (BasicTable)conn.run("table(1..100 as id,take(`aaa,100) as name)");
 
       Dictionary<string, IEntity> upObj = new Dictionary<string, IEntity>();
 
