@@ -1,9 +1,17 @@
-﻿using dolphindb.io;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace dolphindb.data
+namespace com.xxdb.data
 {
+
+	using ExtendedDataInput = com.xxdb.io.ExtendedDataInput;
+
+
+	/// 
+	/// <summary>
+	/// Corresponds to DolphinDB nanotimestamp vector
+	/// 
+	/// </summary>
 
 	public class BasicNanoTimestampVector : BasicLongVector
 	{
@@ -24,21 +32,29 @@ namespace dolphindb.data
 		{
 		}
 
+//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
+//ORIGINAL LINE: protected BasicNanoTimestampVector(Entity_DATA_FORM df, com.xxdb.io.ExtendedDataInput in) throws java.io.IOException
 		protected internal BasicNanoTimestampVector(DATA_FORM df, ExtendedDataInput @in) : base(df, @in)
 		{
 		}
 
-		public override DATA_CATEGORY getDataCategory()
+		public override DATA_CATEGORY DataCategory
 		{
-			return DATA_CATEGORY.TEMPORAL;
+			get
+			{
+				return DATA_CATEGORY.TEMPORAL;
+			}
 		}
 
-		public override DATA_TYPE getDataType()
+		public override DATA_TYPE DataType
 		{
-			return DATA_TYPE.DT_NANOTIMESTAMP;
+			get
+			{
+				return DATA_TYPE.DT_NANOTIMESTAMP;
+			}
 		}
 
-		public override IScalar get(int index)
+		public override Scalar get(int index)
 		{
 			return new BasicNanoTimestamp(getLong(index));
 		}
@@ -47,7 +63,7 @@ namespace dolphindb.data
 		{
 			if (isNull(index))
 			{
-				return DateTime.MinValue;
+				return null;
 			}
 			else
 			{
@@ -60,9 +76,12 @@ namespace dolphindb.data
 			setLong(index, Utils.countNanoseconds(dt));
 		}
 
-		public override Type getElementClass()
+		public override Type ElementClass
 		{
-			return typeof(BasicNanoTimestamp);
+			get
+			{
+				return typeof(BasicNanoTimestamp);
+			}
 		}
 	}
 

@@ -12,14 +12,9 @@ namespace dolphindb.data
 		private IList<IVector> columns_ = new List<IVector>();
 		private IList<string> names_ = new List<string>();
 		private IDictionary<string, int?> name2index_ = new Dictionary<string, int?>();
-        
-        //
+
         private string _tableName = "tmpTb_" + System.Guid.NewGuid();
-        public BasicTable(DataTable dt)
-        {
-            this.loadDataTable(dt);
-        }
-        public BasicTable(ExtendedDataInput @in)
+		public BasicTable(ExtendedDataInput @in)
 		{
 			int rows = @in.readInt();
 			int cols = @in.readInt();
@@ -112,12 +107,7 @@ namespace dolphindb.data
 			return columns_.Count;
 		}
 
-        public IList<IVector> getColumns()
-        {
-            return this.columns_;
-        }
-
-        public virtual IVector getColumn(int index)
+		public virtual IVector getColumn(int index)
 		{
 			return columns_[index];
 		}
@@ -248,7 +238,7 @@ namespace dolphindb.data
 		public virtual void write(ExtendedDataOutput @out)
 		{
 			int flag = ((int)DATA_FORM.DF_TABLE << 8) + (int)getDataType();
-			@out.writeShort(flag);
+			@out.writeShort((short)flag);
 			@out.writeInt(rows());
 			@out.writeInt(columns());
 			@out.writeString(""); //table name
@@ -261,18 +251,15 @@ namespace dolphindb.data
 				vector.write(@out);
 			}
 		}
-        /// <summary>
-        /// transfer data to datatable
-        /// </summary>
-        /// <returns></returns>
-        public DataTable toDataTable()
+
+        public DataTable ToDataTable()
         {
             DataTable dt = new DataTable(_tableName);
             foreach (string fieldName in names_)
             {
                 int i = name2index_[fieldName].Value;
                 DATA_TYPE dtype = columns_[i].getDataType();
-                DataColumn dc = new DataColumn(fieldName, Utils.getSystemType(dtype));
+                DataColumn dc = new DataColumn(fieldName, getDataTableType(dtype));
                 dt.Columns.Add(dc);
             }
             if (columns_.Count == 0) return null;//table columns not exists
@@ -317,114 +304,60 @@ namespace dolphindb.data
             }
             return dt;
         }
-        /// <summary>
-        /// load data from datatable
-        /// </summary>
-        /// <param name="dt">the datatable to load into basicTable</param>
-        public void loadDataTable(DataTable dt)
+
+        private Type getDataTableType(DATA_TYPE dtype)
         {
-            string tableName = dt.TableName;
-            DataView dv = dt.DefaultView;
-            int rowCount = dt.Rows.Count;
-            int colCount = dt.Columns.Count;
-            for (int colIndex = 0;colIndex < colCount; colIndex ++)
+            Type colType = null;
+            switch (dtype)
             {
-                
-                Type t = dt.Columns[colIndex].DataType;
-                IVector curColumn = getDolphinDBVectorBySystemType(t, rowCount);
-
-                for(int rowIndex = 0; rowIndex < rowCount; rowIndex++)
-                {
-                    curColumn.set(rowIndex, getDolphinDBScalarBySystemType(t, dv[rowIndex][colIndex]));
-                }
-                this.columns_.Add(curColumn);
-                this.names_.Add(dt.Columns[colIndex].ColumnName);
-                KeyValuePair<String, int?> colNameIndex = new KeyValuePair<string, int?>(dt.Columns[colIndex].ColumnName, colIndex);
-                this.name2index_.Add(colNameIndex);
+                case DATA_TYPE.DT_BOOL:
+                    colType = Type.GetType("System.Boolean");
+                    break;
+                case DATA_TYPE.DT_BYTE:
+                    colType = Type.GetType("System.Byte");
+                    break;
+                case DATA_TYPE.DT_SHORT:
+                    colType = Type.GetType("System.Int16");
+                    break;
+                case DATA_TYPE.DT_INT:
+                    colType = Type.GetType("System.Int32");
+                    break;
+                case DATA_TYPE.DT_LONG:
+                    colType = Type.GetType("System.Int64");
+                    break;
+                case DATA_TYPE.DT_DATE:
+                case DATA_TYPE.DT_MONTH:
+                case DATA_TYPE.DT_TIME:
+                case DATA_TYPE.DT_MINUTE:
+                case DATA_TYPE.DT_SECOND:
+                case DATA_TYPE.DT_DATETIME:
+                case DATA_TYPE.DT_TIMESTAMP:
+                case DATA_TYPE.DT_NANOTIME:
+                case DATA_TYPE.DT_NANOTIMESTAMP:
+                    colType = Type.GetType("System.String");
+                    break;
+                case DATA_TYPE.DT_FLOAT:
+                    colType = Type.GetType("System.Double");
+                    break;
+                case DATA_TYPE.DT_DOUBLE:
+                    colType = Type.GetType("System.Double");
+                    break;
+                case DATA_TYPE.DT_SYMBOL:
+                case DATA_TYPE.DT_STRING:
+                case DATA_TYPE.DT_FUNCTIONDEF:
+                case DATA_TYPE.DT_HANDLE:
+                case DATA_TYPE.DT_CODE:
+                case DATA_TYPE.DT_DATASOURCE:
+                case DATA_TYPE.DT_RESOURCE:
+                case DATA_TYPE.DT_ANY:
+                case DATA_TYPE.DT_DICTIONARY:
+                case DATA_TYPE.DT_OBJECT:
+                default:
+                    colType = Type.GetType("System.String");
+                    break;
             }
+            return colType;
         }
-
-
-        private IVector getDolphinDBVectorBySystemType(Type stype,int rowCount)
-        {
-            IVector v = null;
-            if (stype == Type.GetType("System.Boolean"))
-            {
-                v = new BasicBooleanVector(rowCount);
-            }
-            else if (stype == Type.GetType("System.Byte"))
-            {
-                v = new BasicByteVector(rowCount);
-            }
-            else if (stype == Type.GetType("System.Double"))
-            {
-                v = new BasicDoubleVector(rowCount);
-            }
-            else if (stype == Type.GetType("System.DateTime"))
-            {
-                v = new BasicDateTimeVector(rowCount);
-            }
-            else if (stype == Type.GetType("System.Int16"))
-            {
-                v = new BasicShortVector(rowCount);
-            }
-            else if (stype == Type.GetType("System.Int32"))
-            {
-                v = new BasicIntVector(rowCount);
-            }
-            else if (stype == Type.GetType("System.Int64"))
-            {
-                v = new BasicLongVector(rowCount);
-            }
-            else
-            {
-                v = new BasicStringVector(rowCount);
-            }
-            return v;
-        }
-
-        private IScalar getDolphinDBScalarBySystemType(Type stype,object value)
-        {
-            IScalar data = null;
-            if (stype == Type.GetType("System.Boolean"))
-            {
-                data = new BasicBoolean(Convert.ToBoolean(value));
-            }
-            else if (stype == Type.GetType("System.Byte"))
-            {
-                data = new BasicByte(Convert.ToByte(value));
-            }
-            else if (stype == Type.GetType("System.Double"))
-            {
-                data = new BasicDouble(Convert.ToDouble(value));
-            }
-            else if (stype == Type.GetType("System.DateTime"))
-            {
-                data = new BasicDateTime(Convert.ToDateTime(value));
-            }
-            else if (stype == Type.GetType("System.Int16"))
-            {
-                data = new BasicShort(Convert.ToInt16(value));
-            }
-            else if (stype == Type.GetType("System.Int32"))
-            {
-                data = new BasicInt(Convert.ToInt32(value));
-            }
-            else if (stype == Type.GetType("System.Int64"))
-            {
-                data = new BasicLong(Convert.ToInt64(value));
-            }
-            else
-            {
-                data = new BasicString(value.ToString());
-            }
-            return data;
-        }
-
-        public object getObject()
-        {
-            throw new NotImplementedException();
-        }
-    }
+	}
 
 }

@@ -5,9 +5,9 @@ namespace dolphindb.data
 {
     public class BasicMinute : BasicInt
     {
-        private static string format = "c";
+        private static string format = "HH:mm'm'";
 
-        public BasicMinute(TimeSpan value) : base(Utils.countMinutes(value))
+        public BasicMinute(DateTime value) : base(Utils.countMinutes(value))
         {
         }
 
@@ -28,16 +28,12 @@ namespace dolphindb.data
         {
             return DATA_TYPE.DT_MINUTE;
         }
-        public override object getObject()
-        {
-            return this.getValue();
-        }
 
-        public new TimeSpan getValue()
+        public new DateTime getValue()
         {
             if (isNull())
             {
-                return TimeSpan.MinValue;
+                return DateTime.MinValue;
             }
             else
             {

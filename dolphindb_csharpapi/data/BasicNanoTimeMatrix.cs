@@ -1,5 +1,4 @@
-﻿using dolphindb.io;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace dolphindb.data
@@ -19,34 +18,43 @@ namespace dolphindb.data
 		{
 		}
 
-		public virtual void setNanoTime(int row, int column, DateTime value)
+		public virtual void setNanoTime(int row, int column, LocalTime value)
 		{
 			setLong(row, column, Utils.countNanoseconds(value));
 		}
 
-		public virtual TimeSpan getNanoTime(int row, int column)
+		public virtual LocalTime getNanoTime(int row, int column)
 		{
 			return Utils.parseNanoTime(getLong(row, column));
 		}
 
-		public override IScalar get(int row, int column)
+		public override Scalar get(int row, int column)
 		{
 			return new BasicNanoTime(getLong(row, column));
 		}
 
-		public override DATA_CATEGORY getDataCategory()
+		public override DATA_CATEGORY DataCategory
 		{
-			return DATA_CATEGORY.TEMPORAL;
+			get
+			{
+				return DATA_CATEGORY.TEMPORAL;
+			}
 		}
 
-		public override DATA_TYPE getDataType()
+		public override DATA_TYPE DataType
 		{
-			return DATA_TYPE.DT_NANOTIME;
+			get
+			{
+				return DATA_TYPE.DT_NANOTIME;
+			}
 		}
 
-		public override Type getElementClass()
+		public override Type ElementClass
 		{
-			return typeof(BasicNanoTime);
+			get
+			{
+				return typeof(BasicNanoTime);
+			}
 		}
 	}
 

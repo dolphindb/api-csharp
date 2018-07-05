@@ -24,12 +24,7 @@ namespace dolphindb.data
 		{
 		}
 
-        public override object getObject()
-        {
-            return this.getValue();
-        }
-
-        public new DateTime getValue()
+		public new DateTime getValue()
 		{
 				if (isNull())
 				{

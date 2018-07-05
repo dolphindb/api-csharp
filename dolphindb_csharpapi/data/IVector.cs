@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data;
 
 namespace dolphindb.data
 {
@@ -12,7 +11,6 @@ namespace dolphindb.data
 		IScalar get(int index);
 		void set(int index, IScalar value);
         Type getElementClass();
-        DataTable toDataTable();
 	}
 
 	public static class Vector_Fields

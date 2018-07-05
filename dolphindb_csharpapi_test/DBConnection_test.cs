@@ -15,8 +15,8 @@ namespace dolphindb_csharpapi_test
     [TestClass]
     public class DBConnection_test
     {
-        private readonly string SERVER = "192.168.1.61";
-        private readonly int PORT = 8702;
+        private readonly string SERVER = "192.168.1.33";
+        private readonly int PORT = 8920;
         [TestMethod]
         public void Test_MyDemo()
         {
@@ -27,7 +27,27 @@ namespace dolphindb_csharpapi_test
         public void Test_Connect()
         {
             DBConnection db = new DBConnection();
-            Assert.AreEqual(true, db.connect("localhost", 8900));
+            Assert.AreEqual(true, db.connect(SERVER, PORT));
+        }
+
+        [TestMethod]
+        public void Test_Connect_withLogin()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            // Assert.AreEqual(true, db.connect(SERVER, PORT,"admin","1234567"));
+            db.login("admin", "123456", false);
+            //db.run("login('admin', '123456')");
+        }
+
+
+        [TestMethod]
+        public void Test_Connect_withLogout()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            
+            db.run("logout()");
         }
 
         [TestMethod]
@@ -680,21 +700,13 @@ namespace dolphindb_csharpapi_test
         [TestMethod]
         public void Test_run_return_table_toDataTable()
         {
-            string script = @"n = 1000
-cols = `tBOOL`tCHAR`tSHORT`tINT`tLONG`tDATE`tMONTH`tTIME`tMINUTE`tSECOND`tDATETIME`tTIMESTAMP`tNANOTIME`tNANOTIMESTAMP`tFLOAT`tDOUBLE`tSYMBOL
-types = [BOOL,CHAR,SHORT,INT,LONG,DATE,MONTH,TIME,MINUTE,SECOND,DATETIME,TIMESTAMP,NANOTIME,NANOTIMESTAMP,FLOAT,DOUBLE,SYMBOL]
-t = table(n:0, cols, types)
-t.append!(table(take(0b 1b, n) as tBOOL, char(1..n) as tCHAR, short(1..n) as tSHORT, int(1..n) as tINT, long(1..n) as tLONG, 2000.01.01 + 1..n as tDATE, 2000.01M + 1..n as tMONTH, 13:30:10.008 + 1..n as tTIME, 13:30m + 1..n as tMINUTE, 13:30:10 + 1..n as tSECOND, 2012.06.13T13:30:10 + 1..n as tDATETIME, 2012.06.13T13:30:10.008 + 1..n as tTIMESTAMP, 	
-09:00:01.000100001 + 1..n as tNANOTIME, 	
-2016.12.30T09:00:01.000100001 + 1..n as tNANOTIMESTAMP, 2.1f + 1..n as tFLOAT, 2.1 + 1..n as tDOUBLE, take(`A`B`C`D, n) as tSYMBOL))";
+            string script = @"table(take(0b 1b, 10) as tBOOL, char(1..10) as tCHAR, short(1..10) as tSHORT, int(1..10) as tINT, long(1..10) as tLONG, 2000.01.01 + 1..10 as tDATE, 2000.01M + 1..10 as tMONTH, 13:30:10.008 + 1..10 as tTIME, 13:30m + 1..10 as tMINUTE, 13:30:10 + 1..10 as tSECOND, 2012.06.13T13:30:10 + 1..10 as tDATETIME, 2012.06.13T13:30:10.008 + 1..10 as tTIMESTAMP,09:00:01.000100001 + 1..10 as tNANOTIME,2016.12.30T09:00:01.000100001 + 1..10 as tNANOTIMESTAMP, 2.1f + 1..10 as tFLOAT, 2.1 + 1..10 as tDOUBLE, take(`A`B`C`D, 10) as tSYMBOL)";
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
             BasicTable tb = (BasicTable)db.run(script);
             DataTable dt = tb.toDataTable();
-            Assert.AreEqual(100, dt.Rows.Count);
-            Assert.AreEqual(100, dt.DefaultView.Count);
-            dt.Rows[0].Delete();
-            Assert.AreEqual(99, dt.Rows.Count);
+            Assert.AreEqual(10, dt.Rows.Count);
+            Assert.AreEqual("3", dt.Rows[2]["tSHORT"].ToString());
         }
 
         [TestMethod]
@@ -792,11 +804,11 @@ t.append!(table(take(0b 1b, n) as tBOOL, char(1..n) as tCHAR, short(1..n) as tSH
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            BasicIntMatrix tb = (BasicIntMatrix)db.run("rename!(1..9$3:3,`a`b`c)");
+            BasicIntMatrix tb = (BasicIntMatrix)db.run("1..9$3:3");
             DataTable dt = tb.toDataTable();
             Assert.AreEqual(3, dt.Rows.Count);
             Assert.AreEqual(3, dt.Columns.Count);
-            Assert.AreEqual("a", dt.Columns[0].ColumnName);
+
         }
 
         [TestMethod]
@@ -809,6 +821,46 @@ t.append!(table(take(0b 1b, n) as tBOOL, char(1..n) as tCHAR, short(1..n) as tSH
             {
                 Assert.AreEqual("[1,2]", tb.getString());
             }
+        }
+
+        [TestMethod]
+        public void Test_Void()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            IEntity obj = db.run("NULL");
+            Assert.AreEqual(obj.getObject(), null);
+        }
+        [TestMethod]
+        public void Test_Function_Double()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            List<IEntity> args = new List<IEntity>(1);
+            BasicDoubleVector vec = new BasicDoubleVector(3);
+            vec.setDouble(0, 1.5);
+            vec.setDouble(1, 2.5);
+            vec.setDouble(2, 7);
+            
+            args.Add(vec);
+            BasicDouble result = (BasicDouble)db.run("sum", args);
+            Assert.AreEqual(11, result.getValue());
+        }
+
+        [TestMethod]
+        public void Test_Function_Float()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            List<IEntity> args = new List<IEntity>(1);
+            BasicFloatVector vec = new BasicFloatVector(3);
+            vec.setFloat(0, 1.5f);
+            vec.setFloat(1, 2.5f);
+            vec.setFloat(2, 7f);
+
+            args.Add(vec);
+            IScalar result = (IScalar)db.run("sum", args);
+            Assert.AreEqual("11", result.getString());
         }
     }
 }

@@ -43,11 +43,11 @@ namespace dolphindb.data
 			return new BasicTime(getInt(index));
 		}
 
-		public virtual TimeSpan getTime(int index)
+		public virtual DateTime getTime(int index)
 		{
 			if (isNull(index))
 			{
-				return TimeSpan.MinValue;
+				return DateTime.MinValue;
 			}
 			else
 			{

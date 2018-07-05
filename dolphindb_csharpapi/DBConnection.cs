@@ -28,191 +28,387 @@ namespace dolphindb
     /// </summary>
 
     public class DBConnection
-	{
-		private static readonly int MAX_FORM_VALUE = Enum.GetValues(typeof(DATA_FORM)).Length - 1;
-		private static readonly int MAX_TYPE_VALUE = Enum.GetValues(typeof(DATA_TYPE)).Length - 1;
+    {
+        private static readonly int MAX_FORM_VALUE = Enum.GetValues(typeof(DATA_FORM)).Length - 1;
+        private static readonly int MAX_TYPE_VALUE = Enum.GetValues(typeof(DATA_TYPE)).Length - 1;
 
         private static readonly object threadLock = new object();
         private string sessionID;
-		private Socket socket;
-		private bool remoteLittleEndian;
-		private ExtendedDataOutput @out;
-		private IEntityFactory factory;
-		private string hostName;
-		private int port;
+        private Socket socket;
+        private bool remoteLittleEndian;
+        private ExtendedDataOutput @out;
+        private IEntityFactory factory;
+        private string hostName;
+        private int port;
+        private string userId;
+        private string password;
+        private bool encrypted;
 
+<<<<<<< HEAD
         public bool isConnected
         {
-            get{
-                if (socket!=null) {
-                    return socket.Connected;
-                }else
+            get
+            {
+                if (socket != null)
                 {
-                    return false;
+                    return socket.Connected;
                 }
-            }
-        }
+                else
+=======
         public DBConnection()
-		{
-			factory = new BasicEntityFactory();
-			sessionID = "";
-		}
-
-		public bool isBusy()
-		{
-            if(Monitor.TryEnter(threadLock))
-            {
-                Monitor.Exit(threadLock);
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+        {
+            factory = new BasicEntityFactory();
+            sessionID = "";
         }
 
-		public bool connect(string hostName, int port)
-		{
+        public bool isBusy()
+        {
+            return !Monitor.TryEnter(threadLock);
+        }
+
+        public bool connect(string hostName, int port)
+        {
+            return connect(hostName, port, "", "");
+        }
+
+        public bool connect(string hostName, int port, string userId, string password)
+        {
             lock (threadLock)
             {
                 try
+>>>>>>> c43c84b07551222d1cfe25f1b9059f86f5c52d3e
                 {
-                    if (sessionID.Length > 0)
+                    if (this.sessionID.Length > 0)
                     {
                         return true;
                     }
 
+
                     this.hostName = hostName;
                     this.port = port;
-                    socket = new Socket(AddressFamily.InterNetwork ,SocketType.Stream, ProtocolType.Tcp);
-                    socket.Connect(hostName, port);
-                    socket.NoDelay = true;
-                    @out = new LittleEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
-                    
-                    ExtendedDataInput @in = new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
-                    string body = "connect\n";
-                    @out.writeBytes("API 0 ");
-                    @out.writeBytes(body.Length.ToString());
-                    @out.writeByte('\n');
-                    @out.writeBytes(body);
-                    @out.flush();
+                    this.userId = userId;
+                    this.password = password;
+                    this.encrypted = true;
 
+                    return connect();
 
-                    string line = @in.readLine();
-                    int endPos = line.IndexOf(' ');
-                    if (endPos <= 0)
-                    {
-                        close();
-                        throw new IOException("Invalid ack msg : " + line);
-                        //return false;
-                    }
-                    sessionID = line.Substring(0, endPos);
-
-                    int startPos = endPos + 1;
-                    endPos = line.IndexOf(' ', startPos);
-                    if (endPos != line.Length - 2)
-                    {
-                        close();
-                        throw new IOException("Invalid ack msg : " + line);
-                        //return false;
-                    }
-
-                    if (line[endPos + 1] == '0')
-                    {
-                        remoteLittleEndian = false;
-                        @out = new BigEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
-                    }
-                    else
-                    {
-                        remoteLittleEndian = true;
-                    }
-
-                    return true;
                 }
-                catch (Exception ex)
+                finally
                 {
-                    throw ex;
+
                 }
+            }
+
+        }
+<<<<<<< HEAD
+        public DBConnection()
+        {
+            factory = new BasicEntityFactory();
+            sessionID = "";
+        }
+
+        public bool isBusy()
+        {
+            if (Monitor.TryEnter(threadLock))
+=======
+
+
+        public bool connect()
+        {
+            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            socket.Connect(hostName, port);
+            socket.NoDelay = true;
+            @out = new LittleEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
+
+            ExtendedDataInput @in = new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
+            string body = "connect\n";
+            @out.writeBytes("API 0 ");
+            @out.writeBytes(body.Length.ToString());
+            @out.writeChar('\n');
+            @out.writeBytes(body);
+            @out.flush();
+
+
+            string line = @in.readLine();
+            int endPos = line.IndexOf(' ');
+            if (endPos <= 0)
+>>>>>>> c43c84b07551222d1cfe25f1b9059f86f5c52d3e
+            {
+                close();
+                return false;
+            }
+            sessionID = line.Substring(0, endPos);
+
+            int startPos = endPos + 1;
+            endPos = line.IndexOf(' ', startPos);
+            if (endPos != line.Length - 2)
+            {
+                close();
+                return false;
+            }
+
+            if (line[endPos + 1] == '0')
+            {
+                remoteLittleEndian = false;
+                @out = new BigEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
+            }
+            else
+            {
+                remoteLittleEndian = true;
+            }
+
+            if (this.userId.Length>0 && this.password.Length>0)
+                login();
+            return true;
+        }
+        public bool connect(string hostName, int port)
+        {
+            return connect(hostName, port, "", "");
+        }
+
+<<<<<<< HEAD
+        public bool connect(string hostName, int port, string userId, string password)
+=======
+        public void login(string userId, string password, bool enableEncryption)
+>>>>>>> c43c84b07551222d1cfe25f1b9059f86f5c52d3e
+        {
+            lock (threadLock)
+            {
+                try
+                {
+<<<<<<< HEAD
+                    if (this.sessionID.Length > 0)
+                    {
+                        return true;
+                    }
+
+
+                    this.hostName = hostName;
+                    this.port = port;
+                    this.userId = userId;
+                    this.password = password;
+                    this.encrypted = false; 
+
+                    return connect();
+
+                }
+                finally
+                {
+
+                }
+            }
+
+        }
+
+        public bool connect()
+        {
+
+            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            socket.Connect(hostName, port);
+            socket.NoDelay = true;
+            @out = new LittleEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
+
+            ExtendedDataInput @in = new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
+            string body = "connect\n";
+            @out.writeBytes("API 0 ");
+            @out.writeBytes(body.Length.ToString());
+            @out.writeByte('\n');
+            @out.writeBytes(body);
+            @out.flush();
+
+
+            string line = @in.readLine();
+            int endPos = line.IndexOf(' ');
+            if (endPos <= 0)
+            {
+                close();
+                throw new IOException("Invalid ack msg : " + line);
+                //return false;
+            }
+            sessionID = line.Substring(0, endPos);
+
+            int startPos = endPos + 1;
+            endPos = line.IndexOf(' ', startPos);
+            if (endPos != line.Length - 2)
+            {
+                close();
+                throw new IOException("Invalid ack msg : " + line);
+                //return false;
+            }
+
+            if (line[endPos + 1] == '0')
+            {
+                remoteLittleEndian = false;
+                @out = new BigEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
+            }
+            else
+            {
+                remoteLittleEndian = true;
+            }
+
+            if (this.userId.Length > 0 && this.password.Length > 0)
+                login();
+
+            return true;
+
+        }
+        public void login(string userId, string password, bool enableEncryption)
+        {
+            lock (threadLock)
+            {
+                try
+                {
+                    this.userId = userId;
+                    this.password = password;
+                    //this.encrypted = enableEncryption;
+                    this.encrypted = false; //no encrypted temporary
+                    login();
+                }
+                finally
+                {
+
+                }
+
+            }
+
+        }
+
+        private void login()
+        {
+            List<IEntity> args = new List<IEntity>();
+            if (this.encrypted)
+            {
+                BasicString keyCode = (BasicString)run("getDynamicPublicKey()");
+
+                string key = RSAUtils.GetKey(keyCode.getString());
+                string usr = RSAUtils.RSA(this.userId, key);
+                string pass = RSAUtils.RSA(this.password, key);
+
+=======
+                    this.userId = userId;
+                    this.password = password;
+                    this.encrypted = enableEncryption;
+                    login();
+                }
+                finally
+                {
+
+                }
+
+            }
+
+        }
+
+        private void login()
+        {
+            List<IEntity> args = new List<IEntity>();
+            if (this.encrypted)
+            {
+                BasicString keyCode = (BasicString)run("getDynamicPublicKey()");
+
+                string key = RSAUtils.GetKey(keyCode.getString());
+                string usr = RSAUtils.RSA(this.userId, key);
+                string pass = RSAUtils.RSA(this.password, key);
+
+>>>>>>> c43c84b07551222d1cfe25f1b9059f86f5c52d3e
+
+                args.Add(new BasicString(usr));
+                args.Add(new BasicString(pass));
+                args.Add(new BasicBoolean(true));
+            }
+            else
+            {
+                args.Add(new BasicString(userId));
+                args.Add(new BasicString(password));
+<<<<<<< HEAD
+                
+            }
+            //login("login", args);
+            run("login('"+this.userId+"','"+this.password+"')"); //no encrypted temporary
+
+=======
+            }
+            run("login", args);
+>>>>>>> c43c84b07551222d1cfe25f1b9059f86f5c52d3e
+        }
+
+        public virtual bool RemoteLittleEndian
+        {
+            get
+            {
+                return this.remoteLittleEndian;
             }
         }
 
-		public virtual bool RemoteLittleEndian
-		{
-			get
-			{
-				return this.remoteLittleEndian;
-			}
-		}
+        public virtual IEntity tryRun(string script)
+        {
 
-		public virtual IEntity tryRun(string script)
-		{
-
-			if (isBusy())
-			{
-				return null;
-			}
-			try
-			{
-				return run(script);
+            if (isBusy())
+            {
+                return null;
+            }
+            try
+            {
+                return run(script);
             }
             catch
             {
                 throw;
             }
-		}
+        }
 
-		public virtual IEntity run(string script)
-		{
-			return run(script, (ProgressListener)null);
-		}
+        public virtual IEntity run(string script)
+        {
+            return run(script, (ProgressListener)null);
+        }
 
-		public virtual bool tryReconnect()
-		{
+        public virtual bool tryReconnect()
+        {
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             socket.Connect(hostName, port);
-			@out = new LittleEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
+            @out = new LittleEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
 
-			ExtendedDataInput @in = new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
-			string body = "connect\n";
-			@out.writeBytes("API 0 ");
-			@out.writeBytes(body.Length.ToString());
-			@out.writeByte('\n');
-			@out.writeBytes(body);
-			@out.flush();
+            ExtendedDataInput @in = new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
+            string body = "connect\n";
+            @out.writeBytes("API 0 ");
+            @out.writeBytes(body.Length.ToString());
+            @out.writeByte('\n');
+            @out.writeBytes(body);
+            @out.flush();
 
 
-			string line = @in.readLine();
-			int endPos = line.IndexOf(' ');
-			if (endPos <= 0)
-			{
-				close();
-				return false;
-			}
-			sessionID = line.Substring(0, endPos);
+            string line = @in.readLine();
+            int endPos = line.IndexOf(' ');
+            if (endPos <= 0)
+            {
+                close();
+                return false;
+            }
+            sessionID = line.Substring(0, endPos);
 
-			int startPos = endPos + 1;
-			endPos = line.IndexOf(' ', startPos);
-			if (endPos != line.Length - 2)
-			{
-				close();
-				return false;
-			}
+            int startPos = endPos + 1;
+            endPos = line.IndexOf(' ', startPos);
+            if (endPos != line.Length - 2)
+            {
+                close();
+                return false;
+            }
 
-			if (line[endPos + 1] == '0')
-			{
-				remoteLittleEndian = false;
-				@out = new BigEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
-			}
-			else
-			{
-				remoteLittleEndian = true;
-			}
+            if (line[endPos + 1] == '0')
+            {
+                remoteLittleEndian = false;
+                @out = new BigEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
+            }
+            else
+            {
+                remoteLittleEndian = true;
+            }
 
-			return true;
-		}
+            return true;
+        }
 
-		public virtual IEntity run(string script, ProgressListener listener)
-		{
+        public virtual IEntity run(string script, ProgressListener listener)
+        {
             lock (threadLock)
             {
                 bool reconnect = false;
@@ -238,12 +434,12 @@ namespace dolphindb
                 {
                     @out.writeBytes((listener != null ? "API2 " : "API ") + sessionID + " ");
                     @out.writeBytes(AbstractExtendedDataOutputStream.getUTFlength(body, 0, 0).ToString());
-                    @out.writeByte('\n');
+                    @out.writeChar('\n');
                     @out.writeBytes(body);
                     @out.flush();
 
                     @in = remoteLittleEndian ? (ExtendedDataInput)new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
-                    
+
                     header = @in.readLine();
                 }
                 catch (IOException ex)
@@ -259,10 +455,10 @@ namespace dolphindb
                         tryReconnect();
                         @out.writeBytes((listener != null ? "API2 " : "API ") + sessionID + " ");
                         @out.writeBytes(AbstractExtendedDataOutputStream.getUTFlength(body, 0, 0).ToString());
-                        @out.writeByte('\n');
+                        @out.writeChar('\n');
                         @out.writeBytes(body);
                         @out.flush();
-                        
+
                         @in = remoteLittleEndian ? (ExtendedDataInput)new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
                         header = @in.readLine();
                         reconnect = true;
@@ -335,25 +531,25 @@ namespace dolphindb
                     throw ex;
                 }
             }
-		}
+        }
 
-		public virtual IEntity tryRun(string function, IList<IEntity> arguments)
-		{
-			if (isBusy())
-			{
-				return null;
-			}
-			try
-			{
-				return run(function, arguments);
-			}
-			finally
-			{
-			}
-		}
+        public virtual IEntity tryRun(string function, IList<IEntity> arguments)
+        {
+            if (isBusy())
+            {
+                return null;
+            }
+            try
+            {
+                return run(function, arguments);
+            }
+            finally
+            {
+            }
+        }
 
-		public virtual IEntity run(string function, IList<IEntity> arguments)
-		{
+        public virtual IEntity run(string function, IList<IEntity> arguments)
+        {
             lock (threadLock)
             {
                 try
@@ -478,32 +674,32 @@ namespace dolphindb
                 }
                 finally
                 {
-                   
+
                 }
             }
-			
-		}
 
-		public virtual void tryUpload(IDictionary<string, IEntity> variableObjectMap)
-		{
-			if (isBusy())
-			{
-				throw new IOException("The connection is in use.");
-			}
-			try
-			{
-				upload(variableObjectMap);
-			}
-			finally
-			{
-			}
-		}
-		public virtual void upload(IDictionary<string, IEntity> variableObjectMap)
-		{
-			if (variableObjectMap == null || variableObjectMap.Count == 0)
-			{
-				return;
-			}
+        }
+
+        public virtual void tryUpload(IDictionary<string, IEntity> variableObjectMap)
+        {
+            if (isBusy())
+            {
+                throw new IOException("The connection is in use.");
+            }
+            try
+            {
+                upload(variableObjectMap);
+            }
+            finally
+            {
+            }
+        }
+        public virtual void upload(IDictionary<string, IEntity> variableObjectMap)
+        {
+            if (variableObjectMap == null || variableObjectMap.Count == 0)
+            {
+                return;
+            }
 
             lock (threadLock)
             {
@@ -521,7 +717,7 @@ namespace dolphindb
                             reconnect = true;
                             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                             socket.Connect(hostName, port);
-                           
+
                             @out = new LittleEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
                         }
                     }
@@ -606,14 +802,14 @@ namespace dolphindb
                 }
                 finally
                 {
-                    
+
                 }
             }
-			
-		}
 
-		public virtual void close()
-		{
+        }
+
+        public virtual void close()
+        {
             lock (threadLock)
             {
                 try
@@ -621,7 +817,6 @@ namespace dolphindb
                     if (socket != null)
                     {
                         socket.Close();
-                        sessionID = string.Empty;
                         socket = null;
                     }
                 }
@@ -633,40 +828,40 @@ namespace dolphindb
             }
         }
 
-		private bool isVariableCandidate(string word)
-		{
-			char cur = word[0];
-			if ((cur < 'a' || cur>'z') && (cur < 'A' || cur>'Z'))
-			{
-				return false;
-			}
-			for (int i = 1;i < word.Length;i++)
-			{
-				cur = word[i];
-				if ((cur < 'a' || cur>'z') && (cur < 'A' || cur>'Z') && (cur < '0' || cur>'9') && cur != '_')
-				{
-					return false;
-				}
-			}
-			return true;
-		}
+        private bool isVariableCandidate(string word)
+        {
+            char cur = word[0];
+            if ((cur < 'a' || cur > 'z') && (cur < 'A' || cur > 'Z'))
+            {
+                return false;
+            }
+            for (int i = 1; i < word.Length; i++)
+            {
+                cur = word[i];
+                if ((cur < 'a' || cur > 'z') && (cur < 'A' || cur > 'Z') && (cur < '0' || cur > '9') && cur != '_')
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
 
-		public virtual string HostName
-		{
-			get
-			{
-				return hostName;
-			}
-		}
+        public virtual string HostName
+        {
+            get
+            {
+                return hostName;
+            }
+        }
 
-		public virtual int Port
-		{
-			get
-			{
-				return port;
-			}
-		}
+        public virtual int Port
+        {
+            get
+            {
+                return port;
+            }
+        }
 
-	}
+    }
 
 }

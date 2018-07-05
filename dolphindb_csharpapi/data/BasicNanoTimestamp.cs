@@ -5,7 +5,7 @@ namespace dolphindb.data
 {
 	public class BasicNanoTimestamp : BasicLong
 	{
-		private static string format = "yyyy.MM.dd HH:mm:ss.fffffff";
+		private static string format = "yyyy.MM.dd'T'HH:mm:ss.SSSSSSSSS";
 
 		public BasicNanoTimestamp(DateTime value) : base(Utils.countNanoseconds(value))
 		{
@@ -29,11 +29,7 @@ namespace dolphindb.data
 				return DATA_TYPE.DT_NANOTIMESTAMP;
 		}
 
-        public override object getObject()
-        {
-            return this.getValue();
-        }
-        public new DateTime getValue()
+		public new DateTime getValue()
 		{
 				if (isNull())
 				{

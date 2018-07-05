@@ -47,11 +47,6 @@ namespace dolphindb.data
 		{
 			@out.writeBoolean(true); //explicit null value
 		}
-
-        public override object getObject()
-        {
-            return null;
-        }
-    }
+	}
 
 }

@@ -43,11 +43,11 @@ namespace dolphindb.data
 			return new BasicMinute(getInt(index));
 		}
 
-		public virtual TimeSpan getMinute(int index)
+		public virtual DateTime getMinute(int index)
 		{
 			if (isNull(index))
 			{
-				return TimeSpan.MinValue;
+				return DateTime.MinValue;
 			}
 			else
 			{
@@ -55,7 +55,7 @@ namespace dolphindb.data
 			}
 		}
 
-		public virtual void setMinute(int index, TimeSpan time)
+		public virtual void setMinute(int index, DateTime time)
 		{
 			setInt(index, Utils.countMinutes(time));
 		}

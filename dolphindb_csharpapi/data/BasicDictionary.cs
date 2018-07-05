@@ -1,17 +1,13 @@
-﻿using dolphindb.io;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
-using System.Data;
 
 namespace dolphindb.data
 {
     
-	public class BasicDictionary : AbstractEntity, IDictionary
+	public class BasicDictionary : AbstractEntity, Dictionary
 	{
-		private IDictionary<IScalar, IEntity> dict;
+		private IDictionary<Scalar, Entity> dict;
 		private DATA_TYPE keyType;
 		private DATA_TYPE valueType;
 
@@ -21,7 +17,7 @@ namespace dolphindb.data
 			this.valueType = valueType;
 
 			BasicEntityFactory factory = new BasicEntityFactory();
-			DATA_TYPE[] types = Enum.GetValues(typeof(DATA_TYPE)) as DATA_TYPE[];
+			DATA_TYPE[] types = Enum.GetValues(typeof(DATA_TYPE));
 
 			//read key vector
 			short flag = @in.readShort();
@@ -36,7 +32,7 @@ namespace dolphindb.data
 				throw new IOException("Invalid key type: " + type);
 			}
 			keyType = types[type];
-			IVector keys = (IVector)factory.createEntity(DATA_FORM.DF_VECTOR, types[type], @in);
+			Vector keys = (Vector)factory.createEntity(DATA_FORM.DF_VECTOR, types[type], @in);
 
 			//read value vector
 			flag = @in.readShort();
@@ -51,7 +47,7 @@ namespace dolphindb.data
 				throw new IOException("Invalid value type: " + type);
 			}
 
-			IVector values = (IVector)factory.createEntity(DATA_FORM.DF_VECTOR, types[type], @in);
+			Vector values = (Vector)factory.createEntity(DATA_FORM.DF_VECTOR, types[type], @in);
 
 			if (keys.rows() != values.rows())
 			{
@@ -60,8 +56,8 @@ namespace dolphindb.data
 
 			int size = keys.rows();
 			int capacity = (int)(size / 0.75);
-			dict = new Dictionary<IScalar, IEntity>(capacity);
-			if (values.getDataType() == DATA_TYPE.DT_ANY)
+			dict = new Dictionary<Scalar, Entity>(capacity);
+			if (values.DataType == DATA_TYPE.DT_ANY)
 			{
 				BasicAnyVector entityValues = (BasicAnyVector)values;
 				for (int i = 0; i < size; ++i)
@@ -82,30 +78,39 @@ namespace dolphindb.data
 		{
 			if (keyType == DATA_TYPE.DT_VOID || keyType == DATA_TYPE.DT_ANY || keyType == DATA_TYPE.DT_DICTIONARY)
 			{
-				throw new System.ArgumentException("Invalid keyType: " + keyType.ToString());
+				throw new System.ArgumentException("Invalid keyType: " + keyType.name());
 			}
 			this.keyType = keyType;
 			this.valueType = valueType;
-			dict = new Dictionary<IScalar, IEntity>();
+			dict = new Dictionary<Scalar, Entity>();
 		}
 
 		public BasicDictionary(DATA_TYPE keyType, DATA_TYPE valueType) : this(keyType, valueType, 0)
 		{
 		}
 
-		public override DATA_FORM getDataForm()
+		public override DATA_FORM DataForm
 		{
-			return DATA_FORM.DF_DICTIONARY;
+			get
+			{
+				return DATA_FORM.DF_DICTIONARY;
+			}
 		}
 
-		public virtual DATA_CATEGORY getDataCategory()
+		public virtual DATA_CATEGORY DataCategory
 		{
-			return getDataCategory(valueType);
+			get
+			{
+				return getDataCategory(valueType);
+			}
 		}
 
-		public virtual DATA_TYPE getDataType()
+		public virtual DATA_TYPE DataType
 		{
-			return valueType;
+			get
+			{
+				return valueType;
+			}
 		}
 
 		public virtual int rows()
@@ -126,14 +131,14 @@ namespace dolphindb.data
 			}
 		}
 
-		public virtual IEntity get(IScalar key)
+		public virtual Entity get(Scalar key)
 		{
 			return dict[key];
 		}
 
-		public virtual bool put(IScalar key, IEntity value)
+		public virtual bool put(Scalar key, Entity value)
 		{
-			if (key.getDataType() != KeyDataType || (value.getDataType() != getDataType()))
+			if (key.DataType != KeyDataType || (value.DataType != DataType))
 			{
 				return false;
 			}
@@ -144,20 +149,19 @@ namespace dolphindb.data
 			}
 		}
 
-		public virtual ICollection<IScalar> keys()
+		public virtual ISet<Scalar> keys()
 		{
 			return dict.Keys;
 		}
 
-		public virtual ICollection<IEntity> values()
+		public virtual ICollection<Entity> values()
 		{
 			return dict.Values;
 		}
 
-		public virtual ISet<KeyValuePair<IScalar, IEntity>> entrySet()
+		public virtual ISet<KeyValuePair<Scalar, Entity>> entrySet()
 		{
-            throw new NotImplementedException();
-			//return dict.SetOfKeyValuePairs();
+			return dict.SetOfKeyValuePairs();
 		}
 
 		public virtual string String
@@ -168,13 +172,14 @@ namespace dolphindb.data
 				{
 					StringBuilder content = new StringBuilder();
 					int count = 0;
-                    IEnumerator<KeyValuePair<IScalar, IEntity>> it = dict.GetEnumerator();
-                    while (it.MoveNext() && count < 20)
+					ISet<KeyValuePair<Scalar, Entity>> entries = dict.SetOfKeyValuePairs();
+					ISet<KeyValuePair<Scalar, Entity>>.Enumerator it = entries.GetEnumerator();
+					while (it.MoveNext() && count < 20)
 					{
-						KeyValuePair<IScalar, IEntity> entry = it.Current;
-						content.Append(entry.Key.getString());
+						KeyValuePair<Scalar, Entity> entry = it.Current;
+						content.Append(entry.Key.String);
 						content.Append("->");
-						DATA_FORM form = entry.Value.getDataForm();
+						DATA_FORM form = entry.Value.DataForm;
 						if (form == DATA_FORM.DF_MATRIX || form == DATA_FORM.DF_TABLE)
 						{
 							content.Append("\n");
@@ -183,7 +188,7 @@ namespace dolphindb.data
 						{
 							content.Append("{\n");
 						}
-						content.Append(entry.Value.getString());
+						content.Append(entry.Value.String);
 						if (form == DATA_FORM.DF_DICTIONARY)
 						{
 							content.Append("}");
@@ -192,7 +197,7 @@ namespace dolphindb.data
 						++count;
 					}
 	                //todo: Java iterators are only converted within the context of 'while' and 'for' loops:
-					if (it.MoveNext())
+					if (it.hasNext())
 					{
 						content.Append("...\n");
 					}
@@ -202,27 +207,28 @@ namespace dolphindb.data
 				{
 					StringBuilder sbKeys = new StringBuilder("{");
 					StringBuilder sbValues = new StringBuilder("{");
-					IEnumerator<KeyValuePair<IScalar, IEntity>> it = dict.GetEnumerator();
+					ISet<KeyValuePair<Scalar, Entity>> entries = dict.SetOfKeyValuePairs();
+					ISet<KeyValuePair<Scalar, Entity>>.Enumerator it = entries.GetEnumerator();
                     //todo: Java iterators are only converted within the context of 'while' and 'for' loops:
-                    if (it.MoveNext())
+                    if (it.hasNext())
 					{
                         //todo: Java iterators are only converted within the context of 'while' and 'for' loops:
-                        KeyValuePair<IScalar, IEntity> entry = it.Current;
-						sbKeys.Append(entry.Key.getString());
-						sbValues.Append(entry.Value.getString());
+                        KeyValuePair<Scalar, Entity> entry = it.next();
+						sbKeys.Append(entry.Key.String);
+						sbValues.Append(entry.Value.String);
 					}
 					int count = 1;
 					while (it.MoveNext() && count < 20)
 					{
-						KeyValuePair<IScalar, IEntity> entry = it.Current;
+						KeyValuePair<Scalar, Entity> entry = it.Current;
 						sbKeys.Append(',');
-						sbKeys.Append(entry.Key.getString());
+						sbKeys.Append(entry.Key.String);
 						sbValues.Append(',');
-						sbValues.Append(entry.Value.getString());
+						sbValues.Append(entry.Value.String);
 						++count;
 					}
                     //todo: Java iterators are only converted within the context of 'while' and 'for' loops:
-                    if (it.MoveNext())
+                    if (it.hasNext())
 					{
 						sbKeys.Append("...");
 						sbValues.Append("...");
@@ -238,21 +244,19 @@ namespace dolphindb.data
 		{
 			if (valueType == DATA_TYPE.DT_DICTIONARY)
 			{
-				throw new IOException("Can't streamlize the dictionary with value type " + valueType.ToString());
+				throw new IOException("Can't streamlize the dictionary with value type " + valueType.name());
 			}
 
 			BasicEntityFactory factory = new BasicEntityFactory();
-			IVector keys = (IVector)factory.createScalarWithDefaultValue(keyType);
-            IVector values = (IVector)factory.createVectorWithDefaultValue(valueType,dict.Count);
+			Vector keys = (Vector)factory.createVectorWithDefaultValue(keyType, dict.Count);
+			Vector values = (Vector)factory.createVectorWithDefaultValue(valueType, dict.Count);
 			int index = 0;
 			try
 			{
-                IEnumerator<KeyValuePair<IScalar, IEntity>> itr = dict.GetEnumerator();
-
-                while(itr.MoveNext())
+				foreach (KeyValuePair<Scalar, Entity> entry in dict.SetOfKeyValuePairs())
 				{
-					keys.set(index, itr.Current.Key);
-					values.set(index, (IScalar)itr.Current.Value);
+					keys.set(index, entry.Key);
+					values.set(index, (Scalar)entry.Value);
 					++index;
 				}
 			}
@@ -261,58 +265,12 @@ namespace dolphindb.data
 				throw new IOException(ex.Message);
 			}
 
-			int flag = ((int)DATA_FORM.DF_DICTIONARY << 8) + (int)getDataType();
+			int flag = ((int)DATA_FORM.DF_DICTIONARY << 8) + DataType.ordinal();
 			@out.writeShort(flag);
 
 			keys.write(@out);
 			values.write(@out);
 		}
-
-        public string getString()
-        {
-            throw new NotImplementedException();
-        }
-
-        public DataTable toDataTable()
-        {
-            DataTable dt = buildTable();
-            int itemCount = this.keys().Count;
-            IScalar[] keys = new IScalar[itemCount];
-            IEntity[] values = new IEntity[itemCount];
-            this.keys().CopyTo(keys,0);
-            this.values().CopyTo(values, 0);
-            if (itemCount > 0)
-            {
-                if (values[0].isScalar() == false)
-                {
-                    throw new InvalidCastException("Only scalar value supported!");
-                }
-            }
-            for (int i=0;i<itemCount;i++)
-            {
-                DataRow dr = dt.NewRow();
-                dr["dict_key"] = keys[i].getObject();
-                dr["dict_value"] = values[i].getObject();
-                dt.Rows.Add(dr);
-            }
-            return dt;
-        }
-
-        private DataTable buildTable()
-        {
-            DataTable dt = new DataTable();
-
-            DataColumn dc = new DataColumn("dict_key", Utils.getSystemType(keyType));
-            dt.Columns.Add(dc);
-            dc = new DataColumn("dict_value", Utils.getSystemType(valueType));
-            dt.Columns.Add(dc);
-
-            return dt;
-        }
-        public object getObject()
-        {
-            throw new NotImplementedException();
-        }
-    }
+	}
 
 }

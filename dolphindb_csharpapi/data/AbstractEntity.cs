@@ -38,7 +38,7 @@
 			return getDataForm() == DATA_FORM.DF_CHUNK;
 		}
 
-		protected virtual DATA_CATEGORY getDataCategory(DATA_TYPE valueType)
+		protected internal DATA_CATEGORY getDataCategory(DATA_TYPE valueType)
 		{
 			if (valueType == DATA_TYPE.DT_BOOL)
 			{

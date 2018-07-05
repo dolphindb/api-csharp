@@ -1,9 +1,17 @@
-﻿using dolphindb.io;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace dolphindb.data
+namespace com.xxdb.data
 {
+
+	using ExtendedDataInput = com.xxdb.io.ExtendedDataInput;
+
+
+	/// 
+	/// <summary>
+	/// Corresponds to DolphinDB nanotimestamp matrix
+	/// 
+	/// </summary>
 
 	public class BasicNanoTimestampMatrix : BasicLongMatrix
 	{
@@ -11,10 +19,14 @@ namespace dolphindb.data
 		{
 		}
 
+//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
+//ORIGINAL LINE: public BasicNanoTimestampMatrix(int rows, int columns, java.util.List<long[]> listOfArrays) throws Exception
 		public BasicNanoTimestampMatrix(int rows, int columns, IList<long[]> listOfArrays) : base(rows,columns, listOfArrays)
 		{
 		}
 
+//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
+//ORIGINAL LINE: public BasicNanoTimestampMatrix(com.xxdb.io.ExtendedDataInput in) throws java.io.IOException
 		public BasicNanoTimestampMatrix(ExtendedDataInput @in) : base(@in)
 		{
 		}
@@ -30,24 +42,35 @@ namespace dolphindb.data
 		}
 
 
-		public override IScalar get(int row, int column)
+		public override Scalar get(int row, int column)
 		{
 			return new BasicNanoTimestamp(getLong(row, column));
 		}
 
-		public override DATA_CATEGORY getDataCategory()
+		public override DATA_CATEGORY DataCategory
 		{
-			return DATA_CATEGORY.TEMPORAL;
+			get
+			{
+				return DATA_CATEGORY.TEMPORAL;
+			}
 		}
 
-		public override DATA_TYPE getDataType()
+		public override DATA_TYPE DataType
 		{
-			return DATA_TYPE.DT_NANOTIMESTAMP;
+			get
+			{
+				return DATA_TYPE.DT_NANOTIMESTAMP;
+			}
 		}
 
-		public override Type getElementClass()
+		public override Type ElementClass
 		{
-			return typeof(BasicNanoTimestamp);
+			get
+			{
+				return typeof(BasicNanoTimestamp);
+			}
 		}
+
 	}
+
 }

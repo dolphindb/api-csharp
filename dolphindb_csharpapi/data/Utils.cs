@@ -47,58 +47,85 @@ namespace dolphindb.data
 
 		public static int countDays(int year, int month, int day)
 		{
-            if (month < 1 || month > 12 || day < 0)
-                return int.MinValue;
-            int divide400Years = year / 400;
-            int offset400Years = year % 400;
-            int days = divide400Years * 146097 + offset400Years * 365 - 719529;
-            if (offset400Years > 0) days += (offset400Years - 1) / 4 + 1 - (offset400Years - 1) / 100;
-            if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
-            {
-                days += cumLeapMonthDays[month - 1];
-                return day <= leapMonthDays[month - 1] ? days + day : int.MinValue;
-            }
-            else
-            {
-                days += cumMonthDays[month - 1];
-                return day <= monthDays[month - 1] ? days + day : int.MinValue;
-            }
-        }
+			//1999.12.31 return 0
+			if (month < 1 || month>12 || day < 0)
+			{
+				return int.MinValue;
+			}
+
+			int days = 10956 + (year - 2000) / 4 * 1461;
+			year = (year - 2000) % 4;
+			days += 365 * year;
+			if (year == 0)
+			{
+				//leap year
+				days += cumLeapMonthDays[month - 1];
+				return day <= leapMonthDays[month - 1] ? days + day : int.MinValue;
+			}
+			else
+			{
+				if (year >= 0)
+				{
+					days++;
+				}
+				days += cumMonthDays[month - 1];
+				return day <= monthDays[month - 1] ? days + day : int.MinValue;
+			}
+		}
 
 		public static DateTime parseDate(int days)
 		{
-            int year, month, day;
-            days += 719529;
-            int circleIn400Years = days / 146097;
-            int offsetIn400Years = days % 146097;
-            int resultYear = circleIn400Years * 400;
-            int similarYears = offsetIn400Years / 365;
-            int tmpDays = similarYears * 365;
-            if (similarYears > 0) tmpDays += (similarYears - 1) / 4 + 1 - (similarYears - 1) / 100;
-            if (tmpDays >= offsetIn400Years) --similarYears;
-            year = similarYears + resultYear;
-            days -= circleIn400Years * 146097 + tmpDays;
-            bool leap = ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0);
-            if (days <= 0)
-            {
-                days += leap ? 366 : 365;
-            }
-            if (leap)
-            {
-                month = days / 32 + 1;
-                if (days > cumLeapMonthDays[month])
-                    month++;
-                day = days - cumLeapMonthDays[month - 1];
-            }
-            else
-            {
-                month = days / 32 + 1;
-                if (days > cumMonthDays[month])
-                    month++;
-                day = days - cumMonthDays[month - 1];
-            }
+			int year, month, day;
+			bool leap = false;
 
-            return new DateTime(year,month,day);
+			days -= 10956;
+			year = 2000 + (days / 1461) * 4;
+			days = days % 1461;
+			if (days < 0)
+			{
+				year -= 4;
+				days += 1461;
+			}
+			if (days > 366)
+			{
+				year += 1;
+				days = days - 366;
+				year += days / 365;
+				days = days % 365;
+			}
+			else
+			{
+				leap = true;
+			}
+			if (days == 0)
+			{
+				year = year - 1;
+				month = 12;
+				day = 31;
+			}
+			else
+			{
+				if (leap)
+				{
+					month = days / 32 + 1;
+					if (days > cumLeapMonthDays[month])
+					{
+						month++;
+					}
+					day = days - cumLeapMonthDays[month - 1];
+				}
+				else
+				{
+					month = days / 32 + 1;
+					if (days > cumMonthDays[month])
+					{
+						month++;
+					}
+					day = days - cumMonthDays[month - 1];
+				}
+			}
+
+			return DateTime.Parse(year.ToString() + "." + month.ToString() + "." + day.ToString());
 		}
 
 		public static int countSeconds(DateTime dt)
@@ -185,38 +212,62 @@ namespace dolphindb.data
 		/// </summary>
 		public static DateTime parseNanoTimestamp(long nanoseconds)
 		{
-            return new DateTime(new DateTime(DEFALUT_YEAR, DEFAULT_MONTH, DEFAULT_DAY).Ticks + (long)(nanoseconds / 100));
-        }
+            //throw new NotImplementedException();
+            return new DateTime(nanoseconds / 100);
+			//int days = (int)Math.Floor(((double)nanoseconds / NANOS_PER_DAY));
+			//DateTime date = Utils.parseDate(days);
+			//nanoseconds = nanoseconds % NANOS_PER_DAY;
+			//if (nanoseconds < 0)
+			//{
+			//	nanoseconds += NANOS_PER_DAY;
+			//}
+			//DateTime time = Utils.parseNanoTime(nanoseconds % NANOS_PER_DAY);
+			//return new DateTime();
+		}
+		//public static int countMilliseconds(DateTime time)
+		//{
+		//	return countMilliseconds(time.Hour, time.Minute, time.Second, time.Nano / 1000000);
+		//}
 
-        public static int countMilliseconds(int hour, int minute, int second, int millisecond)
+		public static int countMilliseconds(int hour, int minute, int second, int millisecond)
 		{
 			return ((hour * 60 + minute) * 60 + second) * 1000 + millisecond;
 		}
 
-        public static TimeSpan parseTime(int milliseconds)
+        //public static long countNanoseconds(DateTime time)
+        //{
+        //	return (long)countMilliseconds(time.Hour, time.Minute, time.Second, 0) * 1000000 + time.Nano;
+        //}
+
+        public static DateTime parseTime(int milliseconds)
         {
-            return new TimeSpan(0,milliseconds / 3600000, milliseconds / 60000 % 60, milliseconds / 1000 % 60, milliseconds % 1000);
+            return new DateTime(1970,1,1,milliseconds / 3600000, milliseconds / 60000 % 60, milliseconds / 1000 % 60, milliseconds % 1000);
         }
 
-        public static TimeSpan parseNanoTime(long nanoOfDay)
+        public static DateTime parseNanoTime(long nanoOfDay)
         {
-            DateTime dt = new DateTime(new DateTime(DEFALUT_YEAR, DEFAULT_MONTH, DEFAULT_DAY).Ticks + (long)(nanoOfDay / 100));
-            return dt.TimeOfDay;
+            return new DateTime(nanoOfDay);
         }
+
+        //public static int countSeconds(DateTime time)
+        //{
+        //    return countSeconds(time.Hour, time.Minute, time.Second);
+        //}
 
         public static int countSeconds(int hour, int minute, int second)
 		{
 			return (hour * 60 + minute) * 60 + second;
 		}
 
-		public static TimeSpan parseSecond(int seconds)
+		public static DateTime parseSecond(int seconds)
 		{
-			return new TimeSpan(seconds / 3600, seconds % 3600 / 60, seconds % 60);
+            //throw new NotImplementedException();
+			return new DateTime(DEFALUT_YEAR, DEFAULT_MONTH, DEFAULT_DAY,seconds / 3600, seconds % 3600 / 60, seconds % 60);
 		}
 
-		public static int countMinutes(TimeSpan time)
+		public static int countMinutes(DateTime time)
 		{
-			return countMinutes(time.Hours, time.Minutes);
+			return countMinutes(time.Hour, time.Minute);
 		}
 
 		public static int countMinutes(int hour, int minute)
@@ -224,111 +275,10 @@ namespace dolphindb.data
 			return hour * 60 + minute;
 		}
 
-		public static TimeSpan parseMinute(int minutes)
+		public static DateTime parseMinute(int minutes)
 		{
-		    return new TimeSpan(minutes / 60, minutes % 60,DEFAULT_SECOND);
+		    return new DateTime(DEFALUT_YEAR,DEFAULT_MONTH,DEFAULT_DAY, minutes / 60, minutes % 60,DEFAULT_SECOND);
 		}
-
-
-
-        public static Type getSystemType(DATA_TYPE dtype)
-        {
-            Type colType = null;
-            switch (dtype)
-            {
-                case DATA_TYPE.DT_BOOL:
-                    colType = Type.GetType("System.Boolean");
-                    break;
-                case DATA_TYPE.DT_BYTE:
-                    colType = Type.GetType("System.Byte");
-                    break;
-                case DATA_TYPE.DT_SHORT:
-                    colType = Type.GetType("System.Int16");
-                    break;
-                case DATA_TYPE.DT_INT:
-                    colType = Type.GetType("System.Int32");
-                    break;
-                case DATA_TYPE.DT_LONG:
-                    colType = Type.GetType("System.Int64");
-                    break;
-                case DATA_TYPE.DT_DATE:
-                case DATA_TYPE.DT_MONTH:
-
-                case DATA_TYPE.DT_DATETIME:
-                case DATA_TYPE.DT_TIMESTAMP:
-                case DATA_TYPE.DT_NANOTIMESTAMP:
-                    colType = Type.GetType("System.DateTime");
-                    break;
-                case DATA_TYPE.DT_TIME:
-                case DATA_TYPE.DT_MINUTE:
-                case DATA_TYPE.DT_SECOND:
-                case DATA_TYPE.DT_NANOTIME:
-                    colType = Type.GetType("System.TimeSpan");
-                    break;
-                case DATA_TYPE.DT_FLOAT:
-                    colType = Type.GetType("System.Double");
-                    break;
-                case DATA_TYPE.DT_DOUBLE:
-                    colType = Type.GetType("System.Double");
-                    break;
-                case DATA_TYPE.DT_SYMBOL:
-                case DATA_TYPE.DT_STRING:
-                case DATA_TYPE.DT_FUNCTIONDEF:
-                case DATA_TYPE.DT_HANDLE:
-                case DATA_TYPE.DT_CODE:
-                case DATA_TYPE.DT_DATASOURCE:
-                case DATA_TYPE.DT_RESOURCE:
-                case DATA_TYPE.DT_ANY:
-                case DATA_TYPE.DT_DICTIONARY:
-                case DATA_TYPE.DT_OBJECT:
-                default:
-                    colType = Type.GetType("System.String");
-                    break;
-            }
-            return colType;
-        }
-
-        public static DATA_TYPE getDolphinDBType(Type stype)
-        {
-                        
-            if(stype== Type.GetType("System.Boolean"))
-            {
-                return DATA_TYPE.DT_BOOL;
-            }
-            else if(stype == Type.GetType("System.Byte"))
-            {
-                return DATA_TYPE.DT_BYTE;
-            }
-            else if(stype == Type.GetType("System.Double"))
-            {
-                return DATA_TYPE.DT_DOUBLE;
-            }
-            else if (stype == Type.GetType("System.DateTime"))
-            {
-                return DATA_TYPE.DT_DATETIME;
-            }
-            else if (stype == Type.GetType("System.TimeSpan"))
-            {
-                return DATA_TYPE.DT_SECOND;
-            }
-            else if (stype == Type.GetType("System.Int16"))
-            {
-                return DATA_TYPE.DT_SHORT;
-            }
-            else if (stype == Type.GetType("System.Int32"))
-            {
-                return DATA_TYPE.DT_INT;
-            }
-            else if (stype == Type.GetType("System.Int64"))
-            {
-                return DATA_TYPE.DT_LONG;
-            }
-            else
-            {
-                return DATA_TYPE.DT_STRING;
-            }
-
-        }
-    }
+	}
 
 }

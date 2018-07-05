@@ -91,11 +91,6 @@ namespace dolphindb.data
         {
             return value;
         }
-
-        public override object getObject()
-        {
-            return this.getValue();
-        }
     }
 
 }

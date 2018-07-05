@@ -20,12 +20,12 @@ namespace dolphindb.data
 		{
 		}
 
-		public virtual void setMinute(int row, int column, TimeSpan value)
+		public virtual void setMinute(int row, int column, DateTime value)
 		{
 			setInt(row, column, Utils.countMinutes(value));
 		}
 
-		public virtual TimeSpan getMinute(int row, int column)
+		public virtual DateTime getMinute(int row, int column)
 		{
 			return Utils.parseMinute(getInt(row, column));
 		}

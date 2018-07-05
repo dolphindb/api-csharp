@@ -1,24 +1,32 @@
-﻿using dolphindb.io;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Data;
 
-namespace dolphindb.data
+namespace com.xxdb.data
 {
 
-	public class BasicSet : AbstractEntity, ISet
+
+	using ExtendedDataInput = com.xxdb.io.ExtendedDataInput;
+	using ExtendedDataOutput = com.xxdb.io.ExtendedDataOutput;
+
+	/// 
+	/// <summary>
+	/// Corresponds to DolphinDB set object
+	/// 
+	/// </summary>
+
+	public class BasicSet : AbstractEntity, Set
 	{
-		private ISet<IScalar> set;
+		private ISet<Scalar> set;
 		private DATA_TYPE keyType;
 
-
+//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
+//ORIGINAL LINE: public BasicSet(Entity_DATA_TYPE keyType, com.xxdb.io.ExtendedDataInput in) throws java.io.IOException
 		public BasicSet(DATA_TYPE keyType, ExtendedDataInput @in)
 		{
 			this.keyType = keyType;
 
-            BasicEntityFactory factory = new BasicEntityFactory();
-			DATA_TYPE[] types = Enum.GetValues(typeof(DATA_TYPE)) as DATA_TYPE[];
+			BasicEntityFactory factory = new BasicEntityFactory();
+			DATA_TYPE[] types = Enum.GetValues(typeof(DATA_TYPE));
 
 			//read key vector
 			short flag = @in.readShort();
@@ -33,11 +41,11 @@ namespace dolphindb.data
 				throw new IOException("Invalid key type: " + type);
 			}
 
-			IVector keys = (IVector)factory.createEntity(DATA_FORM.DF_VECTOR, types[type], @in);
+			Vector keys = (Vector)factory.createEntity(DATA_FORM.DF_VECTOR, types[type], @in);
 
 			int size = keys.rows();
-
-			set = new HashSet<IScalar>();
+			int capacity = (int)(size / 0.75);
+			set = new HashSet<Scalar>(capacity);
 			for (int i = 0; i < size; ++i)
 			{
 				set.Add(keys.get(i));
@@ -46,31 +54,40 @@ namespace dolphindb.data
 
 		public BasicSet(DATA_TYPE keyType, int capacity)
 		{
-			if (keyType == DATA_TYPE.DT_VOID || keyType == DATA_TYPE.DT_SYMBOL || (int)keyType >= (int)DATA_TYPE.DT_FUNCTIONDEF)
+			if (keyType == DATA_TYPE.DT_VOID || keyType == DATA_TYPE.DT_SYMBOL || keyType.ordinal() >= (int)DATA_TYPE.DT_FUNCTIONDEF)
 			{
-				throw new System.ArgumentException("Invalid keyType: " + keyType.ToString());
+				throw new System.ArgumentException("Invalid keyType: " + keyType.name());
 			}
 			this.keyType = keyType;
-			set = new HashSet<IScalar>();
+			set = new HashSet<Scalar>();
 		}
 
 		public BasicSet(DATA_TYPE keyType) : this(keyType, 0)
 		{
 		}
 
-		public override DATA_FORM getDataForm()
+		public override DATA_FORM DataForm
 		{
-			return DATA_FORM.DF_SET;
+			get
+			{
+				return DATA_FORM.DF_SET;
+			}
 		}
 
-		public virtual DATA_CATEGORY getDataCategory()
+		public virtual DATA_CATEGORY DataCategory
 		{
-			return getDataCategory(keyType);
+			get
+			{
+				return getDataCategory(keyType);
+			}
 		}
 
-		public virtual DATA_TYPE getDataType()
+		public virtual DATA_TYPE DataType
 		{
-			return keyType;
+			get
+			{
+				return keyType;
+			}
 		}
 
 		public virtual int rows()
@@ -83,24 +100,24 @@ namespace dolphindb.data
 			return 1;
 		}
 
-		public virtual IVector keys()
+		public virtual Vector keys()
 		{
 			return keys(set.Count);
 		}
 
-		private IVector keys(int top)
+		private Vector keys(int top)
 		{
 			BasicEntityFactory factory = new BasicEntityFactory();
 			int size = Math.Min(top, set.Count);
-			IVector keys = (IVector)factory.createVectorWithDefaultValue(keyType, size);
-			IEnumerator<IScalar> it = set.GetEnumerator();
+			Vector keys = (Vector)factory.createVectorWithDefaultValue(keyType, size);
+			IEnumerator<Scalar> it = set.GetEnumerator();
 			int count = 0;
 			try
 			{
 				while (count < size)
 				{
-					keys.set(count++, it.Current);
-                    it.MoveNext();
+//JAVA TO C# CONVERTER TODO TASK: Java iterators are only converted within the context of 'while' and 'for' loops:
+					keys.set(count++, it.next());
 				}
 			}
 			catch (Exception)
@@ -110,54 +127,37 @@ namespace dolphindb.data
 			return keys;
 		}
 
-		public virtual bool contains(IScalar key)
+		public virtual bool contains(Scalar key)
 		{
 			return set.Contains(key);
 		}
 
-		public virtual bool add(IScalar key)
+		public virtual bool add(Scalar key)
 		{
+			if (key.DataType != key.DataType)
+			{
+				return false;
+			}
 			return set.Add(key);
 		}
 
-		public virtual string getString()
+		public virtual string String
 		{
-			return keys(Vector_Fields.DISPLAY_ROWS).getString();
+			get
+			{
+				return keys(Vector_Fields.DISPLAY_ROWS).String;
+			}
 		}
 
+//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
+//ORIGINAL LINE: public void write(com.xxdb.io.ExtendedDataOutput out) throws java.io.IOException
 		public virtual void write(ExtendedDataOutput @out)
 		{
-			IVector _keys = keys();
-			int flag = ((int)DATA_FORM.DF_SET << 8) + (int)getDataType();
+			Vector keys = keys();
+			int flag = ((int)DATA_FORM.DF_SET << 8) + DataType.ordinal();
 			@out.writeShort(flag);
-            _keys.write(@out);
+			keys.write(@out);
 		}
-
-        public DataTable toDataTable()
-        {
-            DataTable dt = buildTable();
-
-            foreach (IScalar item in this.set)
-            {
-                DataRow dr = dt.NewRow();
-                dr["set_key"] = item.getObject();
-                dt.Rows.Add(dr);
-            }
-            return dt;
-        }
-        private DataTable buildTable()
-        {
-            DataTable dt = new DataTable();
-
-            DataColumn dc = new DataColumn("set_key", Utils.getSystemType(keyType));
-            dt.Columns.Add(dc);
-
-            return dt;
-        }
-        public object getObject()
-        {
-            throw new NotImplementedException();
-        }
-    }
+	}
 
 }
