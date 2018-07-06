@@ -5,7 +5,7 @@ namespace dolphindb.data
 {
 	public class BasicTimestamp : BasicLong
 	{
-		private static string format = "yyyy.MM.dd'T'HH:mm:ss.SSS";
+		private static string format = "yyyy.MM.dd'T'HH:mm:ss.fff";
 
 		public BasicTimestamp(DateTime value) : base(Utils.countMilliseconds(value))
 		{
@@ -29,7 +29,12 @@ namespace dolphindb.data
 			return DATA_TYPE.DT_TIMESTAMP;
 		}
 
-		public new DateTime getValue()
+        public override object getObject()
+        {
+            return this.getValue();
+        }
+
+        public new DateTime getValue()
 		{
 				if (isNull())
 				{
@@ -54,7 +59,9 @@ namespace dolphindb.data
 				}
 				else
 				{
-					return this.getValue().ToString(format);
+                    DateTime dt = this.getValue();
+
+                    return dt.ToString(format);
 				}
 		}
 

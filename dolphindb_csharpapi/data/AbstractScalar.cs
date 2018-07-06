@@ -1,8 +1,8 @@
-﻿namespace dolphindb.data
+﻿using System;
+using dolphindb.io;
+using System.Data;
+namespace dolphindb.data
 {
-    using System;
-    using dolphindb.io;
-
     public abstract class AbstractScalar : AbstractEntity, IScalar
 	{
         protected abstract void writeScalarToOutputStream(ExtendedDataOutput @out);
@@ -65,5 +65,12 @@
         }
 
         public abstract string getString();
+
+        public virtual DataTable toDataTable()
+        {
+            throw new NotImplementedException("The scalar can not be convert to datatable");
+        }
+
+        public abstract object getObject();
     }
 }

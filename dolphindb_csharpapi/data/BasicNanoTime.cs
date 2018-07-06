@@ -6,7 +6,7 @@ namespace dolphindb.data
 
 	public class BasicNanoTime : BasicLong
 	{
-		private static string format = "HH:mm:ss.SSSSSSSSS";
+		private static string format = "c";
 
 		public BasicNanoTime(DateTime value) : base(Utils.countNanoseconds(value))
 		{
@@ -31,11 +31,15 @@ namespace dolphindb.data
 			return DATA_TYPE.DT_NANOTIME;
 		}
 
-		public virtual DateTime getValue()
+        public override object getObject()
+        {
+            return this.getValue();
+        }
+        public new  TimeSpan getValue()
 		{
 				if (isNull())
 				{
-					return DateTime.MinValue;
+					return TimeSpan.MinValue;
 				}
 				else
 				{

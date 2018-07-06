@@ -44,7 +44,6 @@ namespace dolphindb
         private string password;
         private bool encrypted;
 
-<<<<<<< HEAD
         public bool isConnected
         {
             get
@@ -54,53 +53,11 @@ namespace dolphindb
                     return socket.Connected;
                 }
                 else
-=======
-        public DBConnection()
-        {
-            factory = new BasicEntityFactory();
-            sessionID = "";
-        }
-
-        public bool isBusy()
-        {
-            return !Monitor.TryEnter(threadLock);
-        }
-
-        public bool connect(string hostName, int port)
-        {
-            return connect(hostName, port, "", "");
-        }
-
-        public bool connect(string hostName, int port, string userId, string password)
-        {
-            lock (threadLock)
-            {
-                try
->>>>>>> c43c84b07551222d1cfe25f1b9059f86f5c52d3e
                 {
-                    if (this.sessionID.Length > 0)
-                    {
-                        return true;
-                    }
-
-
-                    this.hostName = hostName;
-                    this.port = port;
-                    this.userId = userId;
-                    this.password = password;
-                    this.encrypted = true;
-
-                    return connect();
-
-                }
-                finally
-                {
-
+                    return false;
                 }
             }
-
         }
-<<<<<<< HEAD
         public DBConnection()
         {
             factory = new BasicEntityFactory();
@@ -110,73 +67,26 @@ namespace dolphindb
         public bool isBusy()
         {
             if (Monitor.TryEnter(threadLock))
-=======
-
-
-        public bool connect()
-        {
-            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            socket.Connect(hostName, port);
-            socket.NoDelay = true;
-            @out = new LittleEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
-
-            ExtendedDataInput @in = new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
-            string body = "connect\n";
-            @out.writeBytes("API 0 ");
-            @out.writeBytes(body.Length.ToString());
-            @out.writeChar('\n');
-            @out.writeBytes(body);
-            @out.flush();
-
-
-            string line = @in.readLine();
-            int endPos = line.IndexOf(' ');
-            if (endPos <= 0)
->>>>>>> c43c84b07551222d1cfe25f1b9059f86f5c52d3e
             {
-                close();
+                Monitor.Exit(threadLock);
                 return false;
-            }
-            sessionID = line.Substring(0, endPos);
-
-            int startPos = endPos + 1;
-            endPos = line.IndexOf(' ', startPos);
-            if (endPos != line.Length - 2)
-            {
-                close();
-                return false;
-            }
-
-            if (line[endPos + 1] == '0')
-            {
-                remoteLittleEndian = false;
-                @out = new BigEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
             }
             else
             {
-                remoteLittleEndian = true;
+                return true;
             }
-
-            if (this.userId.Length>0 && this.password.Length>0)
-                login();
-            return true;
         }
         public bool connect(string hostName, int port)
         {
             return connect(hostName, port, "", "");
         }
 
-<<<<<<< HEAD
         public bool connect(string hostName, int port, string userId, string password)
-=======
-        public void login(string userId, string password, bool enableEncryption)
->>>>>>> c43c84b07551222d1cfe25f1b9059f86f5c52d3e
         {
             lock (threadLock)
             {
                 try
                 {
-<<<<<<< HEAD
                     if (this.sessionID.Length > 0)
                     {
                         return true;
@@ -284,33 +194,6 @@ namespace dolphindb
                 string usr = RSAUtils.RSA(this.userId, key);
                 string pass = RSAUtils.RSA(this.password, key);
 
-=======
-                    this.userId = userId;
-                    this.password = password;
-                    this.encrypted = enableEncryption;
-                    login();
-                }
-                finally
-                {
-
-                }
-
-            }
-
-        }
-
-        private void login()
-        {
-            List<IEntity> args = new List<IEntity>();
-            if (this.encrypted)
-            {
-                BasicString keyCode = (BasicString)run("getDynamicPublicKey()");
-
-                string key = RSAUtils.GetKey(keyCode.getString());
-                string usr = RSAUtils.RSA(this.userId, key);
-                string pass = RSAUtils.RSA(this.password, key);
-
->>>>>>> c43c84b07551222d1cfe25f1b9059f86f5c52d3e
 
                 args.Add(new BasicString(usr));
                 args.Add(new BasicString(pass));
@@ -320,16 +203,11 @@ namespace dolphindb
             {
                 args.Add(new BasicString(userId));
                 args.Add(new BasicString(password));
-<<<<<<< HEAD
                 
             }
             //login("login", args);
             run("login('"+this.userId+"','"+this.password+"')"); //no encrypted temporary
 
-=======
-            }
-            run("login", args);
->>>>>>> c43c84b07551222d1cfe25f1b9059f86f5c52d3e
         }
 
         public virtual bool RemoteLittleEndian
@@ -434,7 +312,7 @@ namespace dolphindb
                 {
                     @out.writeBytes((listener != null ? "API2 " : "API ") + sessionID + " ");
                     @out.writeBytes(AbstractExtendedDataOutputStream.getUTFlength(body, 0, 0).ToString());
-                    @out.writeChar('\n');
+                    @out.writeByte('\n');
                     @out.writeBytes(body);
                     @out.flush();
 
@@ -455,7 +333,7 @@ namespace dolphindb
                         tryReconnect();
                         @out.writeBytes((listener != null ? "API2 " : "API ") + sessionID + " ");
                         @out.writeBytes(AbstractExtendedDataOutputStream.getUTFlength(body, 0, 0).ToString());
-                        @out.writeChar('\n');
+                        @out.writeByte('\n');
                         @out.writeBytes(body);
                         @out.flush();
 
@@ -817,6 +695,7 @@ namespace dolphindb
                     if (socket != null)
                     {
                         socket.Close();
+                        sessionID = string.Empty;
                         socket = null;
                     }
                 }

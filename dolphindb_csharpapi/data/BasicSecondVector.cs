@@ -42,11 +42,11 @@ namespace dolphindb.data
 			return new BasicSecond(getInt(index));
 		}
 
-		public virtual DateTime getSecond(int index)
+		public virtual TimeSpan getSecond(int index)
 		{
 			if (isNull(index))
 			{
-				return DateTime.MinValue;
+				return TimeSpan.MinValue;
 			}
 			else
 			{

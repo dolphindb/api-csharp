@@ -34,8 +34,6 @@ namespace dolphindb.data
 			values = new int[size];
 		}
 
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: protected BasicIntVector(Entity_DATA_FORM df, dolphindb.io.ExtendedDataInput in) throws java.io.IOException
 		protected internal BasicIntVector(DATA_FORM df, ExtendedDataInput @in) : base(df)
 		{
 			int rows = @in.readInt();

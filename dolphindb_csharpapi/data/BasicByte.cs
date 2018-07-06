@@ -57,7 +57,12 @@ namespace dolphindb.data
 			throw new Exception("Imcompatible data type");
 		}
 
-		public override string getString()
+
+        public override string ToString()
+        {
+            return this.getString();
+        }
+        public override string getString()
 		{
 			if (isNull())
 				{
@@ -99,6 +104,11 @@ namespace dolphindb.data
 		{
             return value.CompareTo(o.value);
         }
-	}
+
+        public override object getObject()
+        {
+            return this.getValue();
+        }
+    }
 
 }

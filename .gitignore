@@ -12,3 +12,5 @@
 *.cache
 *.cache
 .vs/dolphindb_csharpapi/v15/.suo
+dolphindb_csharpapi_test/obj/Release/CoreCompileInputs.cache
+dolphindb_csharpapi_test/obj/Release/CoreCompileInputs.cache

@@ -5,7 +5,7 @@ namespace dolphindb.data
 {
 	public class BasicTime : BasicInt
 	{
-		private static string format = "HH:mm:ss.SSS";
+		private static string format = "c";
 
 		public BasicTime(DateTime value) : base(Utils.countMilliseconds(value))
 		{
@@ -29,11 +29,16 @@ namespace dolphindb.data
 			return DATA_TYPE.DT_TIME;
 		}
 
-		public new  DateTime getValue()
+        public override object getObject()
+        {
+            return this.getValue();
+        }
+
+        public new  TimeSpan getValue()
 		{
 				if (isNull())
 				{
-					return DateTime.MinValue;
+					return TimeSpan.MinValue;
 				}
 				else
 				{

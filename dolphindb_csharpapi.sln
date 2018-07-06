@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dolphindb_csharpapi", "dolphindb_csharpapi\dolphindb_csharpapi.csproj", "{F744DA92-D9F2-49BB-9783-F89E825CB307}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dolphindb_csharpapi_test", "dolphindb_csharp_api_test\dolphindb_csharpapi_test.csproj", "{9297EF6F-E380-423B-BA64-FE2907226FF8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dolphindb_csharpapi_test", "dolphindb_csharpapi_test\dolphindb_csharpapi_test.csproj", "{9297EF6F-E380-423B-BA64-FE2907226FF8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,9 +1,6 @@
 ﻿using System;
 using System.IO;
-<<<<<<< HEAD
 using System.Linq;
-=======
->>>>>>> c43c84b07551222d1cfe25f1b9059f86f5c52d3e
 using System.Security.Cryptography;
 using System.Text;
 
@@ -14,7 +11,6 @@ namespace dolphindb
         public static string RSA(string input,string keyCode)
         {
             RSACryptoServiceProvider rsa = DecodeX509PublicKey(Convert.FromBase64String(keyCode));
-<<<<<<< HEAD
             byte[] bArr = Encoding.ASCII.GetBytes(input);
             byte[] reArr = rsa.Encrypt(bArr, false);
             var re = Convert.ToBase64String(reArr);
@@ -31,16 +27,6 @@ namespace dolphindb
         {
             string re = fullKeyCode.Replace("-----BEGIN PUBLIC KEY-----", "").Replace("-----END PUBLIC KEY-----", "").Replace(Environment.NewLine, "").Replace("\\s", "");
             return re;
-=======
-
-            return (Convert.ToBase64String(rsa.Encrypt(Encoding.ASCII.GetBytes(input), false)));
-        }
-
-        public static string GetKey(string fullKeyCode)
-        {
-            return fullKeyCode.Replace("-----BEGIN PUBLIC KEY-----", "").Replace("-----END PUBLIC KEY-----", "");
-            //.Replace("\n", "");
->>>>>>> c43c84b07551222d1cfe25f1b9059f86f5c52d3e
         }
 
         private static bool CompareBytearrays(byte[] a, byte[] b)
@@ -151,7 +137,6 @@ namespace dolphindb
             finally { binr.Close(); }
 
         }
-<<<<<<< HEAD
 
         public static RSACryptoServiceProvider DecodeX509PublicKey1(byte[] x509key)
         {
@@ -238,7 +223,4 @@ namespace dolphindb
         }
     }
 
-=======
-    }
->>>>>>> c43c84b07551222d1cfe25f1b9059f86f5c52d3e
 }

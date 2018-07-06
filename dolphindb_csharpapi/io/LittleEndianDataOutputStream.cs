@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace dolphindb.io
@@ -12,7 +13,7 @@ namespace dolphindb.io
 		{
 		}
 
-		public override void writeShort(short v)
+		public override void writeShort(int v)
 		{
             write(0xFF & v);
 			write(0xFF & (v >> 8));
@@ -41,9 +42,17 @@ namespace dolphindb.io
 
 		public override void writeIntArray(int[] A, int startIdx, int len)
 		{
-			if (buf == null)
+            List<byte> byteSource = new List<byte>();
+            for(int i=startIdx;i< startIdx + len; i++)
+            {
+                byteSource.AddRange(BitConverter.GetBytes(A[i]));
+            }
+            base.write(byteSource.ToArray());
+            
+            /*
+            if (buf == null)
 			{
-				buf = new sbyte[BUF_SIZE];
+				buf = new byte[BUF_SIZE];
 			}
 			int end = startIdx + len;
 			int pos = 0;
@@ -55,15 +64,16 @@ namespace dolphindb.io
 					write((byte[])(Array)buf, 0, pos);
 					pos = 0;
 				}
-				buf[pos++] = unchecked((sbyte)(0xFF & (v)));
-				buf[pos++] = unchecked((sbyte)(0xFF & (v >> 8)));
-				buf[pos++] = unchecked((sbyte)(0xFF & (v >> 16)));
-				buf[pos++] = unchecked((sbyte)(0xFF & (v >> 24)));
+				buf[pos++] = unchecked((byte)(0xFF & (v)));
+				buf[pos++] = unchecked((byte)(0xFF & (v >> 8)));
+				buf[pos++] = unchecked((byte)(0xFF & (v >> 16)));
+				buf[pos++] = unchecked((byte)(0xFF & (v >> 24)));
 			}
 			if (pos > 0)
 			{
 				write((byte[])(Array)buf, 0, pos);
 			}
+            */
 		}
 
 
@@ -71,7 +81,7 @@ namespace dolphindb.io
 		{
 			if (buf == null)
 			{
-				buf = new sbyte[BUF_SIZE];
+				buf = new byte[BUF_SIZE];
 			}
 			int end = startIdx + len;
 			int pos = 0;
@@ -83,8 +93,8 @@ namespace dolphindb.io
 					write((byte[])(Array)buf, 0, pos);
 					pos = 0;
 				}
-				buf[pos++] = unchecked((sbyte)(0xFF & (v)));
-				buf[pos++] = unchecked((sbyte)(0xFF & (v >> 8)));
+				buf[pos++] = unchecked((byte)(0xFF & (v)));
+				buf[pos++] = unchecked((byte)(0xFF & (v >> 8)));
 			}
 			if (pos > 0)
 			{
@@ -96,7 +106,7 @@ namespace dolphindb.io
 		{
 			if (buf == null)
 			{
-				buf = new sbyte[BUF_SIZE];
+				buf = new byte[BUF_SIZE];
 			}
 			int end = startIdx + len;
 			int pos = 0;
@@ -108,14 +118,14 @@ namespace dolphindb.io
 					write((byte[])(Array)buf, 0, pos);
 					pos = 0;
 				}
-				buf[pos++] = unchecked((sbyte)(0xFF & (v)));
-				buf[pos++] = unchecked((sbyte)(0xFF & (v >> 8)));
-				buf[pos++] = unchecked((sbyte)(0xFF & (v >> 16)));
-				buf[pos++] = unchecked((sbyte)(0xFF & (v >> 24)));
-				buf[pos++] = unchecked((sbyte)(0xFF & (v >> 32)));
-				buf[pos++] = unchecked((sbyte)(0xFF & (v >> 40)));
-				buf[pos++] = unchecked((sbyte)(0xFF & (v >> 48)));
-				buf[pos++] = unchecked((sbyte)(0xFF & (v >> 56)));
+				buf[pos++] = unchecked((byte)(0xFF & (v)));
+				buf[pos++] = unchecked((byte)(0xFF & (v >> 8)));
+				buf[pos++] = unchecked((byte)(0xFF & (v >> 16)));
+				buf[pos++] = unchecked((byte)(0xFF & (v >> 24)));
+				buf[pos++] = unchecked((byte)(0xFF & (v >> 32)));
+				buf[pos++] = unchecked((byte)(0xFF & (v >> 40)));
+				buf[pos++] = unchecked((byte)(0xFF & (v >> 48)));
+				buf[pos++] = unchecked((byte)(0xFF & (v >> 56)));
 			}
 			if (pos > 0)
 			{

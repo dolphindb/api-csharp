@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Data;
 
 namespace dolphindb.data
 {
@@ -293,7 +294,7 @@ namespace dolphindb.data
 		public virtual void write(ExtendedDataOutput @out)
 		{
 			int flag = ((int)DATA_FORM.DF_MATRIX << 8) + (int)getDataType();
-			@out.writeShort((short)flag);
+			@out.writeShort(flag);
 			byte labelFlag = (byte)((hasRowLabel() ? 1 : 0) + (hasColumnLabel() ? 2 : 0));
 			@out.writeByte(labelFlag);
 			if (hasRowLabel())
@@ -304,11 +305,47 @@ namespace dolphindb.data
 			{
 				columnLabels.write(@out);
 			}
-			@out.writeShort((short)flag);
+			@out.writeShort(flag);
 			@out.writeInt(rows());
 			@out.writeInt(columns());
 			writeVectorToOutputStream(@out);
 		}
-	}
+
+        public virtual DataTable toDataTable()
+        {
+            DataTable dt = buildTable();
+            for (int i = 0; i < this.rows(); i++)
+            {
+                DataRow dr = dt.NewRow();
+                for (int j=0;j<this.columns();j++)
+                {
+                    dr[j] = this.get(i,j).getObject();
+                }
+                dt.Rows.Add(dr);
+            }
+            return dt;
+        }
+        protected DataTable buildTable()
+        {
+            DataTable dt = new DataTable();
+            string[] colnames = new string[this._columns];
+            if(this.columnLabels == null)
+                for (int c = 0; c < this._columns; c++)
+                    colnames[c] = "col" + c.ToString();
+            else
+                for (int c = 0;c < this._columns; c++)
+                    colnames[c] = this.columnLabels.get(c).getString();
+
+            for (int j = 0; j < this.columns(); j++)
+                dt.Columns.Add(colnames[j], Utils.getSystemType(this.getDataType()));
+                
+            return dt;
+        }
+
+        public object getObject()
+        {
+            throw new NotImplementedException();
+        }
+    }
 
 }

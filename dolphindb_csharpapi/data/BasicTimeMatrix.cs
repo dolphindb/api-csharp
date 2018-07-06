@@ -24,7 +24,7 @@ namespace dolphindb.data
 			setInt(row, column, Utils.countMilliseconds(value));
 		}
 
-		public virtual DateTime getTime(int row, int column)
+		public virtual TimeSpan getTime(int row, int column)
 		{
 			return Utils.parseTime(getInt(row, column));
 		}

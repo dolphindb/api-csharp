@@ -1,4 +1,5 @@
 ﻿using dolphindb.io;
+using System.Data;
 
 namespace dolphindb.data
 {
@@ -7,11 +8,12 @@ namespace dolphindb.data
         DATA_FORM getDataForm();
         DATA_CATEGORY getDataCategory();
         DATA_TYPE getDataType();
+        object getObject();
 		int rows();
 		int columns();
         string getString();
 		void write(ExtendedDataOutput output);
-
+        DataTable toDataTable();
         bool isScalar();
         bool isVector();
         bool isPair();
@@ -43,8 +45,7 @@ namespace dolphindb.data
 		DT_DOUBLE,
 		DT_SYMBOL,
 		DT_STRING,
-        DT_UUID,
-        DT_FUNCTIONDEF,
+		DT_FUNCTIONDEF,
 		DT_HANDLE,
 		DT_CODE,
 		DT_DATASOURCE,
