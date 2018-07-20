@@ -886,12 +886,10 @@ namespace dolphindb_csharpapi_test
             db.run("db = database('dfs://testDatabase',VALUE,'MS' 'GOOG' 'FB')");
             db.run("tb= table('MS' as sym,datetime(now()) as dt,1.01 as prc,1 as cnt)");
             db.run("db.createPartitionedTable(tb,'tb1','sym')");
-            //define function for writing data into 
+           
             db.run("def saveQuotes(t){ loadTable('dfs://testDatabase','tb1').append!(t)}");
-            //add table data as parameter
             List<IEntity> args = new List<IEntity>(1);
             args.Add(table1);
-            //execute write job
             db.run("saveQuotes", args);
         }
     }
