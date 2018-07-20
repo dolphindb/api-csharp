@@ -16,10 +16,11 @@ namespace dolphindb_csharpapi_test
     public class DBConnection_test
     {
         private readonly string SERVER = "192.168.1.33";
-        private readonly int PORT = 8920;
+        private readonly int PORT = 18902;
         [TestMethod]
         public void Test_MyDemo()
         {
+            DBConnection db = new DBConnection();
             
         }
 
@@ -28,6 +29,7 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             Assert.AreEqual(true, db.connect(SERVER, PORT));
+
         }
 
         [TestMethod]
@@ -37,6 +39,7 @@ namespace dolphindb_csharpapi_test
             db.connect(SERVER, PORT);
             // Assert.AreEqual(true, db.connect(SERVER, PORT,"admin","1234567"));
             db.login("admin", "123456", false);
+                //db.login("admin", "123456", true);
             //db.run("login('admin', '123456')");
         }
 
@@ -46,7 +49,6 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            
             db.run("logout()");
         }
 
@@ -861,6 +863,36 @@ namespace dolphindb_csharpapi_test
             args.Add(vec);
             IScalar result = (IScalar)db.run("sum", args);
             Assert.AreEqual("11", result.getString());
+        }
+
+        [TestMethod]
+        public void Test_WriteLocalTableToDfs()
+        {
+            //=======================prepare data to writing into dfs database =======================
+            List<string> colNames = new List<string>() { "sym", "dt", "prc", "cnt" };
+            BasicStringVector symVec = new BasicStringVector(new List<string>() { "MS", "GOOG", "FB" });
+            BasicDateTimeVector dtVec = new BasicDateTimeVector(new List<int?>() { Utils.countSeconds(DateTime.Now), Utils.countSeconds(DateTime.Now), Utils.countSeconds(DateTime.Now) });
+            BasicDoubleVector prcVec = new BasicDoubleVector(new double[] { 101.5, 132.75, 37.96 });
+            BasicIntVector cntVec = new BasicIntVector(new int[] { 50, 78, 88 });
+
+            List<IVector> cols = new List<IVector>() { (IVector)symVec, (IVector)dtVec, (IVector)prcVec, (IVector)cntVec };
+            BasicTable table1 = new BasicTable(colNames, cols);
+            //======================================================================================
+
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            db.login("admin", "123456", false);//login 
+            //prepare dfs database and table  
+            db.run("db = database('dfs://testDatabase',VALUE,'MS' 'GOOG' 'FB')");
+            db.run("tb= table('MS' as sym,datetime(now()) as dt,1.01 as prc,1 as cnt)");
+            db.run("db.createPartitionedTable(tb,'tb1','sym')");
+            //define function for writing data into 
+            db.run("def saveQuotes(t){ loadTable('dfs://testDatabase','tb1').append!(t)}");
+            //add table data as parameter
+            List<IEntity> args = new List<IEntity>(1);
+            args.Add(table1);
+            //execute write job
+            db.run("saveQuotes", args);
         }
     }
 }

@@ -170,8 +170,8 @@ namespace dolphindb
                 {
                     this.userId = userId;
                     this.password = password;
-                    //this.encrypted = enableEncryption;
-                    this.encrypted = false; //no encrypted temporary
+                    this.encrypted = enableEncryption;
+                    //this.encrypted = false; //no encrypted temporary
                     login();
                 }
                 finally
@@ -198,15 +198,17 @@ namespace dolphindb
                 args.Add(new BasicString(usr));
                 args.Add(new BasicString(pass));
                 args.Add(new BasicBoolean(true));
+                run("login", args);
             }
             else
             {
                 args.Add(new BasicString(userId));
                 args.Add(new BasicString(password));
-                
+                run("login('" + this.userId + "','" + this.password + "')"); //no encrypted temporary
+
             }
             //login("login", args);
-            run("login('"+this.userId+"','"+this.password+"')"); //no encrypted temporary
+           
 
         }
 
