@@ -4,7 +4,7 @@
 
 DolphinDB C# API requires .Net Framework 4 and above.
 
-#### 2. Use Java API
+#### 2. Use C# API
 
 To use DolphinDB C# API, please add dolphindb.dll to your assembly reference.
 
