@@ -6,26 +6,26 @@ namespace dolphindb.io
 {
 
 
-	public abstract class AbstractExtendedDataOutputStream : BinaryWriter,ExtendedDataOutput
-	{
-		public abstract void writeLongArray(long[] A, int startIdx, int len);
-		public abstract void writeIntArray(int[] A, int startIdx, int len);
-		public abstract void writeShortArray(short[] A, int startIdx, int len);
-		private const int UTF8_STRING_LIMIT = 65535;
-		protected internal const int BUF_SIZE = 4096;
-		protected internal byte[] buf;
-		private static readonly int longBufSize = BUF_SIZE / 8;
-		private static readonly int intBufSize = BUF_SIZE / 4;
-		private int[] intBuf;
-		private long[] longBuf;
+    public abstract class AbstractExtendedDataOutputStream : BinaryWriter, ExtendedDataOutput
+    {
+        public abstract void writeLongArray(long[] A, int startIdx, int len);
+        public abstract void writeIntArray(int[] A, int startIdx, int len);
+        public abstract void writeShortArray(short[] A, int startIdx, int len);
+        private const int UTF8_STRING_LIMIT = 65535;
+        protected internal const int BUF_SIZE = 4096;
+        protected internal byte[] buf;
+        private static readonly int longBufSize = BUF_SIZE / 8;
+        private static readonly int intBufSize = BUF_SIZE / 4;
+        private int[] intBuf;
+        private long[] longBuf;
         //Stream _outStream;
-        public AbstractExtendedDataOutputStream(Stream outStream):base(outStream)
-		{
-          //  _outStream = outStream;
+        public AbstractExtendedDataOutputStream(Stream outStream) : base(outStream)
+        {
+            //  _outStream = outStream;
         }
 
-		public void flush()
-		{
+        public void flush()
+        {
             try
             {
                 base.Flush();
@@ -34,11 +34,11 @@ namespace dolphindb.io
             {
                 throw ex;
             }
-           
+
         }
 
         public void writeBoolean(bool v)
-		{
+        {
             try
             {
                 base.Write(v);
@@ -47,16 +47,16 @@ namespace dolphindb.io
             {
                 throw ex;
             }
-		}
+        }
 
-		public void writeByte(int v)
-		{
+        public void writeByte(int v)
+        {
             byte b = (byte)v;
             base.Write(b);
         }
 
-		public void writeChar(char v)
-		{
+        public void writeChar(char v)
+        {
             writeShort(v);
         }
 
@@ -66,18 +66,18 @@ namespace dolphindb.io
         }
 
         public void writeFloat(float v)
-		{
+        {
             base.Write(v);
-		}
+        }
 
-		public void writeDouble(double v)
-		{
+        public void writeDouble(double v)
+        {
             byte[] b = BitConverter.GetBytes(v);
             base.Write(b);
         }
 
-		public void writeBytes(string s)
-		{
+        public void writeBytes(string s)
+        {
             byte[] b = Encoding.UTF8.GetBytes(s);
             base.Write(b);
             /*
@@ -112,15 +112,15 @@ namespace dolphindb.io
             */
         }
 
-		public  void writeChars(string s)
-		{
+        public void writeChars(string s)
+        {
             int len = s.Length;
             for (int i = 0; i < len; ++i)
                 writeChar(s[i]);
         }
 
-		public void writeUTF(string value)
-		{
+        public void writeUTF(string value)
+        {
             base.Write(value);
             //try
             //{
@@ -165,10 +165,10 @@ namespace dolphindb.io
             //{
             //    throw ex;
             //}
-		}
+        }
 
-		public void writeString(string value)
-		{
+        public void writeString(string value)
+        {
             int len = value.Length;
             int i = 0;
             int pos = 0;
@@ -200,8 +200,8 @@ namespace dolphindb.io
             } while (i < len);
         }
 
-		public static int getUTFlength(string value, int start, int sum)
-		{
+        public static int getUTFlength(string value, int start, int sum)
+        {
             try
             {
                 int len = value.Length;
@@ -232,10 +232,10 @@ namespace dolphindb.io
             {
                 throw ex;
             }
-            
-		}
-		public void writeShortArray(short[] A)
-		{
+
+        }
+        public void writeShortArray(short[] A)
+        {
             try
             {
                 writeShortArray(A, 0, A.Length);
@@ -245,10 +245,10 @@ namespace dolphindb.io
                 throw ex;
             }
 
-		}
+        }
 
         public void writeIntArray(int[] A)
-		{
+        {
             try
             {
                 writeIntArray(A, 0, A.Length);
@@ -257,11 +257,11 @@ namespace dolphindb.io
             {
                 throw ex;
             }
-        
-		}
 
-        public  void writeLongArray(long[] A)
-		{
+        }
+
+        public void writeLongArray(long[] A)
+        {
             try
             {
                 writeLongArray(A, 0, A.Length);
@@ -270,11 +270,11 @@ namespace dolphindb.io
             {
                 throw ex;
             }
-         
-		}
 
-		public virtual void writeDoubleArray(double[] A)
-		{
+        }
+
+        public virtual void writeDoubleArray(double[] A)
+        {
             try
             {
                 writeDoubleArray(A, 0, A.Length);
@@ -283,11 +283,11 @@ namespace dolphindb.io
             {
                 throw ex;
             }
-           
-		}
 
-		public virtual void writeDoubleArray(double[] A, int startIdx, int len)
-		{
+        }
+
+        public virtual void writeDoubleArray(double[] A, int startIdx, int len)
+        {
             try
             {
                 if (longBuf == null)
@@ -315,11 +315,11 @@ namespace dolphindb.io
             {
                 throw ex;
             }
-            
-		}
 
-		public virtual void writeFloatArray(float[] A)
-		{
+        }
+
+        public virtual void writeFloatArray(float[] A)
+        {
             try
             {
                 writeFloatArray(A, 0, A.Length);
@@ -329,10 +329,10 @@ namespace dolphindb.io
                 throw ex;
             }
 
-		}
+        }
 
         public virtual void writeFloatArray(float[] A, int startIdx, int len)
-		{
+        {
             try
             {
                 if (intBuf == null)
@@ -348,7 +348,7 @@ namespace dolphindb.io
                         writeIntArray(intBuf, 0, pos);
                         pos = 0;
                     }
-                    intBuf[pos++] = BitConverter.ToInt32(BitConverter.GetBytes(A[i]), 0); 
+                    intBuf[pos++] = BitConverter.ToInt32(BitConverter.GetBytes(A[i]), 0);
                 }
                 if (pos > 0)
                 {
@@ -359,11 +359,11 @@ namespace dolphindb.io
             {
                 throw ex;
             }
-            
-		}
 
-		public virtual void writeStringArray(string[] A)
-		{
+        }
+
+        public virtual void writeStringArray(string[] A)
+        {
             try
             {
                 writeStringArray(A, 0, A.Length);
@@ -372,10 +372,10 @@ namespace dolphindb.io
             {
                 throw ex;
             }
-		}
+        }
 
-		public virtual void writeStringArray(string[] A, int startIdx, int len)
-		{
+        public virtual void writeStringArray(string[] A, int startIdx, int len)
+        {
             try
             {
                 if (buf == null)
@@ -430,8 +430,8 @@ namespace dolphindb.io
             {
                 throw ex;
             }
-           
-		}
+
+        }
 
         public abstract void writeInt(int value);
 
@@ -441,9 +441,9 @@ namespace dolphindb.io
 
         public void write(byte[] b)
         {
-            base.Write(b,0,b.Length);
+            base.Write(b, 0, b.Length);
         }
-        public void write(byte[] b,int offset,int length)
+        public void write(byte[] b, int offset, int length)
         {
             base.Write(b, offset, length);
         }

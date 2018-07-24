@@ -3,21 +3,21 @@ using System;
 
 namespace dolphindb.data
 {
-	public class BasicTimestamp : BasicLong
-	{
-		private static string format = "yyyy.MM.dd'T'HH:mm:ss.fff";
+    public class BasicTimestamp : BasicLong
+    {
+        private static string format = "yyyy.MM.dd'T'HH:mm:ss.fff";
 
-		public BasicTimestamp(DateTime value) : base(Utils.countMilliseconds(value))
-		{
-		}
+        public BasicTimestamp(DateTime value) : base(Utils.countMilliseconds(value))
+        {
+        }
 
-		public BasicTimestamp(ExtendedDataInput @in) : base(@in)
-		{
-		}
+        public BasicTimestamp(ExtendedDataInput @in) : base(@in)
+        {
+        }
 
-		protected internal BasicTimestamp(long value) : base(value)
-		{
-		}
+        protected internal BasicTimestamp(long value) : base(value)
+        {
+        }
 
         public override DATA_CATEGORY getDataCategory()
         {
@@ -25,9 +25,9 @@ namespace dolphindb.data
         }
 
         public override DATA_TYPE getDataType()
-		{
-			return DATA_TYPE.DT_TIMESTAMP;
-		}
+        {
+            return DATA_TYPE.DT_TIMESTAMP;
+        }
 
         public override object getObject()
         {
@@ -35,47 +35,47 @@ namespace dolphindb.data
         }
 
         public new DateTime getValue()
-		{
-				if (isNull())
-				{
-					return DateTime.MinValue;
-				}
-				else
-				{
-					return Utils.parseTimestamp(base.getValue());
-				}
-		}
+        {
+            if (isNull())
+            {
+                return DateTime.MinValue;
+            }
+            else
+            {
+                return Utils.parseTimestamp(base.getValue());
+            }
+        }
 
-		public override object getTemporal()
-		{
+        public override object getTemporal()
+        {
             return this.getValue();
-		}
+        }
 
-		public override string getString()
-		{
-				if (isNull())
-				{
-					return "";
-				}
-				else
-				{
-                    DateTime dt = this.getValue();
+        public override string getString()
+        {
+            if (isNull())
+            {
+                return "";
+            }
+            else
+            {
+                DateTime dt = this.getValue();
 
-                    return dt.ToString(format);
-				}
-		}
+                return dt.ToString(format);
+            }
+        }
 
-		public override bool Equals(object o)
-		{
-			if (!(o is BasicTimestamp) || o == null)
-			{
-				return false;
-			}
-			else
-			{
-				return base.getValue() == ((BasicLong)o).getValue();
-			}
-		}
-	}
+        public override bool Equals(object o)
+        {
+            if (!(o is BasicTimestamp) || o == null)
+            {
+                return false;
+            }
+            else
+            {
+                return base.getValue() == ((BasicLong)o).getValue();
+            }
+        }
+    }
 
 }

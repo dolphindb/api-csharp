@@ -3,16 +3,16 @@ using System.Data;
 
 namespace dolphindb.data
 {
-	public interface IEntity
-	{
+    public interface IEntity
+    {
         DATA_FORM getDataForm();
         DATA_CATEGORY getDataCategory();
         DATA_TYPE getDataType();
         object getObject();
-		int rows();
-		int columns();
+        int rows();
+        int columns();
         string getString();
-		void write(ExtendedDataOutput output);
+        void write(ExtendedDataOutput output);
         DataTable toDataTable();
         bool isScalar();
         bool isVector();
@@ -22,10 +22,10 @@ namespace dolphindb.data
         bool isDictionary();
         bool isChart();
         bool isChunk();
-	}
+    }
 
-	public enum DATA_TYPE
-	{
+    public enum DATA_TYPE
+    {
         DT_VOID,
         DT_BOOL,
         DT_BYTE,
@@ -56,37 +56,37 @@ namespace dolphindb.data
         DT_OBJECT
     }
 
-	public enum DATA_CATEGORY
-	{
-		NOTHING,
-		LOGICAL,
-		INTEGRAL,
-		FLOATING,
-		TEMPORAL,
-		LITERAL,
-		SYSTEM,
-		MIXED
-	}
+    public enum DATA_CATEGORY
+    {
+        NOTHING,
+        LOGICAL,
+        INTEGRAL,
+        FLOATING,
+        TEMPORAL,
+        LITERAL,
+        SYSTEM,
+        MIXED
+    }
 
-	public enum DATA_FORM
-	{
-		DF_SCALAR,
-		DF_VECTOR,
-		DF_PAIR,
-		DF_MATRIX,
-		DF_SET,
-		DF_DICTIONARY,
-		DF_TABLE,
-		DF_CHART,
-		DF_CHUNK
-	}
+    public enum DATA_FORM
+    {
+        DF_SCALAR,
+        DF_VECTOR,
+        DF_PAIR,
+        DF_MATRIX,
+        DF_SET,
+        DF_DICTIONARY,
+        DF_TABLE,
+        DF_CHART,
+        DF_CHUNK
+    }
 
-	public enum PARTITION_TYPE
-	{
-		SEQ,
-		VALUE,
-		RANGE,
-		LIST
-	}
+    public enum PARTITION_TYPE
+    {
+        SEQ,
+        VALUE,
+        RANGE,
+        LIST
+    }
 
 }

@@ -3,13 +3,13 @@
 namespace dolphindb.data
 {
 
-	public interface IScalar : IEntity
-	{
-        bool isNull(); 
-		void setNull();
+    public interface IScalar : IEntity
+    {
+        bool isNull();
+        void setNull();
         DataTable toDataTable();
         Number getNumber();
         object getTemporal();
-	}
+    }
 
 }

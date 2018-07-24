@@ -6,70 +6,70 @@ namespace dolphindb.io
 {
 
 
-	public abstract class AbstractExtendedDataInputStream : BinaryReader,ExtendedDataInput
-	{
+    public abstract class AbstractExtendedDataInputStream : BinaryReader, ExtendedDataInput
+    {
 
-		private const int UTF8_STRING_LIMIT = 65536;
-		private byte[] buf_;
+        private const int UTF8_STRING_LIMIT = 65536;
+        private byte[] buf_;
         protected Stream _inStream;
-		protected internal AbstractExtendedDataInputStream(Stream inStream):base(inStream)
-		{
+        protected internal AbstractExtendedDataInputStream(Stream inStream) : base(inStream)
+        {
             _inStream = inStream;
         }
 
-		public bool readBoolean()
-		{
-			return readUnsignedByte() != 0;
-		}
+        public bool readBoolean()
+        {
+            return readUnsignedByte() != 0;
+        }
 
-		public byte readByte()
-		{
-			return (byte)readUnsignedByte();
-		}
+        public byte readByte()
+        {
+            return (byte)readUnsignedByte();
+        }
 
-		public void readFully(byte[] arg0)
-		{
-            base.Read(arg0,0,arg0.Length);
-		}
+        public void readFully(byte[] arg0)
+        {
+            base.Read(arg0, 0, arg0.Length);
+        }
 
-		public void readFully(byte[] arg0, int arg1, int arg2)
-		{
+        public void readFully(byte[] arg0, int arg1, int arg2)
+        {
             base.Read(arg0, arg1, arg2);
-		}
+        }
 
         public int readUnsignedByte()
-		{
+        {
             byte b1 = this.ReadByte();
             if (0 > b1)
-			{
-				throw new EndOfStreamException();
-			}
-			return b1;
-		}
+            {
+                throw new EndOfStreamException();
+            }
+            return b1;
+        }
 
-		public  int skipBytes(int n)
-		{
-			return (int)_inStream.Seek(n,SeekOrigin.Current);
-		}
+        public int skipBytes(int n)
+        {
+            return (int)_inStream.Seek(n, SeekOrigin.Current);
+        }
 
-		protected internal virtual byte readAndCheckByte()
-		{
+        protected internal virtual byte readAndCheckByte()
+        {
             byte b = this.ReadByte();
 
             byte b1 = b;
-           
+
             return (byte)b1;
-		}
+        }
 
-		protected internal virtual int fromBytes(byte b1, byte b2, byte b3, byte b4)
-		{
-			return b1 << 24 | (b2 & 0xFF) << 16 | (b3 & 0xFF) << 8 | (b4 & 0xFF);
-		}
+        protected internal virtual int fromBytes(byte b1, byte b2, byte b3, byte b4)
+        {
+            return b1 << 24 | (b2 & 0xFF) << 16 | (b3 & 0xFF) << 8 | (b4 & 0xFF);
+        }
 
-		protected internal virtual long fromBytes(byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7, byte b8)
-		{
-			return (b1 & 0xFFL) << 56 | (b2 & 0xFFL) << 48 | (b3 & 0xFFL) << 40 | (b4 & 0xFFL) << 32 | (b5 & 0xFFL) << 24 | (b6 & 0xFFL) << 16 | (b7 & 0xFFL) << 8 | (b8 & 0xFFL);
-		}
+        protected internal virtual long fromBytes(byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7, byte b8)
+        {
+            return (b1 & 0xFFL) << 56 | (b2 & 0xFFL) << 48 | (b3 & 0xFFL) << 40 | (b4 & 0xFFL) << 32 | (b5 & 0xFFL) << 24 | (b6 & 0xFFL) << 16 | (b7 & 0xFFL) << 8 | (b8 & 0xFFL);
+        }
 
         string ExtendedDataInput.readLine()
         {
@@ -143,7 +143,7 @@ namespace dolphindb.io
         public float readFloat()
         {
             byte[] b = base.ReadBytes(4);
-            return BitConverter.ToSingle(b,0);
+            return BitConverter.ToSingle(b, 0);
         }
 
         public string readString()
@@ -151,5 +151,5 @@ namespace dolphindb.io
             return readUTF8((byte)0);
         }
     }
-    
+
 }

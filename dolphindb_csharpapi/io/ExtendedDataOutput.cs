@@ -2,24 +2,24 @@
 {
 
 
-	public interface ExtendedDataOutput
-	{
+    public interface ExtendedDataOutput
+    {
         void write(byte[] b);
         void writeShort(int s);
-		void writeString(string str);
+        void writeString(string str);
         void flush();
         void writeShortArray(short[] A);
-		void writeShortArray(short[] A, int startIdx, int len);
-		void writeIntArray(int[] A);
-		void writeIntArray(int[] A, int startIdx, int len);
-		void writeLongArray(long[] A);
-		void writeLongArray(long[] A, int startIdx, int len);
-		void writeDoubleArray(double[] A);
-		void writeDoubleArray(double[] A, int startIdx, int len);
-		void writeFloatArray(float[] A);
-		void writeFloatArray(float[] A, int startIdx, int len);
-		void writeStringArray(string[] A);
-		void writeStringArray(string[] A, int startIdx, int len);
+        void writeShortArray(short[] A, int startIdx, int len);
+        void writeIntArray(int[] A);
+        void writeIntArray(int[] A, int startIdx, int len);
+        void writeLongArray(long[] A);
+        void writeLongArray(long[] A, int startIdx, int len);
+        void writeDoubleArray(double[] A);
+        void writeDoubleArray(double[] A, int startIdx, int len);
+        void writeFloatArray(float[] A);
+        void writeFloatArray(float[] A, int startIdx, int len);
+        void writeStringArray(string[] A);
+        void writeStringArray(string[] A, int startIdx, int len);
         void writeBoolean(bool v);
         void writeByte(int v);
         void writeChar(char v);

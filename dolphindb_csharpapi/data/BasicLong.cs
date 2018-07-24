@@ -41,13 +41,13 @@ namespace dolphindb.data
 
         public override DATA_CATEGORY getDataCategory()
         {
-                return DATA_CATEGORY.INTEGRAL;
+            return DATA_CATEGORY.INTEGRAL;
         }
 
         public override DATA_TYPE getDataType()
         {
 
-                return DATA_TYPE.DT_LONG;
+            return DATA_TYPE.DT_LONG;
         }
 
         public override Number getNumber()

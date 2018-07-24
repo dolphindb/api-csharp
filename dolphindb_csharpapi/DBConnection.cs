@@ -97,7 +97,7 @@ namespace dolphindb
                     this.port = port;
                     this.userId = userId;
                     this.password = password;
-                    this.encrypted = false; 
+                    this.encrypted = false;
 
                     return connect();
 
@@ -208,7 +208,7 @@ namespace dolphindb
 
             }
             //login("login", args);
-           
+
 
         }
 

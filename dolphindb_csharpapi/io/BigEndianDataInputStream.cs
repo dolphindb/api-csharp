@@ -4,16 +4,16 @@ namespace dolphindb.io
 {
 
 
-	public class BigEndianDataInputStream : AbstractExtendedDataInputStream
-	{
+    public class BigEndianDataInputStream : AbstractExtendedDataInputStream
+    {
 
-		public BigEndianDataInputStream(Stream @in) : base(@in)
-		{
+        public BigEndianDataInputStream(Stream @in) : base(@in)
+        {
 
-		}
+        }
 
-		public override int readInt()
-		{
+        public override int readInt()
+        {
             try
             {
                 byte b1 = readAndCheckByte();
@@ -22,15 +22,15 @@ namespace dolphindb.io
                 byte b4 = readAndCheckByte();
                 return fromBytes(b1, b2, b3, b4);
             }
-            catch(IOException ex)
+            catch (IOException ex)
             {
                 throw ex;
             }
 
-		}
+        }
 
-		public override long readLong()
-		{
+        public override long readLong()
+        {
             try
             {
                 byte b1 = readAndCheckByte();
@@ -49,8 +49,8 @@ namespace dolphindb.io
             }
         }
 
-		public override int readUnsignedShort()
-		{
+        public override int readUnsignedShort()
+        {
             try
             {
                 byte b1 = readAndCheckByte();
@@ -61,7 +61,7 @@ namespace dolphindb.io
             {
                 throw ex;
             }
-		}
-	}
+        }
+    }
 
 }

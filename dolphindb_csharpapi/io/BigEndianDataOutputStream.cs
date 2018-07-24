@@ -5,21 +5,21 @@ namespace dolphindb.io
 {
 
 
-	public class BigEndianDataOutputStream : AbstractExtendedDataOutputStream
-	{
+    public class BigEndianDataOutputStream : AbstractExtendedDataOutputStream
+    {
 
         public BigEndianDataOutputStream(Stream outStream) : base(outStream)
-		{
-  		}
+        {
+        }
 
-		public override void writeShort(int v)
-		{
+        public override void writeShort(int v)
+        {
             write(0xff & (v >> 8));
-			write(0xff & v);
-		}
+            write(0xff & v);
+        }
 
-		public override void writeInt(int v)
-		{
+        public override void writeInt(int v)
+        {
             try
             {
                 write(0xFF & (v >> 24));
@@ -32,11 +32,11 @@ namespace dolphindb.io
                 throw ex;
             }
 
-            
-		}
 
-		public override void writeLong(long v)
-		{
+        }
+
+        public override void writeLong(long v)
+        {
             try
             {
                 write((int)(0xFF & (v >> 56)));
@@ -53,10 +53,10 @@ namespace dolphindb.io
                 throw ex;
             }
 
-            
-		}
-		public override void writeShortArray(short[] A, int startIdx, int len)
-		{
+
+        }
+        public override void writeShortArray(short[] A, int startIdx, int len)
+        {
             try
             {
 
@@ -67,30 +67,30 @@ namespace dolphindb.io
             }
 
             if (buf == null)
-			{
-				buf = new byte[BUF_SIZE];
-			}
-			int end = startIdx + len;
-			int pos = 0;
-			for (int i = startIdx; i < end; ++i)
-			{
-				short v = A[i];
-				if (pos + 2 >= BUF_SIZE)
-				{
-					write((byte[])(Array)buf, 0, pos);
-					pos = 0;
-				}
-				buf[pos++] = unchecked((byte)(0xFF & (v >> 8)));
-				buf[pos++] = unchecked((byte)(0xFF & (v)));
-			}
-			if (pos > 0)
-			{
-				write((byte[])(Array)buf, 0, pos);
-			}
-		}
+            {
+                buf = new byte[BUF_SIZE];
+            }
+            int end = startIdx + len;
+            int pos = 0;
+            for (int i = startIdx; i < end; ++i)
+            {
+                short v = A[i];
+                if (pos + 2 >= BUF_SIZE)
+                {
+                    write((byte[])(Array)buf, 0, pos);
+                    pos = 0;
+                }
+                buf[pos++] = unchecked((byte)(0xFF & (v >> 8)));
+                buf[pos++] = unchecked((byte)(0xFF & (v)));
+            }
+            if (pos > 0)
+            {
+                write((byte[])(Array)buf, 0, pos);
+            }
+        }
 
-		public override void writeIntArray(int[] A, int startIdx, int len)
-		{
+        public override void writeIntArray(int[] A, int startIdx, int len)
+        {
             try
             {
 
@@ -101,32 +101,32 @@ namespace dolphindb.io
             }
 
             if (buf == null)
-			{
-				buf = new byte[BUF_SIZE];
-			}
-			int end = startIdx + len;
-			int pos = 0;
-			for (int i = startIdx; i < end; ++i)
-			{
-				int v = A[i];
-				if (pos + 4 >= BUF_SIZE)
-				{
-					write((byte[])(Array)buf, 0, pos);
-					pos = 0;
-				}
-				buf[pos++] = unchecked((byte)(0xFF & (v >> 24)));
-				buf[pos++] = unchecked((byte)(0xFF & (v >> 16)));
-				buf[pos++] = unchecked((byte)(0xFF & (v >> 8)));
-				buf[pos++] = unchecked((byte)(0xFF & (v)));
-			}
-			if (pos > 0)
-			{
-				write((byte[])(Array)buf, 0, pos);
-			}
-		}
+            {
+                buf = new byte[BUF_SIZE];
+            }
+            int end = startIdx + len;
+            int pos = 0;
+            for (int i = startIdx; i < end; ++i)
+            {
+                int v = A[i];
+                if (pos + 4 >= BUF_SIZE)
+                {
+                    write((byte[])(Array)buf, 0, pos);
+                    pos = 0;
+                }
+                buf[pos++] = unchecked((byte)(0xFF & (v >> 24)));
+                buf[pos++] = unchecked((byte)(0xFF & (v >> 16)));
+                buf[pos++] = unchecked((byte)(0xFF & (v >> 8)));
+                buf[pos++] = unchecked((byte)(0xFF & (v)));
+            }
+            if (pos > 0)
+            {
+                write((byte[])(Array)buf, 0, pos);
+            }
+        }
 
-		public override void writeLongArray(long[] A, int startIdx, int len)
-		{
+        public override void writeLongArray(long[] A, int startIdx, int len)
+        {
             try
             {
                 if (buf == null)

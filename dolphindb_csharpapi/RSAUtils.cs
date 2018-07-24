@@ -8,7 +8,7 @@ namespace dolphindb
 {
     public class RSAUtils
     {
-        public static string RSA(string input,string keyCode)
+        public static string RSA(string input, string keyCode)
         {
             RSACryptoServiceProvider rsa = DecodeX509PublicKey(Convert.FromBase64String(keyCode));
             byte[] bArr = Encoding.ASCII.GetBytes(input);
@@ -16,7 +16,7 @@ namespace dolphindb
             var re = Convert.ToBase64String(reArr);
             return re;
         }
- 
+
         private static sbyte[] GetSBytesForEncoding(System.Text.Encoding encoding, string s)
         {
             sbyte[] sbytes = new sbyte[encoding.GetByteCount(s)];
