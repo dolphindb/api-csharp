@@ -9,6 +9,7 @@ using System.Text;
 using System.Data;
 using System.Collections.Generic;
 using System.Threading;
+using System.Collections;
 
 namespace dolphindb_csharpapi_test
 {
@@ -21,7 +22,7 @@ namespace dolphindb_csharpapi_test
         public void Test_MyDemo()
         {
             DBConnection db = new DBConnection();
-            
+
         }
 
         [TestMethod]
@@ -39,7 +40,7 @@ namespace dolphindb_csharpapi_test
             db.connect(SERVER, PORT);
             // Assert.AreEqual(true, db.connect(SERVER, PORT,"admin","1234567"));
             db.login("admin", "123456", false);
-                //db.login("admin", "123456", true);
+            //db.login("admin", "123456", true);
             //db.run("login('admin', '123456')");
         }
 
@@ -97,7 +98,7 @@ namespace dolphindb_csharpapi_test
             dr["dt_int"] = 2147483646;
             dr["dt_long"] = 2147483649;
             dr["dt_double"] = 3.14159893984;
-            dr["dt_datetime"] = new DateTime(2018,03,30,14,59,02,111);
+            dr["dt_datetime"] = new DateTime(2018, 03, 30, 14, 59, 02, 111);
             dr["dt_bool"] = false;
             dr["dt_byte"] = (byte)97;
             dr["dt_string"] = "test_string";
@@ -172,7 +173,7 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            Assert.AreEqual(97,((BasicByte)db.run("'a'")).getValue());
+            Assert.AreEqual(97, ((BasicByte)db.run("'a'")).getValue());
             Assert.AreEqual("'c'", ((BasicByte)db.run("'c'")).getString());
         }
 
@@ -843,7 +844,7 @@ namespace dolphindb_csharpapi_test
             vec.setDouble(0, 1.5);
             vec.setDouble(1, 2.5);
             vec.setDouble(2, 7);
-            
+
             args.Add(vec);
             BasicDouble result = (BasicDouble)db.run("sum", args);
             Assert.AreEqual(11, result.getValue());
@@ -886,11 +887,20 @@ namespace dolphindb_csharpapi_test
             db.run("db = database('dfs://testDatabase',VALUE,'MS' 'GOOG' 'FB')");
             db.run("tb= table('MS' as sym,datetime(now()) as dt,1.01 as prc,1 as cnt)");
             db.run("db.createPartitionedTable(tb,'tb1','sym')");
-           
+
             db.run("def saveQuotes(t){ loadTable('dfs://testDatabase','tb1').append!(t)}");
             List<IEntity> args = new List<IEntity>(1);
             args.Add(table1);
             db.run("saveQuotes", args);
         }
+        [TestMethod]
+        public void Test_NewBasicTimestampWithDatetime()
+        {
+            BasicTimestampVector btv = new BasicTimestampVector(10);
+            DateTime time = new DateTime(1970, 01, 01, 8, 2, 33);
+            BasicTimestamp bt = new BasicTimestamp(time);
+            Assert.AreEqual("1970/1/1T8:02:33",bt.getString());
+        }
+
     }
 }

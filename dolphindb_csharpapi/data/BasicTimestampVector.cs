@@ -44,7 +44,12 @@ namespace dolphindb.data
 			return new BasicTimestamp(getLong(index));
 		}
 
-		public virtual DateTime getTimestamp(int index)
+        public override void set(int index, IScalar value)
+        {
+            this.setTimestamp(index, ((BasicTimestamp)value).getValue());
+        }
+
+        public virtual DateTime getTimestamp(int index)
 		{
 			if (isNull(index))
 			{

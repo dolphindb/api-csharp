@@ -4,7 +4,7 @@ using System.Data;
 namespace dolphindb.data
 {
     public abstract class AbstractScalar : AbstractEntity, IScalar
-	{
+    {
         protected abstract void writeScalarToOutputStream(ExtendedDataOutput @out);
 
         public override DATA_FORM getDataForm()
@@ -25,7 +25,7 @@ namespace dolphindb.data
         public void write(ExtendedDataOutput @out)
         {
             int flag = ((int)DATA_FORM.DF_SCALAR << 8) + (int)getDataType();
-	    	@out.writeInt(flag);
+            @out.writeInt(flag);
             writeScalarToOutputStream(@out);
         }
 
