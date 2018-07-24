@@ -7,7 +7,7 @@ namespace dolphindb.data
     {
         private static string format = "c";
 
-        public BasicTime(DateTime value) : base(Utils.countMilliseconds(value))
+        public BasicTime(DateTime value) : base((int)Utils.countMilliseconds(value))
         {
         }
 

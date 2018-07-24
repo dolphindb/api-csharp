@@ -21,7 +21,7 @@ namespace dolphindb.data
 
         public virtual void setTime(int row, int column, DateTime value)
         {
-            setInt(row, column, Utils.countMilliseconds(value));
+            setInt(row, column, (int)Utils.countMilliseconds(value));
         }
 
         public virtual TimeSpan getTime(int row, int column)

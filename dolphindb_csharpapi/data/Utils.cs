@@ -128,10 +128,11 @@ namespace dolphindb.data
             return new DateTime(date.Year, date.Month, date.Day, hour, minute, second);
         }
 
-        public static int countMilliseconds(DateTime dt)
+        public static long countMilliseconds(DateTime dt)
         {
             int seconds = countSeconds(dt);
-            return seconds * 1000 + dt.Millisecond;
+            long re =  (long)seconds * 1000 + dt.Millisecond;
+            return re;
         }
 
         public static int countMilliseconds(int year, int month, int day, int hour, int minute, int second, int millisecond)
