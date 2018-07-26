@@ -364,6 +364,10 @@ namespace dolphindb.data
             {
                 v = new BasicDateTimeVector(rowCount);
             }
+            else if (stype == Type.GetType("System.TimeSpan"))
+            {
+                v = new BasicTimeVector(rowCount);
+            }
             else if (stype == Type.GetType("System.Int16"))
             {
                 v = new BasicShortVector(rowCount);
@@ -402,6 +406,11 @@ namespace dolphindb.data
             {
                 data = new BasicDateTime(Convert.ToDateTime(value));
             }
+            else if (stype == Type.GetType("System.TimeSpan"))
+            {
+                data = new BasicTime((TimeSpan)value);
+            }
+
             else if (stype == Type.GetType("System.Int16"))
             {
                 data = new BasicShort(Convert.ToInt16(value));

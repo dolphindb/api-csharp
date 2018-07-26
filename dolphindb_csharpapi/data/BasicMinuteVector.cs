@@ -55,6 +55,14 @@ namespace dolphindb.data
             }
         }
 
+        public override void set(int index, IScalar value)
+        {
+            if (value.getDataType() == DATA_TYPE.DT_MINUTE)
+            {
+                setMinute(index, ((BasicMinute)value).getValue());
+            }
+        }
+
         public virtual void setMinute(int index, TimeSpan time)
         {
             setInt(index, Utils.countMinutes(time));

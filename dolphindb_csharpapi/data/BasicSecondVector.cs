@@ -54,7 +54,15 @@ namespace dolphindb.data
             }
         }
 
-        public virtual void setSecond(int index, DateTime time)
+        public override void set(int index, IScalar value)
+        {
+            if (value.getDataType() == DATA_TYPE.DT_SECOND)
+            {
+                setSecond(index, ((BasicSecond)value).getValue());
+            }
+        }
+
+        public virtual void setSecond(int index, TimeSpan time)
         {
             setInt(index, Utils.countSeconds(time));
         }

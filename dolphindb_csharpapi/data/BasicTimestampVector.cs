@@ -46,7 +46,10 @@ namespace dolphindb.data
 
         public override void set(int index, IScalar value)
         {
-            this.setTimestamp(index, ((BasicTimestamp)value).getValue());
+            if (value.getDataType() == DATA_TYPE.DT_TIMESTAMP)
+            {
+                setTimestamp(index, ((BasicTimestamp)value).getValue());
+            }
         }
 
         public virtual DateTime getTimestamp(int index)

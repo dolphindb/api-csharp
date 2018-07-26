@@ -54,7 +54,15 @@ namespace dolphindb.data
 			}
 		}
 
-		public virtual void setNanoTime(int index, DateTime time)
+        public override void set(int index, IScalar value)
+        {
+            if (value.getDataType() == DATA_TYPE.DT_NANOTIME)
+            {
+                setNanoTime(index, ((BasicNanoTime)value).getValue());
+            }
+        }
+
+        public virtual void setNanoTime(int index, TimeSpan time)
 		{
 			setLong(index, Utils.countNanoseconds(time));
 		}

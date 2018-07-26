@@ -106,6 +106,12 @@ namespace dolphindb.data
             return countSeconds(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second);
         }
 
+        public static int countSeconds(TimeSpan ts)
+        {
+            return countSeconds(ts.Hours,ts.Minutes,ts.Seconds);
+        }
+
+
         public static int countSeconds(int year, int month, int day, int hour, int minute, int second)
         {
             int days = countDays(year, month, day);
@@ -135,14 +141,21 @@ namespace dolphindb.data
             return re;
         }
 
-        public static int countMilliseconds(int year, int month, int day, int hour, int minute, int second, int millisecond)
+        public static long countMilliseconds(int year, int month, int day, int hour, int minute, int second, int millisecond)
         {
             return countSeconds(year, month, day, hour, minute, second) * 1000 + millisecond;
         }
+
         public static int countNanoseconds(DateTime dt)
         {
             int seconds = countSeconds(dt);
             return seconds * 1000000000 + dt.Millisecond * 1000000;
+        }
+
+        public static int countNanoseconds(TimeSpan ts)
+        {
+            int seconds = countSeconds(ts);
+            return seconds * 1000000000 + ts.Milliseconds * 1000000;
         }
 
         /// <summary>

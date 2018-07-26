@@ -7,7 +7,7 @@ namespace dolphindb.data
     {
         private static string format = "c";
 
-        public BasicTime(DateTime value) : base((int)Utils.countMilliseconds(value))
+        public BasicTime(TimeSpan value) : base((int)Utils.countMilliseconds(value.Hours,value.Minutes,value.Seconds,value.Milliseconds))
         {
         }
 
@@ -65,7 +65,7 @@ namespace dolphindb.data
 
         public override bool Equals(object o)
         {
-            if (!(o is BasicTimestamp) || o == null)
+            if (!(o is BasicTime) || o == null)
             {
                 return false;
             }

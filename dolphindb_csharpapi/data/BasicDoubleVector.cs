@@ -58,7 +58,11 @@ namespace dolphindb.data
 
         public override void set(int index, IScalar value)
         {
-            values[index] = double.Parse(value.ToString());
+            if (value.getDataType() == DATA_TYPE.DT_DOUBLE)
+            {
+                setDouble(index, ((BasicDouble)value).getValue());
+            }
+                
         }
 
         public virtual void setDouble(int index, double value)

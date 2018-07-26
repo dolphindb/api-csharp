@@ -60,7 +60,10 @@ namespace dolphindb.data
 
         public override void set(int index, IScalar value)
         {
-            values[index] = float.Parse(value.getString());
+            if (value.getDataType() == DATA_TYPE.DT_FLOAT)
+            {
+                setFloat(index, ((BasicFloat)value).getValue());
+            }
         }
 
         public virtual void setFloat(int index, float value)

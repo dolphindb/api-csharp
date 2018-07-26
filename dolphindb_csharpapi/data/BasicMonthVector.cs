@@ -49,6 +49,14 @@ namespace dolphindb.data
             return Utils.parseMonth(getInt(index));
         }
 
+        public override void set(int index, IScalar value)
+        {
+            if (value.getDataType() == DATA_TYPE.DT_MONTH)
+            {
+                setMonth(index, ((BasicMonth)value).getValue());
+            }
+        }
+
         public virtual void setMonth(int index, DateTime month)
         {
             setInt(index, Utils.countMonths(month));

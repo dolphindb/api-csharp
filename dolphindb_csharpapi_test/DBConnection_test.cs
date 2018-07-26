@@ -16,13 +16,13 @@ namespace dolphindb_csharpapi_test
     [TestClass]
     public class DBConnection_test
     {
-        private readonly string SERVER = "192.168.1.33";
-        private readonly int PORT = 18902;
+        private readonly string SERVER = "localhost";
+        private readonly int PORT = 8080;
+
         [TestMethod]
         public void Test_MyDemo()
         {
             DBConnection db = new DBConnection();
-
         }
 
         [TestMethod]
@@ -334,7 +334,7 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            IVector v = (BasicDoubleVector)db.run("1.123 2.2234 3.4567");
+            IVector v = (BasicDoubleVector)db.run("[1.123,2.2234,3.4567]");
             Assert.IsTrue(v.isVector());
             Assert.AreEqual(3, v.rows());
             Assert.AreEqual(2.2234, Math.Round(((BasicDouble)v.get(1)).getValue(), 4));
@@ -725,7 +725,7 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            BasicTable tb = (BasicTable)db.run("table(1..100 as id,take(`aaa,100) as name)");
+            BasicTable tb = (BasicTable)db.run("table(1..100 as id,take(`aaa,100) as name,rand(1.01,100) as dbl)");
             Dictionary<string, IEntity> upObj = new Dictionary<string, IEntity>();
             upObj.Add("table_uploaded", (IEntity)tb);
             db.upload(upObj);
@@ -899,8 +899,50 @@ namespace dolphindb_csharpapi_test
             BasicTimestampVector btv = new BasicTimestampVector(10);
             DateTime time = new DateTime(1970, 01, 01, 8, 2, 33);
             BasicTimestamp bt = new BasicTimestamp(time);
-            Assert.AreEqual("1970/1/1T8:02:33",bt.getString());
+            //Assert.AreEqual("1970/1/1T8:02:33",bt.getString());
         }
 
+        [TestMethod]
+        public void Test_ConstructBasicTableWithDataTable()
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("col_string", Type.GetType("System.String"));
+            dt.Columns.Add("col_date", Type.GetType("System.DateTime"));
+            dt.Columns.Add("col_time", Type.GetType("System.TimeSpan"));
+            dt.Columns.Add("col_int", Type.GetType("System.Int16"));
+            dt.Columns.Add("col_double", Type.GetType("System.Double"));
+            dt.Columns.Add("col_long", Type.GetType("System.Int64"));
+            dt.Columns.Add("col_char", Type.GetType("System.Char"));
+            dt.Columns.Add("col_bool", Type.GetType("System.Boolean"));
+
+            DataRow dr = dt.NewRow();
+            dr["col_string"] = "test";
+            dr["col_date"] = new DateTime(2018, 07, 25, 15, 14, 23);
+            dr["col_time"] = new TimeSpan(25, 15, 15, 14, 123);
+            dr["col_int"] = 123;
+            dr["col_double"] = 3.1415926;
+            dr["col_long"] = 2147483647;
+            dr["col_char"] = 'X';
+            dr["col_bool"] = true;
+            dt.Rows.Add(dr);
+
+            BasicTable bt = new BasicTable(dt);
+            Assert.AreEqual(DATA_TYPE.DT_STRING, bt.getColumn(0).getDataType());
+            Assert.AreEqual(DATA_TYPE.DT_DATETIME, bt.getColumn(1).getDataType());
+            Assert.AreEqual(DATA_TYPE.DT_TIME, bt.getColumn(2).getDataType());
+            Assert.AreEqual(DATA_TYPE.DT_SHORT, bt.getColumn(3).getDataType());
+        }
+
+        [TestMethod]
+        public void Test_MCorr()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            Dictionary<string, IEntity> obj = new Dictionary<string, IEntity>();
+            obj.Add("x", (IEntity)new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
+            obj.Add("y", (IEntity)new BasicIntVector(new int[] { 9, 5, 3, 4, 5, 4, 7, 1, 3, 4 }));
+            db.upload(obj);
+            BasicDoubleVector t = (BasicDoubleVector)db.run("ttt = nullFill!(mcorr(x,y,5),0);ttt");
+        }
     }
 }

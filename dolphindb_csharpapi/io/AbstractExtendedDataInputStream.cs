@@ -137,7 +137,9 @@ namespace dolphindb.io
 
         public double readDouble()
         {
-            return base.ReadDouble();
+            long l = readLong();
+            double re = BitConverter.Int64BitsToDouble(l);
+            return re;
         }
 
         public float readFloat()

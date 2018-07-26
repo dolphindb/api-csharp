@@ -55,6 +55,14 @@ namespace dolphindb.data
             }
         }
 
+        public override void set(int index, IScalar value)
+        {
+            if (value.getDataType() == DATA_TYPE.DT_DATETIME)
+            {
+                setDateTime(index, ((BasicDateTime)value).getValue());
+            }
+        }
+
         public virtual void setDateTime(int index, DateTime dt)
         {
             setInt(index, Utils.countSeconds(dt));

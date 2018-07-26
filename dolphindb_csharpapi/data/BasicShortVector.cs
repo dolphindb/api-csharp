@@ -59,7 +59,11 @@ namespace dolphindb.data
 
         public override void set(int index, IScalar value)
         {
-            values[index] = short.Parse(value.ToString());
+            if (value.getDataType() == DATA_TYPE.DT_SHORT)
+            {
+                setShort(index, ((BasicShort)value).getValue());
+            }
+                
         }
 
         public virtual void setShort(int index, short value)
