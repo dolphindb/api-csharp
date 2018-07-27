@@ -1,7 +1,7 @@
 ﻿using dolphindb.io;
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 namespace dolphindb.data
 {
     public class BasicDoubleVector : AbstractVector
@@ -105,6 +105,9 @@ namespace dolphindb.data
             @out.writeDoubleArray(values);
         }
 
+        public override object getList()
+        {
+            return values;
+        }
     }
-
 }

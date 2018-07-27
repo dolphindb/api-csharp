@@ -13,7 +13,6 @@ namespace dolphindb.data
         int columns();
         string getString();
         void write(ExtendedDataOutput output);
-        DataTable toDataTable();
         bool isScalar();
         bool isVector();
         bool isPair();

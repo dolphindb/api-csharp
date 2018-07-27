@@ -100,6 +100,11 @@ namespace dolphindb.data
         {
             @out.write(values);
         }
+
+        public override object getList()
+        {
+            return values;
+        }
     }
 
 }

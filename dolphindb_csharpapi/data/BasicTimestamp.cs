@@ -51,6 +51,11 @@ namespace dolphindb.data
             return this.getValue();
         }
 
+        public long getInternalValue()
+        {
+            return base.getValue();
+        }
+
         public override string getString()
         {
             if (isNull())

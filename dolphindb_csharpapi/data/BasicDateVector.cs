@@ -63,6 +63,8 @@ namespace dolphindb.data
         {
             return typeof(BasicDate);
         }
+
+
     }
 
 }

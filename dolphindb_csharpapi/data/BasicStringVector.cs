@@ -108,6 +108,11 @@ namespace dolphindb.data
                 @out.writeString(str);
             }
         }
+
+        public override object getList()
+        {
+            return values;
+        }
     }
 
 }

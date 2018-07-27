@@ -927,6 +927,8 @@ namespace dolphindb_csharpapi_test
             dt.Rows.Add(dr);
 
             BasicTable bt = new BasicTable(dt);
+            
+            
             Assert.AreEqual(DATA_TYPE.DT_STRING, bt.getColumn(0).getDataType());
             Assert.AreEqual(DATA_TYPE.DT_DATETIME, bt.getColumn(1).getDataType());
             Assert.AreEqual(DATA_TYPE.DT_TIME, bt.getColumn(2).getDataType());
@@ -943,6 +945,68 @@ namespace dolphindb_csharpapi_test
             obj.Add("y", (IEntity)new BasicIntVector(new int[] { 9, 5, 3, 4, 5, 4, 7, 1, 3, 4 }));
             db.upload(obj);
             BasicDoubleVector t = (BasicDoubleVector)db.run("ttt = nullFill!(mcorr(x,y,5),0);ttt");
+        }
+
+        [TestMethod]
+        public void Test_GetList()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicIntVector iv = (BasicIntVector)db.run("1 2 3 4");
+            int[] r = (int[])iv.getList();
+            Assert.AreEqual(4,r.Length);
+
+            BasicDoubleVector dv = (BasicDoubleVector)db.run("1.1 2.01 3.25 4.251441 3.32222");
+            double[] dr = (double[])dv.getList();
+            Assert.AreEqual(5, dr.Length);
+            Assert.AreEqual(1.1, dr[0]);
+
+            BasicLongVector lv = (BasicLongVector)db.run("102012522 12345678900 12221114455");
+            long[] lr = (long[])lv.getList();
+            Assert.AreEqual(3, lr.Length);
+            Assert.AreEqual(12345678900, lr[1]);
+        }
+
+
+        [TestMethod]
+        public void Test_getInternalValue()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+
+            BasicDate date = (BasicDate)db.run("2018.07.10");
+            int r = date.getInternalValue();
+            Assert.AreEqual(17722, r);
+
+            BasicTimestamp timestamp = (BasicTimestamp)db.run("2018.07.10T10:12:13.005");
+            long l = timestamp.getInternalValue();
+            Assert.AreEqual(1531217533005, l);
+
+            BasicTime time = (BasicTime)db.run("10:12:13.005");
+            int t = time.getInternalValue();
+            Assert.AreEqual(36733005, t);
+            //min
+            BasicMinute min = (BasicMinute)db.run("10:12m");
+            int m = min.getInternalValue();
+            Assert.AreEqual(612, m);
+            //sec
+            BasicSecond sec = (BasicSecond)db.run("10:12:11");
+            int s = sec.getInternalValue();
+            Assert.AreEqual(36731, s);
+
+            //month
+            BasicMonth mon = (BasicMonth)db.run("2018.07M");
+            int mo = mon.getInternalValue();
+            Assert.AreEqual(24222, mo);
+
+            //nanotime
+            BasicNanoTime nt = (BasicNanoTime)db.run("10:12:13.005002003");
+            long nti = nt.getInternalValue();
+            Assert.AreEqual(36733005002003, nti);
+            //nanotimestamp
+            BasicNanoTimestamp nts = (BasicNanoTimestamp)db.run("2018.07.10T10:12:13.005002003");
+            long ntsi = nts.getInternalValue();
+            Assert.AreEqual(1531217533005002003, ntsi);
         }
     }
 }

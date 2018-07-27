@@ -105,6 +105,12 @@ namespace dolphindb.data
         {
             @out.writeFloatArray(values);
         }
+
+        public override object getList()
+        {
+            return values;
+        }
+
     }
 
 }

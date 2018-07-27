@@ -2,6 +2,7 @@
 using System;
 using System.Data;
 using System.Text;
+using System.Collections.Generic;
 
 namespace dolphindb.data
 {
@@ -87,6 +88,11 @@ namespace dolphindb.data
         }
 
         public object getObject()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual object getList()
         {
             throw new NotImplementedException();
         }

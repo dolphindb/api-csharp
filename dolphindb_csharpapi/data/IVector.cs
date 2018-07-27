@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Data;
-
+using System.Collections.Generic;
 namespace dolphindb.data
 {
 
@@ -13,6 +13,7 @@ namespace dolphindb.data
         void set(int index, IScalar value);
         Type getElementClass();
         DataTable toDataTable();
+        object getList();
     }
 
     public static class Vector_Fields
