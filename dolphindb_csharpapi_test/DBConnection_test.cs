@@ -927,8 +927,10 @@ namespace dolphindb_csharpapi_test
             dt.Rows.Add(dr);
 
             BasicTable bt = new BasicTable(dt);
-            
-            
+
+            double[] a =  (double[])bt.getColumn(0).getList();
+            long[] b = (long[])bt.getColumn(0).getList();
+
             Assert.AreEqual(DATA_TYPE.DT_STRING, bt.getColumn(0).getDataType());
             Assert.AreEqual(DATA_TYPE.DT_DATETIME, bt.getColumn(1).getDataType());
             Assert.AreEqual(DATA_TYPE.DT_TIME, bt.getColumn(2).getDataType());

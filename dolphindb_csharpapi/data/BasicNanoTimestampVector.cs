@@ -72,6 +72,11 @@ namespace dolphindb.data
         {
             return typeof(BasicNanoTimestamp);
         }
+
+        public override object getList()
+        {
+            return base.getList();
+        }
     }
 
 }

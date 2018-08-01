@@ -85,6 +85,7 @@ namespace dolphindb.data
                 return base.getValue() == ((BasicInt)o).getValue();
             }
         }
+        
     }
 
 }
