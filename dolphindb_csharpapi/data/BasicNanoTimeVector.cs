@@ -71,6 +71,11 @@ namespace dolphindb.data
 		{
 			return typeof(BasicNanoTime);
 		}
-	}
+
+        public override object getList()
+        {
+            return base.getList();
+        }
+    }
 
 }

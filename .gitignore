@@ -14,3 +14,13 @@
 .vs/dolphindb_csharpapi/v15/.suo
 dolphindb_csharpapi_test/obj/Release/CoreCompileInputs.cache
 dolphindb_csharpapi_test/obj/Release/CoreCompileInputs.cache
+*.dll
+.vs/dolphindb_csharpapi/v15/.suo
+
+dolphindb_csharpapi_test/SupWin.cs
+
+dolphindb_csharpapi_test/obj/Release/
+dolphindb_csharpapi_test/bin/
+dolphindb_csharpapi_test/obj/Release/CoreCompileInputs.cache
+
+dolphindb_csharpapi/obj/

@@ -71,6 +71,11 @@ namespace dolphindb.data
         {
             return typeof(BasicSecond);
         }
+
+        public override object getList()
+        {
+            return base.getList();
+        }
     }
 
 }

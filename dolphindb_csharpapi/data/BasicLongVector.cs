@@ -42,6 +42,7 @@ namespace dolphindb.data
             int cols = @in.readInt();
             int size = rows * cols;
             values = new long[size];
+            
             for (int i = 0; i < size; ++i)
             {
                 values[i] = @in.readLong();

@@ -72,7 +72,10 @@ namespace dolphindb.data
         {
             return typeof(BasicDateTime);
         }
-
+        public override object getList()
+        {
+            return base.getList();
+        }
     }
 
 }

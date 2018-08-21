@@ -73,6 +73,11 @@ namespace dolphindb.data
         {
             return typeof(BasicTimestamp);
         }
+
+        public override object getList()
+        {
+            return base.getList();
+        }
     }
 
 }

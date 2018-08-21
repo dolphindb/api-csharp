@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="DBConnection_test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SupWin.cs" />
     <Compile Include="Utils_test.cs" />
   </ItemGroup>
   <ItemGroup>

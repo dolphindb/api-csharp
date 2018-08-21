@@ -73,6 +73,10 @@ namespace dolphindb.data
             return typeof(BasicMinute);
         }
 
+        public override object getList()
+        {
+            return base.getList();
+        }
     }
 
 }

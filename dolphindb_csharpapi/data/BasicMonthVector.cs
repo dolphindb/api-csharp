@@ -67,6 +67,11 @@ namespace dolphindb.data
             return typeof(DateTime);
         }
 
+        public override object getList()
+        {
+            return base.getList();
+        }
+
     }
 
 }
