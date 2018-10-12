@@ -14,9 +14,9 @@ C# API adopts interface-oriented programming. C# API uses the class interface "I
 
 | Extended interfaces| Naming rules| Examples|
 | :------ |:------| :-----|
-| scalar      |Basic+<DataType> | BasicInt, BasicDouble, BasicDate, etc.|
-| vector and matrix |Basic+<DataForm> | BasicIntVector, BasicDoubleMatrix, BasicAnyVector, etc.|
-| set, dictionary and table |Basic+<DataForm>  |BasicSet, BasicDictionary, BasicTable. |
+| scalar      |Basic+&lt;DataType&gt; | BasicInt, BasicDouble, BasicDate, etc.|
+| vector and matrix |Basic+&lt;DataForm&gt; | BasicIntVector, BasicDoubleMatrix, BasicAnyVector, etc.|
+| set, dictionary and table |Basic+&lt;DataForm&gt;  |BasicSet, BasicDictionary, BasicTable. |
        
 **Basic** indicates the basic implementation of a data form interface, **DataType** indicates a DolphinDB data type, and **DataForm** indicates a DolphinDB data form.
 
@@ -54,7 +54,7 @@ If the script contains a statement, it will return a data object. If the script 
 
 #### 5.1 Vector
 
-In the example below, the DolphinDB script **"take(`IBM`MSFT`GOOG`BIDU, 10)"**  returns the object BasicStringVector. The method vector.rows() indicates the size of the vector. To access an element in a vector, use the method vector.getString(index).
+In the example below, the DolphinDB script **``take(`IBM`MSFT`GOOG`BIDU, 10)``**  returns the object BasicStringVector. The method vector.rows() indicates the size of the vector. To access an element in a vector, use the method vector.getString(index).
 
 ```
 public void testStringVector(){
