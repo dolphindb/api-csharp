@@ -91,8 +91,6 @@ namespace dolphindb_csharpapi_test
             dt.Columns.Add(dc);
             dc = new DataColumn("dt_byte", Type.GetType("System.Byte"));
             dt.Columns.Add(dc);
-            dc = new DataColumn("dt_string", Type.GetType("System.String"));
-            dt.Columns.Add(dc);
             DataRow dr = dt.NewRow();
             dr["dt_short"] = 1;
             dr["dt_int"] = 2147483646;

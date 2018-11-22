@@ -64,7 +64,7 @@ namespace dolphindb.data
             }
             else
             {
-                values[index] = byte.Parse(value.getString());
+                values[index] = value.getNumber().byteValue();
             }
             
         }

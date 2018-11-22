@@ -24,3 +24,7 @@ dolphindb_csharpapi_test/bin/
 dolphindb_csharpapi_test/obj/Release/CoreCompileInputs.cache
 
 dolphindb_csharpapi/obj/
+*.opendb
+*.db
+.vs/dolphindb_csharpapi/v15/.suo
+.vs/dolphindb_csharpapi/v15/.suo
