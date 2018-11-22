@@ -179,7 +179,7 @@ namespace dolphindb_csharpapi_test
         public void Test_run_return_scalar_short()
         {
             DBConnection db = new DBConnection();
-            db.connect("localhost", 8900);
+            db.connect(SERVER, PORT);
             Assert.AreEqual(1, ((BasicShort)db.run("1h")).getValue());
             Assert.AreEqual(256, ((BasicShort)db.run("256h")).getValue());
             Assert.AreEqual(1024, ((BasicShort)db.run("1024h")).getValue());
@@ -882,6 +882,7 @@ namespace dolphindb_csharpapi_test
             db.connect(SERVER, PORT);
             db.login("admin", "123456", false);//login 
             //prepare dfs database and table  
+            db.run("if(existsDatabase('dfs://testDatabase')){dropDatabase('dfs://testDatabase')}");
             db.run("db = database('dfs://testDatabase',VALUE,'MS' 'GOOG' 'FB')");
             db.run("tb= table('MS' as sym,datetime(now()) as dt,1.01 as prc,1 as cnt)");
             db.run("db.createPartitionedTable(tb,'tb1','sym')");
