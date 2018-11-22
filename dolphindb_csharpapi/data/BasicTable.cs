@@ -290,28 +290,60 @@ namespace dolphindb.data
                     switch (dtype)
                     {
                         case DATA_TYPE.DT_BOOL:
-                            dr[colIndex] = ((BasicBoolean)columns_[colIndex].get(rowIndex)).getValue();
+                            BasicBoolean bbobj = (BasicBoolean)columns_[colIndex].get(rowIndex);
+                            if (bbobj.isNull())
+                                dr[colIndex] = DBNull.Value;
+                            else
+                                dr[colIndex] = bbobj.getValue();
                             break;
                         case DATA_TYPE.DT_BYTE:
-                            dr[colIndex] = ((BasicByte)columns_[colIndex].get(rowIndex)).getValue();
+                            BasicByte bobj = (BasicByte)columns_[colIndex].get(rowIndex);
+                            if (bobj.isNull())
+                                dr[colIndex] = DBNull.Value;
+                            else
+                                dr[colIndex] = bobj.getValue();
                             break;
                         case DATA_TYPE.DT_SHORT:
-                            dr[colIndex] = ((BasicShort)columns_[colIndex].get(rowIndex)).getValue();
+                            BasicShort bsobj = (BasicShort)columns_[colIndex].get(rowIndex);
+                            if (bsobj.isNull())
+                                dr[colIndex] = DBNull.Value;
+                            else
+                                dr[colIndex] = bsobj.getValue();
                             break;
                         case DATA_TYPE.DT_INT:
-                            dr[colIndex] = ((BasicInt)columns_[colIndex].get(rowIndex)).getValue();
+                            BasicInt biobj = (BasicInt)columns_[colIndex].get(rowIndex);
+                            if (biobj.isNull())
+                                dr[colIndex] = DBNull.Value;
+                            else
+                                dr[colIndex] = biobj.getValue();
                             break;
                         case DATA_TYPE.DT_LONG:
-                            dr[colIndex] = ((BasicLong)columns_[colIndex].get(rowIndex)).getValue();
+                            BasicLong blobj = (BasicLong)columns_[colIndex].get(rowIndex);
+                            if (blobj.isNull())
+                                dr[colIndex] = DBNull.Value;
+                            else
+                                dr[colIndex] = blobj.getValue();
                             break;
                         case DATA_TYPE.DT_FLOAT:
-                            dr[colIndex] = ((BasicFloat)columns_[colIndex].get(rowIndex)).getValue();
+                            BasicFloat bfobj = (BasicFloat)columns_[colIndex].get(rowIndex);
+                            if (bfobj.isNull())
+                                dr[colIndex] = DBNull.Value;
+                            else
+                                dr[colIndex] = bfobj.getValue();
                             break;
                         case DATA_TYPE.DT_DOUBLE:
-                            dr[colIndex] = ((BasicDouble)columns_[colIndex].get(rowIndex)).getValue();
+                            BasicDouble bdobj = (BasicDouble)columns_[colIndex].get(rowIndex);
+                            if (bdobj.isNull())
+                                dr[colIndex] = DBNull.Value;
+                            else
+                                dr[colIndex] = bdobj.getValue();
                             break;
                         default:
-                            dr[colIndex] = columns_[colIndex].get(rowIndex).getString();
+                            IScalar eobj = (IScalar)columns_[colIndex].get(rowIndex);
+                            if (eobj.isNull())
+                                dr[colIndex] = DBNull.Value;
+                            else
+                                dr[colIndex] = eobj.getString();
                             break;
                     }
                 }

@@ -1047,5 +1047,18 @@ namespace dolphindb_csharpapi_test
             BasicStringVector bsv = (BasicStringVector)bt.getColumn(8);
             Assert.AreEqual("" , bsv.get(0).getString());
         }
+
+        [TestMethod]
+        public void Test_GetNullTable()
+        {
+            string sql = "t=table(10:0,`id`str`long`double,[INT,STRING,LONG,DOUBLE]);insert into t values(1,NULL,NULL,NULL);t";
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicTable bt = (BasicTable)db.run(sql);
+            DataTable dt = bt.toDataTable();
+            Assert.AreEqual(DBNull.Value, dt.Rows[0][1]);
+            Assert.AreEqual(DBNull.Value, dt.Rows[0][2]);
+            Assert.AreEqual(DBNull.Value, dt.Rows[0][3]);
+        }
     }
 }
