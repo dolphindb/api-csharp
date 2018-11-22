@@ -60,7 +60,7 @@ namespace dolphindb.data
 
         public override void set(int index, IScalar value)
         {
-            values[index] = Convert.ToInt16(value.getString());
+            values[index] = Convert.ToInt32(value.getString());
         }
 
         public virtual void setInt(int index, int value)

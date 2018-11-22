@@ -60,7 +60,12 @@ namespace dolphindb.data
 
         public override void set(int index, IScalar value)
         {
-            values[index] = value.getNumber().byteValue();
+            if(value.getNumber()==null)
+                values[index] = (byte)0;
+            else
+            {
+                values[index] = value.getNumber().byteValue();
+            }
         }
 
         public virtual void setBoolean(int index, bool value)

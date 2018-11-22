@@ -16,8 +16,8 @@ namespace dolphindb_csharpapi_test
     [TestClass]
     public class DBConnection_test
     {
-        private readonly string SERVER = "localhost";
-        private readonly int PORT = 8080;
+        private readonly string SERVER = "192.168.1.61";
+        private readonly int PORT = 8081;
 
         [TestMethod]
         public void Test_MyDemo()
@@ -1010,6 +1010,43 @@ namespace dolphindb_csharpapi_test
             BasicNanoTimestamp nts = (BasicNanoTimestamp)db.run("2018.07.10T10:12:13.005002003");
             long ntsi = nts.getInternalValue();
             Assert.AreEqual(1531217533005002003, ntsi);
+        }
+
+        [TestMethod]
+        public void Test_ContructBasicTableByDataTable()
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("dt",Type.GetType("System.DateTime"));
+            dt.Columns.Add("bl", Type.GetType("System.Boolean"));
+            dt.Columns.Add("sb", Type.GetType("System.Byte"));
+            dt.Columns.Add("db", Type.GetType("System.Double"));
+            dt.Columns.Add("ts", Type.GetType("System.TimeSpan"));
+            dt.Columns.Add("i1", Type.GetType("System.Int16"));
+            dt.Columns.Add("i3", Type.GetType("System.Int32"));
+            dt.Columns.Add("i6", Type.GetType("System.Int64"));
+            dt.Columns.Add("s", Type.GetType("System.String"));
+            DataRow dr = dt.NewRow();
+            dr["dt"] = DBNull.Value;
+            dr["bl"] = DBNull.Value;
+            dr["sb"] = DBNull.Value;
+            dr["db"] = DBNull.Value;
+            dr["ts"] = DBNull.Value;
+            dr["i1"] = DBNull.Value;
+            dr["i3"] = DBNull.Value;
+            dr["i6"] = DBNull.Value;
+            dr["s"] = DBNull.Value;
+            dt.Rows.Add(dr);
+            BasicTable bt = new BasicTable(dt);
+
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            Dictionary<string, IEntity> obj = new Dictionary<string, IEntity>();
+            obj.Add("up_datatable", (IEntity)bt);
+            db.upload(obj);
+            db.run("share up_datatable as tb1");
+            
+            BasicStringVector bsv = (BasicStringVector)bt.getColumn(8);
+            Assert.AreEqual("" , bsv.get(0).getString());
         }
     }
 }

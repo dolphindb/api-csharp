@@ -394,40 +394,115 @@ namespace dolphindb.data
             IScalar data = null;
             if (stype == Type.GetType("System.Boolean"))
             {
-                data = new BasicBoolean(Convert.ToBoolean(value));
+                if (value == null || value == DBNull.Value)
+                {
+                    data = new BasicBoolean(false);
+                }
+                else
+                {
+                    data = new BasicBoolean(Convert.ToBoolean(value));
+                }
             }
             else if (stype == Type.GetType("System.Byte"))
             {
-                data = new BasicByte(Convert.ToByte(value));
+                if (value == null || value == DBNull.Value)
+                {
+                    data = new BasicByte(0);
+                }
+                else
+                {
+                    data = new BasicByte(Convert.ToByte(value));
+                }
+               
             }
             else if (stype == Type.GetType("System.Double"))
             {
-                data = new BasicDouble(Convert.ToDouble(value));
+                if (value == null || value == DBNull.Value)
+                {
+                    data = new BasicDouble(0);
+                    data.setNull();
+                }
+                else
+                {
+                    data = new BasicDouble(Convert.ToDouble(value));
+                }
             }
             else if (stype == Type.GetType("System.DateTime"))
             {
-                data = new BasicDateTime(Convert.ToDateTime(value));
+                if (value == null || value == DBNull.Value)
+                {
+                    data = new BasicDateTime(0);
+                }
+                else
+                {
+                    data = new BasicDateTime(Convert.ToDateTime(value));
+                }
+                
             }
             else if (stype == Type.GetType("System.TimeSpan"))
             {
-                data = new BasicTime((TimeSpan)value);
+                if (value == null || value == DBNull.Value)
+                {
+                    data = new BasicTime(0);
+                }
+                else
+                {
+                    data = new BasicTime((TimeSpan)value);
+                }
             }
 
             else if (stype == Type.GetType("System.Int16"))
             {
-                data = new BasicShort(Convert.ToInt16(value));
+                if (value == null || value == DBNull.Value)
+                {
+                    data = new BasicShort(0);
+                    data.setNull();
+                }
+                else
+                {
+                    data = new BasicShort(Convert.ToInt16(value));
+                }
+                
             }
             else if (stype == Type.GetType("System.Int32"))
             {
-                data = new BasicInt(Convert.ToInt32(value));
+                if (value == null || value == DBNull.Value)
+                {
+                    data = new BasicInt(0);
+                    data.setNull();
+                }
+                else
+                {
+                    data = new BasicInt(Convert.ToInt32(value));
+                }
+                
             }
             else if (stype == Type.GetType("System.Int64"))
             {
-                data = new BasicLong(Convert.ToInt64(value));
+
+                if (value == null || value == DBNull.Value)
+                {
+                    data = new BasicLong(0);
+                    data.setNull();
+                }
+                else
+                {
+                    data = new BasicLong(Convert.ToInt64(value));
+                }
+                
             }
             else
             {
-                data = new BasicString(value.ToString());
+                if (value == null || value == DBNull.Value)
+                {
+                    data = new BasicString("");
+                    data.setNull();
+                }
+                else
+                {
+                    data = new BasicString(value.ToString());
+                }
+                
             }
             return data;
         }

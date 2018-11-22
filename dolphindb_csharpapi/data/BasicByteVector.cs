@@ -58,7 +58,15 @@ namespace dolphindb.data
 
         public override void set(int index, IScalar value)
         {
-            values[index] = byte.Parse(value.getString());
+            if (value.getString() == null|| value.getString()=="")
+            {
+                values[index] = (byte)0;
+            }
+            else
+            {
+                values[index] = byte.Parse(value.getString());
+            }
+            
         }
 
         public virtual void setByte(int index, byte value)

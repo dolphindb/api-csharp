@@ -63,7 +63,11 @@ namespace dolphindb.data
 
         public override void set(int index, IScalar value)
         {
-            values[index] = value.ToString();
+            if (value.getDataType() == DATA_TYPE.DT_STRING)
+            {
+                values[index] = ((BasicString)value).getString();
+            }
+            
         }
 
         public virtual void setString(int index, string value)
