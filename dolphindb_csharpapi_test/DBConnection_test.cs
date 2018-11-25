@@ -16,8 +16,8 @@ namespace dolphindb_csharpapi_test
     [TestClass]
     public class DBConnection_test
     {
-        private readonly string SERVER = "192.168.1.61";
-        private readonly int PORT = 8081;
+        private readonly string SERVER = "localhost";
+        private readonly int PORT = 8951;
 
         [TestMethod]
         public void Test_MyDemo()
@@ -164,6 +164,7 @@ namespace dolphindb_csharpapi_test
             Assert.IsFalse(((BasicBoolean)db.run("false")).getValue());
             Assert.IsFalse(((BasicBoolean)db.run("1==2")).getValue());
             Assert.IsTrue(((BasicBoolean)db.run("2==2")).getValue());
+            Assert.IsTrue(((BasicBoolean)db.run("bool(NULL)")).getString()=="");
         }
 
         [TestMethod]
