@@ -31,12 +31,12 @@ namespace dolphindb.data
 
         public override bool isNull()
         {
-            return value == byte.MinValue;
+            return value == 128;
         }
 
         public override void setNull()
         {
-            value = byte.MinValue;
+            value = 128;
         }
 
         public override DATA_CATEGORY getDataCategory()

@@ -71,7 +71,28 @@ namespace dolphindb.data
         {
             return base.getList();
         }
-
+        //set with 2018.01M
+        public override void set(int index, string value)
+        {
+            if (value.EndsWith("M"))
+            {
+                var tmp = value.Remove(value.Length - 1);
+                var yearMonth = tmp.Split('.');
+                int year=0, month=0;
+                if (yearMonth.Length >= 2)
+                {
+                    int.TryParse(yearMonth[0],out year);
+                    int.TryParse(yearMonth[1], out month);
+                }
+                if (year > 0 && month > 0)
+                {
+                    base.set(index, new BasicInt(Utils.countMonths(year, month)));
+                    return;
+                }
+                    
+            }
+            base.set(index, value);
+        }
     }
 
 }

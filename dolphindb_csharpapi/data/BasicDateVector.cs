@@ -64,6 +64,16 @@ namespace dolphindb.data
             return typeof(BasicDate);
         }
 
+        public override void set(int index, string value)
+        {
+            DateTime dtm = new DateTime();
+            if(DateTime.TryParse(value,out dtm))
+            {
+                base.set(index, new BasicInt(Utils.countDays(dtm)));
+                return;
+            }
+            base.set(index, value);
+        }
 
     }
 

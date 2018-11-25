@@ -47,9 +47,7 @@ namespace dolphindb.data
                 {
                     throw new IOException("Invalid form for column [" + names_[i] + "] for table " + _tableName);
                 }
-                Console.WriteLine("vector create " + i + ":" + DateTime.Now);
                 IVector vector = (IVector)factory.createEntity(df, dt, @in);
-                Console.WriteLine("vector end create " + i + ":" + DateTime.Now);
                 if (vector.rows() != rows && vector.rows() != 1)
                 {
                     throw new IOException("The number of rows for column " + names_[i] + " is not consistent with other columns");

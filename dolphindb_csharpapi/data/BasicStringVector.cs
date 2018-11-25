@@ -117,6 +117,11 @@ namespace dolphindb.data
         {
             return values;
         }
+
+        public override void set(int index, string value)
+        {
+            values[index] = value;
+        }
     }
 
 }

@@ -107,6 +107,19 @@ namespace dolphindb.data
         {
             @out.write(values);
         }
+
+        public override void set(int index, string value)
+        {
+            bool v;
+            if(Boolean.TryParse(value, out v))
+            {
+                values[index] = v ? (byte)1 : (byte)0; ;
+            }
+            else
+            {
+                this.setNull(index);
+            }
+        }
     }
 
 }

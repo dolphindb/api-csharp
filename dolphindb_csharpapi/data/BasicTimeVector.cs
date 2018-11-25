@@ -72,6 +72,17 @@ namespace dolphindb.data
         {
             return typeof(BasicTime);
         }
+
+        public override void set(int index, string value)
+        {
+            TimeSpan ts = new TimeSpan();
+            if (TimeSpan.TryParse(value, out ts))
+            {
+                base.set(index, new BasicInt(Utils.countMilliseconds(ts)));
+                return;
+            }
+            base.set(index, value);
+        }
     }
 
 }

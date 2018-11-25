@@ -122,6 +122,11 @@ namespace dolphindb.data
                 value.write(@out);
             }
         }
+
+        public override void set(int index, string value)
+        {
+            values[index] = new BasicString(value);
+        }
     }
 
 }

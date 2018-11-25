@@ -112,6 +112,18 @@ namespace dolphindb.data
             return values;
         }
 
+        public override void set(int index, string value)
+        {
+            long v;
+            if (long.TryParse(value, out v))
+            {
+                values[index] = v;
+            }
+            else
+            {
+                this.setNull(index);
+            }
+        }
     }
 
 }

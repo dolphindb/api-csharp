@@ -141,20 +141,27 @@ namespace dolphindb.data
             return re;
         }
 
+        public static int countMilliseconds(TimeSpan ts)
+        {
+            int seconds = countSeconds(ts);
+            int re = (int)seconds * 1000 + ts.Milliseconds;
+            return re;
+        }
+
         public static long countMilliseconds(int year, int month, int day, int hour, int minute, int second, int millisecond)
         {
             return countSeconds(year, month, day, hour, minute, second) * 1000 + millisecond;
         }
 
-        public static int countNanoseconds(DateTime dt)
+        public static long countNanoseconds(DateTime dt)
         {
-            int seconds = countSeconds(dt);
+            long seconds = countSeconds(dt);
             return seconds * 1000000000 + dt.Millisecond * 1000000;
         }
 
-        public static int countNanoseconds(TimeSpan ts)
+        public static long countNanoseconds(TimeSpan ts)
         {
-            int seconds = countSeconds(ts);
+            long seconds = countSeconds(ts);
             return seconds * 1000000000 + ts.Milliseconds * 1000000;
         }
 

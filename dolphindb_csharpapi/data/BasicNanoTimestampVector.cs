@@ -77,6 +77,35 @@ namespace dolphindb.data
         {
             return base.getList();
         }
+
+        //set nanotime : 2018.02.02T06:07:11.123456789
+        public override void set(int index, string value)
+        {
+
+            long v = 0;
+            if (!long.TryParse(value, out v))
+            {
+                int lastDot = value.LastIndexOf('.');
+                if (lastDot > 0)
+                {
+                    DateTime dtm = new DateTime();
+                    string dt = value.Substring(0, lastDot);
+                    string snano = value.Substring(lastDot+1);
+                    long nano = 0;
+                    if (long.TryParse(snano, out nano))
+                    {
+                        if (DateTime.TryParse(dt, out dtm))
+                        {
+                            base.set(index, new BasicLong(Utils.countNanoseconds(dtm) + nano));
+                            return;
+                        }
+                    }
+
+
+                }
+            }
+            base.set(index, value);
+        }
     }
 
 }

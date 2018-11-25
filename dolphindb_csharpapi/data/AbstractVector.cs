@@ -96,6 +96,8 @@ namespace dolphindb.data
         {
             throw new NotImplementedException();
         }
+
+        public abstract void set(int index, string value);
     }
 
 }

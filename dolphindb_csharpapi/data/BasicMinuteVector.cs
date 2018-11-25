@@ -77,6 +77,27 @@ namespace dolphindb.data
         {
             return base.getList();
         }
+
+        public override void set(int index, string value)
+        {
+            if (value.EndsWith("m"))
+            {
+                var tmp = value.Remove(value.Length - 1);
+                var hourMinute = tmp.Split(':');
+                int hour = 0, minute = 0;
+                if (hourMinute.Length >= 2)
+                {
+                    int.TryParse(hourMinute[0], out hour);
+                    int.TryParse(hourMinute[1], out minute);
+                }
+                if (hour > 0 && minute > 0)
+                {
+                    base.set(index, new BasicInt(Utils.countMinutes(hour, minute)));
+                    return;
+                }
+            }
+            base.set(index, value);
+        }
     }
 
 }

@@ -110,6 +110,19 @@ namespace dolphindb.data
         {
             return values;
         }
+
+        public override void set(int index, string value)
+        {
+            short v;
+            if (short.TryParse(value, out v))
+            {
+                values[index] = v;
+            }
+            else
+            {
+                this.setNull(index);
+            }
+        }
     }
 
 }

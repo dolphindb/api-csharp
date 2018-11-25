@@ -14,6 +14,7 @@ namespace dolphindb.data
         Type getElementClass();
         DataTable toDataTable();
         object getList();
+        void set(int index, string value);
     }
 
     public static class Vector_Fields
