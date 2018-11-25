@@ -29,3 +29,5 @@ dolphindb_csharpapi/obj/
 .vs/dolphindb_csharpapi/v15/.suo
 .vs/dolphindb_csharpapi/v15/.suo
 .vs/dolphindb_csharpapi/v15/.suo
+*.cache
+.vs/dolphindb_csharpapi/v15/.suo
