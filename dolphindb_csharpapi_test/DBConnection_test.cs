@@ -16,7 +16,7 @@ namespace dolphindb_csharpapi_test
     [TestClass]
     public class DBConnection_test
     {
-        private readonly string SERVER = "localhost";
+        private readonly string SERVER = "115.239.209.223";
         private readonly int PORT = 8951;
 
         [TestMethod]
@@ -270,6 +270,8 @@ namespace dolphindb_csharpapi_test
             DateTime dt = new DateTime(2018, 03, 14, 15, 41, 45, 123);
             long tickCount = dt.Ticks;
             Assert.AreEqual(new DateTime(tickCount + 2223L), ((BasicNanoTimestamp)db.run("2018.03.14T15:41:45.123222321")).getValue());
+            Assert.AreEqual("2018.03.14 15:41:45.1232223", ((BasicNanoTimestamp)db.run("2018.03.14T15:41:45.123222321")).getString());
+
         }
 
         [TestMethod]
