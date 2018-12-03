@@ -65,9 +65,11 @@ namespace dolphindb.data
         public virtual void setColName(IList<string> value)
         {
             names_.Clear();
+            name2index_.Clear();
             foreach (string name in value)
             {
                 names_.Add(name);
+                name2index_[name] = name2index_.Count;
             }
         }
 

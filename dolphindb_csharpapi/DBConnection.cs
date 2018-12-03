@@ -92,7 +92,6 @@ namespace dolphindb
                         return true;
                     }
 
-
                     this.hostName = hostName;
                     this.port = port;
                     this.userId = userId;
@@ -372,6 +371,10 @@ namespace dolphindb
                 if (reconnect)
                 {
                     sessionID = headers[0];
+                    if (this.userId.Length>0 && this.password.Length>0)
+                    {
+                        login();
+                    }
                 }
                 int numObject = int.Parse(headers[1]);
 
@@ -512,6 +515,10 @@ namespace dolphindb
                     if (reconnect)
                     {
                         sessionID = headers[0];
+                        if (this.userId.Length > 0 && this.password.Length > 0)
+                        {
+                            login();
+                        }
                     }
                     int numObject = int.Parse(headers[1]);
 
@@ -673,6 +680,10 @@ namespace dolphindb
                     if (reconnect)
                     {
                         sessionID = headers[0];
+                        if (this.userId.Length > 0 && this.password.Length > 0)
+                        {
+                            login();
+                        }
                     }
                     string msg = @in.readLine();
                     if (!msg.Equals("OK"))

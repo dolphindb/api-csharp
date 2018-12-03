@@ -8,7 +8,7 @@ namespace dolphindb.data
 	{
 		private static string format = "c";
 
-		public BasicSecond(DateTime value) : base(Utils.countSeconds(value))
+		public BasicSecond(TimeSpan value) : base(Utils.countSeconds(value))
 		{
 		}
 
