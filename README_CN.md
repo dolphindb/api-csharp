@@ -341,7 +341,7 @@ DolphinDB提供loadTable方法可以加载分布式表，通过append!方式追�
 public void test_save_table(String dbPath, BasicTable table1)
 {
     List<IEntity> args = new List<IEntity>() { table1 };
-    conn.run(String.Format("append!{loadTable('%s','tb1')}",dbPath), args);
+    conn.run(String.Format("append!{loadTable('{0}','tb1')}",dbPath), args);
 }
 ```
 
@@ -370,7 +370,7 @@ DolphinDB提供loadTable方法可以加载本地磁盘表和分布式表，对�
 public void test_save_table(String dbPath, BasicTable table1)
 {
       List<IEntity> args = new List<IEntity>() { table1 };
-      conn.run(String.Format("append!{loadTable('%s','tb1')}",dbPath), args);
+      conn.run(String.Format("append!{loadTable('{0}','tb1')}",dbPath), args);
 }
 ```
 #### 7.4 读取和使用表数据
