@@ -114,7 +114,7 @@ namespace dolphindb.io
                 buf_[count++] = ch;
                 ch = readAndCheckByte();
             }
-            return Encoding.Default.GetString(buf_, 0, count);
+            return Encoding.UTF8.GetString(buf_, 0, count);
         }
 
         public abstract long readLong();
