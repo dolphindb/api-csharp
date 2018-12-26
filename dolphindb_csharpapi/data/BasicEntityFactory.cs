@@ -30,11 +30,11 @@ namespace dolphindb.data
             factories[(int)DATA_TYPE.DT_NANOTIMESTAMP] = new NanoTimestampFactory();
             factories[(int)DATA_TYPE.DT_SYMBOL] = new SymbolFactory();
             factories[(int)DATA_TYPE.DT_STRING] = new StringFactory();
-            //factories[(int)DATA_TYPE.DT_FUNCTIONDEF] = new FunctionDefFactory();
-            //factories[(int)DATA_TYPE.DT_HANDLE] = new SystemHandleFactory();
-            //factories[(int)DATA_TYPE.DT_CODE] = new MetaCodeFactory();
-            //factories[(int)DATA_TYPE.DT_DATASOURCE] = new DataSourceFactory();
-            //factories[(int)DATA_TYPE.DT_RESOURCE] = new ResourceFactory();
+            factories[(int)DATA_TYPE.DT_FUNCTIONDEF] = new FunctionDefFactory();
+            factories[(int)DATA_TYPE.DT_HANDLE] = new SystemHandleFactory();
+            factories[(int)DATA_TYPE.DT_CODE] = new MetaCodeFactory();
+            factories[(int)DATA_TYPE.DT_DATASOURCE] = new DataSourceFactory();
+            factories[(int)DATA_TYPE.DT_RESOURCE] = new ResourceFactory();
         }
 
         public IEntity createEntity(DATA_FORM form, DATA_TYPE type, ExtendedDataInput @in)
@@ -358,6 +358,33 @@ namespace dolphindb.data
             public IVector createVectorWithDefaultValue(int size) { return new BasicNanoTimeVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicNanoTimeVector(DATA_FORM.DF_PAIR, 2); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicNanoTimeMatrix(rows, columns); }
+        }
+
+        private class FunctionDefFactory : StringFactory
+        {
+            public IScalar createScalar(ExtendedDataInput @in) { return new BasicSystemEntity(@in, DATA_TYPE.DT_FUNCTIONDEF); }
+        }
+
+        private class MetaCodeFactory : StringFactory
+        {
+            public IScalar createScalar(ExtendedDataInput @in) { return new BasicSystemEntity(@in, DATA_TYPE.DT_CODE); }
+        }
+
+        private class DataSourceFactory : StringFactory
+        {
+            public IScalar createScalar(ExtendedDataInput @in) { return new BasicSystemEntity(@in, DATA_TYPE.DT_DATASOURCE); }
+        }
+
+        private class SystemHandleFactory : StringFactory
+        {
+
+            public IScalar createScalar(ExtendedDataInput @in) { return new BasicSystemEntity(@in, DATA_TYPE.DT_HANDLE); }
+        }
+
+        private class ResourceFactory : StringFactory
+        {
+
+            public IScalar createScalar(ExtendedDataInput @in) { return new BasicSystemEntity(@in, DATA_TYPE.DT_RESOURCE); }
         }
     }
 
