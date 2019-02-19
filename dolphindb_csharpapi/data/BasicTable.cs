@@ -17,6 +17,10 @@ namespace dolphindb.data
         private string _tableName = "tmpTb_" + System.Guid.NewGuid();
         public BasicTable(DataTable dt)
         {
+            if (dt.Columns.Count == 0)
+            {
+                throw new Exception("DataTable must contain at least one column");
+            }
             this.loadDataTable(dt);
         }
         public BasicTable(ExtendedDataInput @in)
@@ -543,6 +547,7 @@ namespace dolphindb.data
         {
             throw new NotImplementedException();
         }
+
     }
 
 }

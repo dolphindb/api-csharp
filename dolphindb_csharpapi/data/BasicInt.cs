@@ -102,6 +102,11 @@ namespace dolphindb.data
         {
             return this.getString();
         }
+
+        public override void setObject(object value)
+        {
+            this.value = Convert.ToInt32(value);
+        }
     }
 
 }

@@ -54,11 +54,14 @@ namespace dolphindb.io
 
         protected internal virtual byte readAndCheckByte()
         {
-            byte b = this.ReadByte();
+            int b = this.Read();
 
-            byte b1 = b;
+            if (-1 == b)
+            {
+                throw new EndOfStreamException();
+            }
 
-            return (byte)b1;
+            return (byte)b;
         }
 
         protected internal virtual int fromBytes(byte b1, byte b2, byte b3, byte b4)

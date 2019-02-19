@@ -79,6 +79,14 @@ namespace dolphindb.data
                 return base.getValue() == ((BasicInt)o).getValue();
             }
         }
+
+        public override void setObject(object value)
+        {
+            if(value != null && value.GetType() == Type.GetType("System.DateTime"))
+            {
+                base.setObject(Utils.countSeconds(Convert.ToDateTime(value)));
+            }
+        }
     }
 
 }

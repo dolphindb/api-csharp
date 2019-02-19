@@ -67,13 +67,14 @@ namespace dolphindb.io
 
         public void writeFloat(float v)
         {
-            base.Write(v);
+            int s = BitConverter.ToInt32(BitConverter.GetBytes(v), 0);
+            writeInt(s);
         }
 
         public void writeDouble(double v)
         {
-            byte[] b = BitConverter.GetBytes(v);
-            base.Write(b);
+            long s = BitConverter.DoubleToInt64Bits(v);
+            writeLong(s);
         }
 
         public void writeBytes(string s)
@@ -169,6 +170,7 @@ namespace dolphindb.io
 
         public void writeString(string value)
         {
+            if (value == null) return;
             int len = value.Length;
             int i = 0;
             int pos = 0;
@@ -447,8 +449,10 @@ namespace dolphindb.io
         {
             base.Write(b, offset, length);
         }
+
         public void write(int b)
         {
+            //byte ub = byte.Parse(b.ToString());
             base.Write((byte)b);
         }
 

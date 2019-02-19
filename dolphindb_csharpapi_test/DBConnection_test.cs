@@ -16,8 +16,8 @@ namespace dolphindb_csharpapi_test
     [TestClass]
     public class DBConnection_test
     {
-        private readonly string SERVER = "115.239.209.223";
-        private readonly int PORT = 8951;
+        private readonly string SERVER = "192.168.1.135";
+        private readonly int PORT = 8981;
 
         [TestMethod]
         public void Test_MyDemo()
@@ -1062,6 +1062,20 @@ namespace dolphindb_csharpapi_test
             Assert.AreEqual(DBNull.Value, dt.Rows[0][1]);
             Assert.AreEqual(DBNull.Value, dt.Rows[0][2]);
             Assert.AreEqual(DBNull.Value, dt.Rows[0][3]);
+        }
+
+        [TestMethod]
+        public void Test_udf()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT,"admin","123456");
+
+            var args = new List<IEntity>
+            {
+                new BasicString("linl")
+            };
+
+            BasicString re = (BasicString)conn.run("Foo2", args);
         }
     }
 }

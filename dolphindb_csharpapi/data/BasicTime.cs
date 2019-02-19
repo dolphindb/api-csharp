@@ -79,6 +79,15 @@ namespace dolphindb.data
                 return base.getValue() == ((BasicInt)o).getValue();
             }
         }
+
+        public override void setObject(object value)
+        {
+            if (value != null && value.GetType() == Type.GetType("System.TimeSpan"))
+            {
+                var t = (TimeSpan)value;
+                base.setObject(Utils.countMilliseconds(t.Hours,t.Minutes,t.Seconds,t.Milliseconds));
+            }
+        }
     }
 
 }

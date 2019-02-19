@@ -43,7 +43,7 @@ namespace dolphindb
         private string userId;
         private string password;
         private bool encrypted;
-
+        private string initialScript;
         public bool isConnected
         {
             get
@@ -81,7 +81,7 @@ namespace dolphindb
             return connect(hostName, port, "", "");
         }
 
-        public bool connect(string hostName, int port, string userId, string password)
+        public bool connect(string hostName, int port, string userId, string password, string initialScript="")
         {
             lock (threadLock)
             {
@@ -97,7 +97,7 @@ namespace dolphindb
                     this.userId = userId;
                     this.password = password;
                     this.encrypted = false;
-
+                    this.initialScript = initialScript;
                     return connect();
 
                 }
@@ -155,9 +155,8 @@ namespace dolphindb
                 remoteLittleEndian = true;
             }
 
-            if (this.userId.Length > 0 && this.password.Length > 0)
-                login();
-
+            if (this.userId.Length > 0 && this.password.Length > 0) login();
+            if (this.initialScript != "") run(initialScript);
             return true;
 
         }
@@ -375,6 +374,7 @@ namespace dolphindb
                     {
                         login();
                     }
+                    if (this.initialScript != "") run(initialScript);
                 }
                 int numObject = int.Parse(headers[1]);
 
@@ -519,6 +519,7 @@ namespace dolphindb
                         {
                             login();
                         }
+                        if (this.initialScript != "") run(initialScript);
                     }
                     int numObject = int.Parse(headers[1]);
 
@@ -684,6 +685,7 @@ namespace dolphindb
                         {
                             login();
                         }
+                        if (this.initialScript != "") run(initialScript);
                     }
                     string msg = @in.readLine();
                     if (!msg.Equals("OK"))

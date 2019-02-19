@@ -1,4 +1,5 @@
-﻿using dolphindb.io;
+﻿using System;
+using dolphindb.io;
 
 namespace dolphindb.data
 {
@@ -51,6 +52,11 @@ namespace dolphindb.data
         public override object getObject()
         {
             return null;
+        }
+
+        public override void setObject(object value)
+        {
+            return;
         }
     }
 

@@ -110,6 +110,11 @@ namespace dolphindb.data
         {
             return this.getValue();
         }
+
+        public override void setObject(object value)
+        {
+            this.value = Convert.ToByte(value);
+        }
     }
 
 }

@@ -25,7 +25,7 @@ namespace dolphindb.data
         public void write(ExtendedDataOutput @out)
         {
             int flag = ((int)DATA_FORM.DF_SCALAR << 8) + (int)getDataType();
-            @out.writeInt(flag);
+            @out.writeShort(flag);
             writeScalarToOutputStream(@out);
         }
 
@@ -72,5 +72,7 @@ namespace dolphindb.data
         }
 
         public abstract object getObject();
+
+        public abstract void setObject(object value);
     }
 }
