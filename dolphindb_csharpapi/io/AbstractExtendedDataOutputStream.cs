@@ -73,8 +73,6 @@ namespace dolphindb.io
 
         public void writeDouble(double v)
         {
-            //byte[] b = BitConverter.GetBytes(v);
-            //base.Write(b);
             long s = BitConverter.DoubleToInt64Bits(v);
             writeLong(s);
         }

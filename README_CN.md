@@ -1,19 +1,16 @@
 ### 1. C# API 概念
 C# API本质上实现了.Net程序和DolphinDB服务器之间的消息传递和数据转换协议。
-C# API运行在.Net Framework 4.0 及以上环境
+C# API运行在.Net Framework 4.0 及以上环境。
 
-C# API遵循面向接口编程的原则。C# API使用接口类Entity来表示DolphinDB返回的所有数据类型。在Entity接口类的基础上，根据DolphinDB的数据类型，C# API提供了7种拓展接口，分别是scalar，vector，matrix，set，dictionary，table和chart。这些接口类都包含在 dolphindb.data包中。
+C# API遵循面向接口编程的原则。C# API使用接口类Entity来表示DolphinDB返回的所有数据类型。在Entity接口类的基础上，根据DolphinDB的数据类型，C# API提供了6种拓展接口，分别是scalar，vector，matrix，set，dictionary，table。这些接口类都包含在 dolphindb.data包中。
 
 拓展的接口类|命名规则|例子
 ---|---|---
 scalar|`Basic<DataType>`|BasicInt, BasicDouble, BasicDate, etc.
 vector，matrix|`Basic<DataType><DataForm>`|BasicIntVector, BasicDoubleMatrix, BasicAnyVector, etc.
 set， dictionary和table|`Basic<DataForm>`|BasicSet, BasicDictionary, BasicTable.
-chart||BasicChart
 
 “Basic”表示基本的数据类型接口，`<DataType>`表示DolphinDB数据类型名称，`<DataForm>`是一个DolphinDB数据形式名称。
-
-详细接口和类描述请参考[C# API手册](https://www.dolphindb.com/C#api/)
 
 DolphinDB C# API 提供的最核心的对象是DBConnection，它主要的功能就是让C#应用可以通过它在DolphinDB服务器上执行脚本和函数，并在两者之间双向传递数据。
 DBConnection类提供如下主要方法：
@@ -48,7 +45,7 @@ public void Test_Connect(){
 ```
 boolean success = conn.connect("localhost", 8848, "admin", "123456");
 ```
-当不带用户名密码连接成功后，脚本在Guest权限下运行，后续运行中若需要提升权限，可以通过调用 `conn.login('admin','123456',true)` 登录获取权限。
+当不带用户名密码连接成功后，脚本在Guest权限下运行，后续运行中若需要提升权限，可以通过调用 `conn.login('admin','123456',false)` 登录获取权限。
 
 ### 3.运行脚本
 
@@ -63,13 +60,13 @@ conn.run("<SCRIPT>");
 ### 4. 运行函数
 当一段逻辑需要被服务端脚本反复调用时，可以用DolphinDB脚本将逻辑封装成自定义函数，类似于存储过程，然后在C#程序中通过函数方式调用。
 
-下面的示例展示C#程序调用DolhinDB的add函数的方式，add函数有两个参数，参数的存储位置不同，也会导致调用方式的不同，下面会分三种情况来展示示例代码：
+下面的示例展示C#程序调用DolhinDB的`add`函数，`add`函数有两个参数`x,y`，参数的存储位置不同，也会导致调用方式的不同，存在以下三种情况：
 
 * 所有参数都在DolphinDB Server端
 
 变量 x, y 已经通过C#程序提前在服务器端生成。
 ```
-conn.run("x = [1,3,5];y = [2,4,6]")
+conn.run("x = [1,3,5];y = [2,4,6]");
 ```
 那么在C#端要对这两个向量做加法运算，只需要直接使用`run(script)`的方式即可
 ```
@@ -85,7 +82,7 @@ public void testFunction()
 
 变量 x 已经通过C#程序提前在服务器端生成，参数 y 要在C#客户端生成
 ```
-conn.run("x = [1,3,5]")
+conn.run("x = [1,3,5]");
 ```
 这时就需要使用`部分应用`方式，把参数 x 固化在add函数内，具体请参考[部分应用文档](https://www.dolphindb.com/cn/help/PartialApplication.html)。
 
@@ -123,9 +120,8 @@ public void testFunction()
 ```
 
 ### 5. 上传数据对象
-当C#中的一些数据需要被服务端频繁的用到，那么每次调用的时候都上传一次肯定不是一个好的做法，这个时候可以使用upload方法，将数据上传到服务器并分配给一个变量，在Server端就可以重复使用这个变量。
-
-我们可以将二进制数据对象上传到DolphinDB服务器，并将其分配给一个变量以备将来使用。 变量名称可以使用三种类型的字符：字母，数字或下划线。 第一个字符必须是字母。
+当C#中的一些数据需要被服务端频繁的用到，那么每次调用的时候都上传一次肯定不是一个好的做法，这个时候可以使用upload方法，将数据上传到服务器并分配给一个变量，后续就可以重复使用这个变量。
+变量名称可以使用三种类型的字符：字母，数字或下划线。 第一个字符必须是字母。
 
 ```
 public void testUpload()
@@ -159,7 +155,7 @@ using dolphindb.data;
 ```
 rand(`IBM`MSFT`GOOG`BIDU,10)
 ```
-返回C#对象BasicStringVector。vector.rows()方法能够获取向量的大小。我们可以使用vector.getString(i)方法按照索引访问向量元素。
+返回C#对象BasicStringVector。vector.rows()方法能够获取向量的大小。我们可以使用vector.get(i)方法按照索引访问向量元素。
 
 ```
 public void testStringVector(){
@@ -178,10 +174,7 @@ public void testDoubleVector(){
       Console.WriteLine(v.rows());
       Console.WriteLine(Math.Round(((BasicDouble)v.get(1)).getValue(), 4));
 }
-```
 
-
-```
 public void testAnyVector(){
       BasicAnyVector v = (BasicAnyVector)conn.run("[1 2 3,3.4 3.5 3.6]");
       Console.WriteLine(v.rows());
@@ -201,7 +194,7 @@ public void testSet(){
 
 - 矩阵
 
-要从整数矩阵中检索一个元素，我们可以使用getInt(row,)。 要获取行数和列数，我们可以使用函数rows()和columns()。
+要从整数矩阵中检索一个元素，可以使用getInt(row,)。 要获取行数和列数，可以使用函数rows()和columns()。
 
 ```
 public void testIntMatrix(){
@@ -233,7 +226,7 @@ public void testDictionary(){
 
 - 表
 
-要获取表的列，我们可以调用table.getColumn(index)；同样，我们可以调用table.getColumnName(index)获取列名。 对于列和行的数量，我们可以分别调用table.columns()和table.rows()。
+要获取表的列，可以用table.getColumn(index)，使用table.columns()和table.rows()来分别获取列和行数。
 
 ```
 public void testTable(){
@@ -249,7 +242,7 @@ public void testTable(){
 ```
 public void testVoid(){
       IEntity obj = conn.run("NULL");
-      Assert.AreEqual(obj.getObject(), null);
+      Console.WriteLine(obj.getDataType());
 }
 
 ```
@@ -306,7 +299,7 @@ public void test_save_TableInsert(string[] strArray, int[] intArray, long[] tsAr
 ```
 def saveData(v1,v2,v3,v4){tableInsert(sharedTable,v1,v2,v3,v4)}
 ```
-然后再通过`conn.run("saveData",args)`运行函数，虽然这样也能实现目标，但是对Java程序来说要多一次服务端的调用，多消耗了网络资源。
+然后再通过`conn.run("saveData",args)`运行函数。虽然这样也能实现目标，但是对Java程序来说要多一次服务端的调用，多消耗了网络资源。
 在本例中，使用了DolphinDB 中的`部分应用`这一特性，将服务端表名以`tableInsert{sharedTable}`这样的方式固化到tableInsert中，作为一个独立函数来使用。这样就不需要再使用自定义函数的方式实现。
 具体的文档请参考[部分应用文档](https://www.dolphindb.com/cn/help/PartialApplication.html)。
 
@@ -320,7 +313,7 @@ public void test_save_table(BasicTable table1)
       conn.run("append!{shareTable}", args);
 }
 ```
-#### 7.2 保存数据到分布式表
+### 7.2 保存数据到分布式表
 分布式表是DolphinDB推荐在生产环境下使用的数据存储方式，它支持快照级别的事务隔离，保证数据一致性; 分布式表支持多副本机制，既提供了数据容错能力，又能作为数据访问的负载均衡。
 
 本例中涉及到的数据表可以通过如下脚本构建 ：
@@ -373,7 +366,7 @@ public void test_save_table(String dbPath, BasicTable table1)
       conn.run(String.Format("append!{loadTable('%s','tb1')}",dbPath), args);
 }
 ```
-#### 7.4 读取和使用表数据
+### 7.4 读取和使用表数据
 在C# API中，表数据保存为BasicTable对象，由于BasicTable是列式存储，所以要读取和使用所有desultory需要通过先取出列，再循环取出行的方式。
 
 例子中参数BasicTable的有4个列，分别是`STRING,INT,TIMESTAMP,DOUBLE`类型，列名分别为`cstring,cint,ctimestamp,cdouble`。

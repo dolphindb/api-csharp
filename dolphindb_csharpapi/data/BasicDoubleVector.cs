@@ -113,13 +113,13 @@ namespace dolphindb.data
         public override void set(int index, string value)
         {
             double v;
-            if (Double.TryParse(value, out v))
+            if (double.TryParse(value, out v))
             {
                 values[index] = v;
             }
             else
             {
-                this.setNull(index);
+                setNull(index);
             }
         }
     }

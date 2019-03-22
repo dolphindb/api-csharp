@@ -137,7 +137,7 @@ namespace dolphindb.data
         {
             DataTable dt = buildTable();
 
-            foreach (IScalar item in this.set)
+            foreach (IScalar item in set)
             {
                 DataRow dr = dt.NewRow();
                 dr["set_key"] = item.getObject();

@@ -24,13 +24,13 @@ namespace dolphindb.data
                     values[i] = list[i];
                 }
             }
-            this.isSymbol = false;
+            isSymbol = false;
         }
 
         public BasicStringVector(string[] array) : base(DATA_FORM.DF_VECTOR)
         {
             values = array.Clone() as string[];
-            this.isSymbol = false;
+            isSymbol = false;
         }
 
         protected internal BasicStringVector(DATA_FORM df, int size, bool isSymbol) : base(df)

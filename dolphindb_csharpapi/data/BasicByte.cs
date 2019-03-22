@@ -60,7 +60,7 @@ namespace dolphindb.data
 
         public override string ToString()
         {
-            return this.getString();
+            return getString();
         }
         public override string getString()
         {
@@ -107,7 +107,7 @@ namespace dolphindb.data
 
         public override object getObject()
         {
-            return this.getValue();
+            return getValue();
         }
 
         public override void setObject(object value)

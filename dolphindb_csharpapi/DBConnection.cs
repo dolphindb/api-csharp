@@ -8,6 +8,7 @@ using dolphindb.io;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
@@ -87,7 +88,7 @@ namespace dolphindb
             {
                 try
                 {
-                    if (this.sessionID.Length > 0)
+                    if (sessionID.Length > 0)
                     {
                         return true;
                     }
@@ -96,7 +97,7 @@ namespace dolphindb
                     this.port = port;
                     this.userId = userId;
                     this.password = password;
-                    this.encrypted = false;
+                    encrypted = false;
                     this.initialScript = initialScript;
                     return connect();
 
@@ -155,8 +156,8 @@ namespace dolphindb
                 remoteLittleEndian = true;
             }
 
-            if (this.userId.Length > 0 && this.password.Length > 0) login();
-            if (this.initialScript != "") run(initialScript);
+            if (userId.Length > 0 && password.Length > 0) login();
+            if (initialScript != "") run(initialScript);
             return true;
 
         }
@@ -168,7 +169,7 @@ namespace dolphindb
                 {
                     this.userId = userId;
                     this.password = password;
-                    this.encrypted = enableEncryption;
+                    encrypted = enableEncryption;
                     //this.encrypted = false; //no encrypted temporary
                     login();
                 }
@@ -184,13 +185,13 @@ namespace dolphindb
         private void login()
         {
             List<IEntity> args = new List<IEntity>();
-            if (this.encrypted)
+            if (encrypted)
             {
                 BasicString keyCode = (BasicString)run("getDynamicPublicKey()");
 
                 string key = RSAUtils.GetKey(keyCode.getString());
-                string usr = RSAUtils.RSA(this.userId, key);
-                string pass = RSAUtils.RSA(this.password, key);
+                string usr = RSAUtils.RSA(userId, key);
+                string pass = RSAUtils.RSA(password, key);
 
 
                 args.Add(new BasicString(usr));
@@ -202,7 +203,7 @@ namespace dolphindb
             {
                 args.Add(new BasicString(userId));
                 args.Add(new BasicString(password));
-                run("login('" + this.userId + "','" + this.password + "')"); //no encrypted temporary
+                run("login('" + userId + "','" + password + "')"); //no encrypted temporary
 
             }
             //login("login", args);
@@ -214,7 +215,7 @@ namespace dolphindb
         {
             get
             {
-                return this.remoteLittleEndian;
+                return remoteLittleEndian;
             }
         }
 
@@ -370,11 +371,10 @@ namespace dolphindb
                 if (reconnect)
                 {
                     sessionID = headers[0];
-                    if (this.userId.Length>0 && this.password.Length>0)
+                    if (userId.Length>0 && password.Length>0)
                     {
                         login();
                     }
-                    if (this.initialScript != "") run(initialScript);
                 }
                 int numObject = int.Parse(headers[1]);
 
@@ -515,11 +515,10 @@ namespace dolphindb
                     if (reconnect)
                     {
                         sessionID = headers[0];
-                        if (this.userId.Length > 0 && this.password.Length > 0)
+                        if (userId.Length > 0 && password.Length > 0)
                         {
                             login();
                         }
-                        if (this.initialScript != "") run(initialScript);
                     }
                     int numObject = int.Parse(headers[1]);
 
@@ -681,11 +680,10 @@ namespace dolphindb
                     if (reconnect)
                     {
                         sessionID = headers[0];
-                        if (this.userId.Length > 0 && this.password.Length > 0)
+                        if (userId.Length > 0 && password.Length > 0)
                         {
                             login();
                         }
-                        if (this.initialScript != "") run(initialScript);
                     }
                     string msg = @in.readLine();
                     if (!msg.Equals("OK"))
@@ -756,6 +754,13 @@ namespace dolphindb
             }
         }
 
+        public string LocalAddress
+        {
+            get
+            {
+                return ((IPEndPoint)socket.LocalEndPoint).Address.ToString();
+            }
+        }
     }
 
 }

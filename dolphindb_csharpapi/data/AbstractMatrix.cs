@@ -26,8 +26,8 @@ namespace dolphindb.data
 
         protected internal AbstractMatrix(int rows, int columns)
         {
-            this._rows = rows;
-            this._columns = columns;
+            _rows = rows;
+            _columns = columns;
         }
 
         protected internal AbstractMatrix(ExtendedDataInput @in)
@@ -314,12 +314,12 @@ namespace dolphindb.data
         public virtual DataTable toDataTable()
         {
             DataTable dt = buildTable();
-            for (int i = 0; i < this.rows(); i++)
+            for (int i = 0; i < rows(); i++)
             {
                 DataRow dr = dt.NewRow();
-                for (int j = 0; j < this.columns(); j++)
+                for (int j = 0; j < columns(); j++)
                 {
-                    dr[j] = this.get(i, j).getObject();
+                    dr[j] = get(i, j).getObject();
                 }
                 dt.Rows.Add(dr);
             }
@@ -328,16 +328,16 @@ namespace dolphindb.data
         protected DataTable buildTable()
         {
             DataTable dt = new DataTable();
-            string[] colnames = new string[this._columns];
-            if (this.columnLabels == null)
-                for (int c = 0; c < this._columns; c++)
+            string[] colnames = new string[_columns];
+            if (columnLabels == null)
+                for (int c = 0; c < _columns; c++)
                     colnames[c] = "col" + c.ToString();
             else
-                for (int c = 0; c < this._columns; c++)
-                    colnames[c] = this.columnLabels.get(c).getString();
+                for (int c = 0; c < _columns; c++)
+                    colnames[c] = columnLabels.get(c).getString();
 
-            for (int j = 0; j < this.columns(); j++)
-                dt.Columns.Add(colnames[j], Utils.getSystemType(this.getDataType()));
+            for (int j = 0; j < columns(); j++)
+                dt.Columns.Add(colnames[j], Utils.getSystemType(getDataType()));
 
             return dt;
         }

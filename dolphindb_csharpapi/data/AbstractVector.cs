@@ -24,10 +24,10 @@ namespace dolphindb.data
         {
             DataTable dt = buildTable();
 
-            for (int i = 0; i < this.rows(); i++)
+            for (int i = 0; i < rows(); i++)
             {
                 DataRow dr = dt.NewRow();
-                dr[0] = this.get(i).getObject();
+                dr[0] = get(i).getObject();
                 dt.Rows.Add(dr);
             }
             return dt;
@@ -83,7 +83,7 @@ namespace dolphindb.data
         protected DataTable buildTable()
         {
             DataTable dt = new DataTable();
-            dt.Columns.Add("dolphinVector", Utils.getSystemType(this.getDataType()));
+            dt.Columns.Add("dolphinVector", Utils.getSystemType(getDataType()));
             return dt;
         }
 

@@ -39,7 +39,7 @@ namespace dolphindb.io
 
         public int readUnsignedByte()
         {
-            byte b1 = this.ReadByte();
+            byte b1 = ReadByte();
             if (0 > b1)
             {
                 throw new EndOfStreamException();
@@ -54,14 +54,11 @@ namespace dolphindb.io
 
         protected internal virtual byte readAndCheckByte()
         {
-            int b = this.Read();
+            byte b = ReadByte();
 
-            if (-1 == b)
-            {
-                throw new EndOfStreamException();
-            }
+            byte b1 = b;
 
-            return (byte)b;
+            return (byte)b1;
         }
 
         protected internal virtual int fromBytes(byte b1, byte b2, byte b3, byte b4)
@@ -98,7 +95,7 @@ namespace dolphindb.io
 
         public abstract int readUnsignedShort();
 
-        private String readUTF8(byte terminator)
+        private string readUTF8(byte terminator)
         {
             if (buf_ == null)
                 buf_ = new byte[2048];

@@ -21,7 +21,7 @@ namespace dolphindb.data
             {
                 throw new Exception("DataTable must contain at least one column");
             }
-            this.loadDataTable(dt);
+            loadDataTable(dt);
         }
         public BasicTable(ExtendedDataInput @in)
         {
@@ -62,8 +62,8 @@ namespace dolphindb.data
 
         public BasicTable(IList<string> colNames, IList<IVector> cols)
         {
-            this.setColName(colNames);
-            this.setColumns(cols);
+            setColName(colNames);
+            setColumns(cols);
         }
 
         public virtual void setColName(IList<string> value)
@@ -120,7 +120,7 @@ namespace dolphindb.data
 
         public IList<IVector> getColumns()
         {
-            return this.columns_;
+            return columns_;
         }
 
         public virtual IVector getColumn(int index)
@@ -284,11 +284,11 @@ namespace dolphindb.data
             if (columns_.Count == 0) return null;//table columns not exists
             int rowCount = columns_[0].rows();
 
-            for (int rowIndex = 0; rowIndex < this.rows(); rowIndex++)
+            for (int rowIndex = 0; rowIndex < rows(); rowIndex++)
             {
                 DataRow dr = dt.NewRow();
 
-                for (int colIndex = 0; colIndex < this.columns(); colIndex++)
+                for (int colIndex = 0; colIndex < columns(); colIndex++)
                 {
                     DATA_TYPE dtype = columns_[colIndex].getDataType();
                     switch (dtype)
@@ -375,10 +375,10 @@ namespace dolphindb.data
                 {
                     curColumn.set(rowIndex, getDolphinDBScalarBySystemType(t, dv[rowIndex][colIndex]));
                 }
-                this.columns_.Add(curColumn);
-                this.names_.Add(dt.Columns[colIndex].ColumnName);
-                KeyValuePair<String, int?> colNameIndex = new KeyValuePair<string, int?>(dt.Columns[colIndex].ColumnName, colIndex);
-                this.name2index_.Add(colNameIndex);
+                columns_.Add(curColumn);
+                names_.Add(dt.Columns[colIndex].ColumnName);
+                KeyValuePair<string, int?> colNameIndex = new KeyValuePair<string, int?>(dt.Columns[colIndex].ColumnName, colIndex);
+                name2index_.Add(colNameIndex);
             }
         }
 
@@ -547,7 +547,6 @@ namespace dolphindb.data
         {
             throw new NotImplementedException();
         }
-
     }
 
 }

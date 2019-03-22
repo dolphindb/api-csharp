@@ -18,12 +18,12 @@ namespace dolphindb.data
             value = @in.readString();
         }
 
-        public String getValue()
+        public string getValue()
         {
             return value;
         }
 
-        protected void setValue(String value)
+        protected void setValue(string value)
         {
             this.value = value;
         }
@@ -94,7 +94,7 @@ namespace dolphindb.data
 
         public override object getObject()
         {
-            return this.getValue();
+            return getValue();
         }
 
         public override void setObject(object value)

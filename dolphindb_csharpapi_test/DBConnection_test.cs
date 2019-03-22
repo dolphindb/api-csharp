@@ -20,11 +20,58 @@ namespace dolphindb_csharpapi_test
         private readonly int PORT = 8981;
 
         [TestMethod]
-        public void Test_MyDemo()
+        public void Test_chinese_Table()
         {
-            DBConnection db = new DBConnection();
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT);
+            prepareChineseTable(conn);
+            BasicTable bt = (BasicTable)conn.run("sharedTable");
+            Assert.AreEqual(8000, bt.rows());
+            Assert.AreEqual("备注1", ((BasicString)bt.getColumn("备注").get(0)).getString());
+            DataTable dt =  bt.toDataTable();
+            Assert.AreEqual("备注10", dt.Rows[9]["备注"].ToString());
         }
 
+        [TestMethod]
+        public void Test_chinese_DataTable()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT);
+            DataTable dt = new DataTable();
+            List<DataColumn> cols = new List<DataColumn>(){
+                new DataColumn("股票代码",Type.GetType("System.String")),
+                new DataColumn("股票日期",Type.GetType("System.DateTime")),
+                new DataColumn("买方报价", Type.GetType("System.Double")),
+                new DataColumn("卖方报价", Type.GetType("System.Double")),
+                new DataColumn("时间戳", Type.GetType("System.DateTime")),
+                new DataColumn("备注", Type.GetType("System.String"))
+            };
+            dt.Columns.AddRange(cols.ToArray());
+            for(int i = 0; i < 10; i++)
+            {
+                DataRow dr = dt.NewRow();
+                dr["股票代码"] = new string[] { "GGG", "MSSS", "FBBBB" }[i%3];
+                dr["股票日期"] = DateTime.Now.Date;
+                dr["买方报价"] = 22222.5544;
+                dr["卖方报价"] = 3333.33322145;
+                dr["时间戳"] = DateTime.Now;
+                dr["备注"] = "备注" + i.ToString();
+                dt.Rows.Add(dr);
+            }
+            BasicTable bt = new BasicTable(dt);
+            Dictionary<String, IEntity> var = new Dictionary<string, IEntity>();
+            var.Add("temptb", bt);
+            conn.upload(var);
+            conn.run("share temptb as ttttb");
+
+        }
+
+        private void prepareChineseTable(DBConnection conn)
+        {
+            conn.run("t =table(10000:0,['股票代码','股票日期','买方报价','卖方报价','时间戳','备注'],[SYMBOL,DATE,DOUBLE,DOUBLE,TIMESTAMP,STRING])");
+            conn.run("share t as sharedTable");
+            conn.run("sharedTable.append!(table(symbol(take(`GGG`MMS`FABB`APPL, 8000)) as 股票代码, take(today(), 8000) as 股票日期, norm(40, 5, 8000) as 买方报价, norm(45, 5, 8000) as 卖方报价, take(now(), 8000) as 时间戳,'备注' + string(1..8000) as 备注)) ");
+        }
         [TestMethod]
         public void Test_Connect()
         {
@@ -164,7 +211,7 @@ namespace dolphindb_csharpapi_test
             Assert.IsFalse(((BasicBoolean)db.run("false")).getValue());
             Assert.IsFalse(((BasicBoolean)db.run("1==2")).getValue());
             Assert.IsTrue(((BasicBoolean)db.run("2==2")).getValue());
-            Assert.IsTrue(((BasicBoolean)db.run("bool(NULL)")).getString()=="");
+            Assert.IsTrue(((BasicBoolean)db.run("bool(NULL)")).getString() == "");
         }
 
         [TestMethod]
@@ -270,8 +317,6 @@ namespace dolphindb_csharpapi_test
             DateTime dt = new DateTime(2018, 03, 14, 15, 41, 45, 123);
             long tickCount = dt.Ticks;
             Assert.AreEqual(new DateTime(tickCount + 2223L), ((BasicNanoTimestamp)db.run("2018.03.14T15:41:45.123222321")).getValue());
-            Assert.AreEqual("2018.03.14 15:41:45.1232223", ((BasicNanoTimestamp)db.run("2018.03.14T15:41:45.123222321")).getString());
-
         }
 
         [TestMethod]
@@ -741,6 +786,10 @@ namespace dolphindb_csharpapi_test
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
             BasicDictionary tb = (BasicDictionary)db.run("dict(1 2 3 4,5 6 7 8)");
+            foreach (var key in tb.keys())
+            {
+                BasicInt val = (BasicInt)tb.get(key);
+            }
             DataTable dt = tb.toDataTable();
             Assert.AreEqual(4, dt.Rows.Count);
         }
@@ -841,14 +890,23 @@ namespace dolphindb_csharpapi_test
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
             List<IEntity> args = new List<IEntity>(1);
-            BasicDoubleVector vec = new BasicDoubleVector(3);
-            vec.setDouble(0, 1.5);
-            vec.setDouble(1, 2.5);
-            vec.setDouble(2, 7);
+            BasicDoubleVector x = new BasicDoubleVector(3);
+            x.setDouble(0, 1.5);
+            x.setDouble(1, 2.5);
+            x.setDouble(2, 7);
 
-            args.Add(vec);
-            BasicDouble result = (BasicDouble)db.run("sum", args);
-            Assert.AreEqual(11, result.getValue());
+            BasicDoubleVector y = new BasicDoubleVector(3);
+            y.setDouble(0, 2.5);
+            y.setDouble(1, 3.5);
+            y.setDouble(2, 5);
+
+            args.Add(x);
+            args.Add(y);
+            BasicDoubleVector result = (BasicDoubleVector)db.run("add", args);
+            Assert.AreEqual(3, result.rows());
+            Assert.AreEqual(4.0, ((BasicDouble)result.get(0)).getValue());
+            Assert.AreEqual(6.0, ((BasicDouble)result.get(1)).getValue());
+            Assert.AreEqual(12.0, ((BasicDouble)result.get(2)).getValue());
         }
 
         [TestMethod]
@@ -930,7 +988,7 @@ namespace dolphindb_csharpapi_test
 
             BasicTable bt = new BasicTable(dt);
 
-            double[] a =  (double[])bt.getColumn(4).getList();
+            double[] a = (double[])bt.getColumn(4).getList();
             long[] b = (long[])bt.getColumn(5).getList();
 
 
@@ -946,7 +1004,7 @@ namespace dolphindb_csharpapi_test
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
             Dictionary<string, IEntity> obj = new Dictionary<string, IEntity>();
-            obj.Add("x", (IEntity)new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
+            obj.Add("x", (IEntity)new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }));
             obj.Add("y", (IEntity)new BasicIntVector(new int[] { 9, 5, 3, 4, 5, 4, 7, 1, 3, 4 }));
             db.upload(obj);
             BasicDoubleVector t = (BasicDoubleVector)db.run("ttt = nullFill!(mcorr(x,y,5),0);ttt");
@@ -959,7 +1017,7 @@ namespace dolphindb_csharpapi_test
             db.connect(SERVER, PORT);
             BasicIntVector iv = (BasicIntVector)db.run("1 2 3 4");
             int[] r = (int[])iv.getList();
-            Assert.AreEqual(4,r.Length);
+            Assert.AreEqual(4, r.Length);
 
             BasicDoubleVector dv = (BasicDoubleVector)db.run("1.1 2.01 3.25 4.251441 3.32222");
             double[] dr = (double[])dv.getList();
@@ -1018,7 +1076,7 @@ namespace dolphindb_csharpapi_test
         public void Test_ContructBasicTableByDataTable()
         {
             DataTable dt = new DataTable();
-            dt.Columns.Add("dt",Type.GetType("System.DateTime"));
+            dt.Columns.Add("dt", Type.GetType("System.DateTime"));
             dt.Columns.Add("bl", Type.GetType("System.Boolean"));
             dt.Columns.Add("sb", Type.GetType("System.Byte"));
             dt.Columns.Add("db", Type.GetType("System.Double"));
@@ -1046,9 +1104,9 @@ namespace dolphindb_csharpapi_test
             obj.Add("up_datatable", (IEntity)bt);
             db.upload(obj);
             db.run("share up_datatable as tb1");
-            
+
             BasicStringVector bsv = (BasicStringVector)bt.getColumn(8);
-            Assert.AreEqual("" , bsv.get(0).getString());
+            Assert.AreEqual("", bsv.get(0).getString());
         }
 
         [TestMethod]
@@ -1063,19 +1121,348 @@ namespace dolphindb_csharpapi_test
             Assert.AreEqual(DBNull.Value, dt.Rows[0][2]);
             Assert.AreEqual(DBNull.Value, dt.Rows[0][3]);
         }
+        private BasicTable createBasicTable()
+        {
+            List<String> colNames = new List<String>();
+            colNames.Add("cbool");
+            colNames.Add("cchar");
+            colNames.Add("cshort");
+            colNames.Add("cint");
+            colNames.Add("clong");
+            colNames.Add("cdate");
+            colNames.Add("cmonth");
+            colNames.Add("ctime");
+            colNames.Add("cminute");
+            colNames.Add("csecond");
+            colNames.Add("cdatetime");
+            colNames.Add("ctimestamp");
+            colNames.Add("cnanotime");
+            colNames.Add("cnanotimestamp");
+            colNames.Add("cfloat");
+            colNames.Add("cdouble");
+            colNames.Add("csymbol");
+            colNames.Add("cstring");
+            List<IVector> cols = new List<IVector>();
+            //boolean
+            byte[] vbool = new byte[] { 1, 0 };
+            BasicBooleanVector bbv = new BasicBooleanVector(vbool);
+            cols.Add(bbv);
+            //char
+            byte[] vchar = new byte[] { (byte)'c', (byte)'a' };
+            BasicByteVector bcv = new BasicByteVector(vchar);
+            cols.Add(bcv);
+            //cshort
+            short[] vshort = new short[] { 32767, 29 };
+            BasicShortVector bshv = new BasicShortVector(vshort);
+            cols.Add(bshv);
+            //cint
+            int[] vint = new int[] { 2147483647, 483647 };
+            BasicIntVector bintv = new BasicIntVector(vint);
+            cols.Add(bintv);
+            //clong
+            long[] vlong = new long[] { 2147483647, 483647 };
+            BasicLongVector blongv = new BasicLongVector(vlong);
+            cols.Add(blongv);
+            //cdate
+            int[] vdate = new int[] { Utils.countDays(new DateTime(2018, 2, 14)), Utils.countDays(new DateTime(2018, 8, 15)) };
+            BasicDateVector bdatev = new BasicDateVector(vdate);
+            cols.Add(bdatev);
+            //cmonth
+            int[] vmonth = new int[] { Utils.countMonths(new DateTime(2018, 2, 1)), Utils.countMonths(new DateTime(2018, 8, 1)) };
+            BasicMonthVector bmonthv = new BasicMonthVector(vmonth);
+            cols.Add(bmonthv);
+            //ctime
+            int[] vtime = new int[] { Utils.countMilliseconds(16, 46, 05, 123), Utils.countMilliseconds(18, 32, 05, 321) };
+            BasicTimeVector btimev = new BasicTimeVector(vtime);
+            cols.Add(btimev);
+            //cminute
+            int[] vminute = new int[] { Utils.countMinutes(new TimeSpan(16, 30, 00)), Utils.countMinutes(new TimeSpan(9, 30, 00)) };
+            BasicMinuteVector bminutev = new BasicMinuteVector(vminute);
+            cols.Add(bminutev);
+            //csecond
+            int[] vsecond = new int[] { Utils.countSeconds(new TimeSpan(9, 30, 30)), Utils.countSeconds(new TimeSpan(16, 30, 50)) };
+            BasicSecondVector bsecondv = new BasicSecondVector(vsecond);
+            cols.Add(bsecondv);
+            //cdatetime
+            int[] vdatetime = new int[] { Utils.countSeconds(new DateTime(2018, 9, 8, 9, 30, 01)), Utils.countSeconds(new DateTime(2018, 11, 8, 16, 30, 01)) };
+            BasicDateTimeVector bdatetimev = new BasicDateTimeVector(vdatetime);
+            cols.Add(bdatetimev);
+            //ctimestamp
+            long[] vtimestamp = new long[] { Utils.countMilliseconds(2018, 11, 12, 9, 30, 01, 123), Utils.countMilliseconds(2018, 11, 12, 16, 30, 01, 123) };
+            BasicTimestampVector btimestampv = new BasicTimestampVector(vtimestamp);
+            cols.Add(btimestampv);
+            //cnanotime
+            long[] vnanotime = new long[] { Utils.countNanoseconds(new TimeSpan(0, 9, 30, 05, 123)), Utils.countNanoseconds(new TimeSpan(0, 16, 30, 05, 987)) };
+            BasicNanoTimeVector bnanotimev = new BasicNanoTimeVector(vnanotime);
+            cols.Add(bnanotimev);
+            //cnanotimestamp
+            long[] vnanotimestamp = new long[] { Utils.countNanoseconds(new DateTime(2018, 11, 12, 9, 30, 05, 123)), Utils.countNanoseconds(new DateTime(2018, 11, 13, 16, 30, 05, 987)) };
+            BasicNanoTimestampVector bnanotimestampv = new BasicNanoTimestampVector(vnanotimestamp);
+            cols.Add(bnanotimestampv);
+            //cfloat
+            float[] vfloat = new float[] { 2147.483647f, 483.647f };
+            BasicFloatVector bfloatv = new BasicFloatVector(vfloat);
+            cols.Add(bfloatv);
+            //cdouble
+            double[] vdouble = new double[] { 214.7483647, 48.3647 };
+            BasicDoubleVector bdoublev = new BasicDoubleVector(vdouble);
+            cols.Add(bdoublev);
+            //csymbol
+            String[] vsymbol = new String[] { "GOOG", "MS" };
+            BasicStringVector bsymbolv = new BasicStringVector(vsymbol);
+            cols.Add(bsymbolv);
+            //cstring
+            String[] vstring = new String[] { "", "test string" };
+            BasicStringVector bstringv = new BasicStringVector(vstring);
+            cols.Add(bstringv);
+            BasicTable t1 = new BasicTable(colNames, cols);
+            return t1;
+        }
+        [TestMethod]
+        public void Test_SaveTable_MemoryDB()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicTable table1 = createBasicTable();
+            db.run("t = table(10000:0,`cbool`cchar`cshort`cint`clong`cdate`cmonth`ctime`cminute`csecond`cdatetime`ctimestamp`cnanotime`cnanotimestamp`cfloat`cdouble`csymbol`cstring,[BOOL,CHAR,SHORT,INT,LONG,DATE,MONTH,TIME,MINUTE,SECOND,DATETIME,TIMESTAMP,NANOTIME,NANOTIMESTAMP,FLOAT,DOUBLE,SYMBOL,STRING])\n");
+            db.run("share t as memoryTable");
+            db.run("def saveData(data){ memoryTable.append!(data)}");
+            List<IEntity> args = new List<IEntity>(1);
+            args.Add(table1);
+            db.run("saveData", args);
+        }
+
+     
+        public void Test_SaveTable_LocalDB()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicTable table1 = createBasicTable();
+            db.login("admin", "123456", false);
+            String dbpath = "dfs://testDatabase";
+            db.run("t = table(10000:0,`cbool`cchar`cshort`cint`clong`cdate`cmonth`ctime`cminute`csecond`cdatetime`ctimestamp`cnanotime`cnanotimestamp`cfloat`cdouble`csymbol`cstring,[BOOL,CHAR,SHORT,INT,LONG,DATE,MONTH,TIME,MINUTE,SECOND,DATETIME,TIMESTAMP,NANOTIME,NANOTIMESTAMP,FLOAT,DOUBLE,SYMBOL,STRING])\n");
+            db.run(String.Format("if(existsDatabase('{0}')){dropDatabase('{0}')}", dbpath));
+            db.run(String.Format("db = database('{0}',RANGE,2018.01.01..2018.12.31)", dbpath));
+            db.run("db.createPartitionedTable(t,'tb1','cdate')");
+            db.run(String.Format("def saveData(data){ loadTable('{0}','tb1').append!(data)}", dbpath));
+            List<IEntity> args = new List<IEntity>(1);
+            args.Add(table1);
+            db.run("saveData", args);
+        }
+
+        [TestMethod]
+        public void Test_SaveTable_DfsDB()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT,"admin","123456");
+            BasicTable table1 = createBasicTable();
+            String dbpath = "dfs://testDatabase1";
+            db.run("t = table(10000:0,`cbool`cchar`cshort`cint`clong`cdate`cmonth`ctime`cminute`csecond`cdatetime`ctimestamp`cnanotime`cnanotimestamp`cfloat`cdouble`csymbol`cstring,[BOOL,CHAR,SHORT,INT,LONG,DATE,MONTH,TIME,MINUTE,SECOND,DATETIME,TIMESTAMP,NANOTIME,NANOTIMESTAMP,FLOAT,DOUBLE,SYMBOL,STRING])\n");
+            string script = "if(existsDatabase('dfs://testDatabase1')){dropDatabase('dfs://testDatabase1')}";
+            db.run(script);
+            script = "db = database('dfs://testDatabase1',VALUE,'MS' 'GOOG' 'FB')";
+            db.run(script);
+            db.run("db.createPartitionedTable(t,'tb1','csymbol')");
+            db.run("def saveData(data){ loadTable('dfs://testDatabase1','tb1').append!(data)}");
+            List<IEntity> args = new List<IEntity>(1);
+            args.Add(table1);
+            db.run("saveData", args);
+        }
+
+
+        [TestMethod]
+        public void Test_Loop_BasicTable()
+        {
+
+            BasicTable table1 = createBasicTable();
+            for (int ri = 0; ri < table1.rows(); ri++)
+            {
+                BasicBoolean boolv = (BasicBoolean)table1.getColumn("cbool").get(ri);
+                Console.WriteLine(boolv.getValue());
+
+                BasicByte charv = (BasicByte)table1.getColumn("cchar").get(ri);
+                Console.WriteLine((char)charv.getValue());
+
+                BasicShort shortv = (BasicShort)table1.getColumn("cshort").get(ri);
+                Console.WriteLine(shortv.getValue());
+
+                BasicInt intv = (BasicInt)table1.getColumn("cint").get(ri);
+                Console.WriteLine(intv.getValue());
+
+                BasicLong longv = (BasicLong)table1.getColumn("clong").get(ri);
+                Console.WriteLine(longv.getValue());
+
+                BasicDate datev = (BasicDate)table1.getColumn("cdate").get(ri);
+                DateTime date = datev.getValue();
+                Console.WriteLine(date.ToShortDateString());
+
+                BasicMonth monthv = (BasicMonth)table1.getColumn("cmonth").get(ri);
+                DateTime ym = monthv.getValue();
+                Console.WriteLine(ym.ToShortDateString());
+
+                BasicTime timev = (BasicTime)table1.getColumn("ctime").get(ri);
+                TimeSpan time = timev.getValue();
+                Console.WriteLine(time.ToString());
+
+                BasicMinute minutev = (BasicMinute)table1.getColumn("cminute").get(ri);
+                TimeSpan minute = minutev.getValue();
+                Console.WriteLine(minute);
+
+                BasicSecond secondv = (BasicSecond)table1.getColumn("csecond").get(ri);
+                TimeSpan second = secondv.getValue();
+                Console.WriteLine(second);
+
+                BasicDateTime datetimev = (BasicDateTime)table1.getColumn("cdatetime").get(ri);
+                DateTime datetime = datetimev.getValue();
+                Console.WriteLine(datetime);
+
+                BasicTimestamp timestampv = (BasicTimestamp)table1.getColumn("ctimestamp").get(ri);
+                DateTime timestamp = timestampv.getValue();
+                Console.WriteLine(timestamp);
+
+                BasicNanoTime nanotimev = (BasicNanoTime)table1.getColumn("cnanotime").get(ri);
+                TimeSpan nanotime = nanotimev.getValue();
+                Console.WriteLine(nanotime);
+
+                BasicNanoTimestamp nanotimestampv = (BasicNanoTimestamp)table1.getColumn("cnanotimestamp").get(ri);
+                DateTime nanotimestamp = nanotimestampv.getValue();
+                Console.WriteLine(nanotimestamp);
+
+                BasicFloat floatv = (BasicFloat)table1.getColumn("cfloat").get(ri);
+                Console.WriteLine(floatv.getValue());
+
+                BasicDouble doublev = (BasicDouble)table1.getColumn("cdouble").get(ri);
+                Console.WriteLine(doublev.getValue());
+
+                BasicString symbolv = (BasicString)table1.getColumn("csymbol").get(ri);
+                Console.WriteLine(symbolv.getValue());
+
+                BasicString stringv = (BasicString)table1.getColumn("cstring").get(ri);
+                Console.WriteLine(stringv.getValue());
+            }
+        }
+
+        [TestMethod]
+        private void Test_Read_Table()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect();
+            conn.run("x = [1,3,5]");
+            //BasicTable table1 = (BasicTable)db.run("select field1,field2 from loadTable('dfs://dbpath','table1') where dtime >2018.12.03T11.16.00");
+            List<IEntity> args = new List<IEntity>(1);
+            BasicDoubleVector y = new BasicDoubleVector(3);
+            y.setDouble(0, 2.5);
+            y.setDouble(1, 3.5);
+            y.setDouble(2, 5);
+            args.Add(y);
+            IVector result = (IVector)conn.run("add{x}", args);
+            Console.WriteLine(result.getString());
+
+            BasicAnyVector v = (BasicAnyVector)conn.run("[1 2 3,3.4 3.5 3.6]");
+            Console.WriteLine(v.rows());
+            Console.WriteLine(v.columns());
+            Console.WriteLine(((BasicDouble)((BasicDoubleVector)v.get(1)).get(0)).getValue());
+        }
+
+        [TestMethod]
+        public void Test_Module()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT,"admin","123456");
+          
+            var args = new List<IEntity>
+            {
+                new BasicString("linl")
+            };
+            conn.run("use option::Utils;");
+            //conn.run("option::Utils::SaveWingModelConfig", args);
+        }
 
         [TestMethod]
         public void Test_udf()
         {
             DBConnection conn = new DBConnection();
-            conn.connect(SERVER, PORT,"admin","123456");
+            //conn.connect("115.239.209.223", 8951, "admin", "123456");
+            conn.connect("192.168.1.135", 8981, "admin", "123456");
+            conn.run("def Foo5(a,b){f=file('testsharp.csv','w');f.writeLine(string(a));}");
 
-            var args = new List<IEntity>
+            var args = new List<IEntity>();
+            args.Add(new BasicDouble(1.3));
+            args.Add(new BasicDouble(1.4));
+            conn.run("Foo5", args);
+
+            args.Clear();
+            args.Add(new BasicFloat(1.3f));
+            args.Add(new BasicFloat(1.4f));
+            conn.run("Foo5", args);
+
+            args.Clear();
+            args.Add(new BasicInt(3));
+            args.Add(new BasicInt(4));
+            conn.run("Foo5", args);
+        }
+
+        [TestMethod]
+        public void Test_null_Table_upload()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "admin", "123456");
+            var dt = new DataTable();
+            var bt = new BasicTable(dt);
+            var variable = new Dictionary<string, IEntity>();
+            variable.Add("table1", bt);
+            try
             {
-                new BasicString("linl")
-            };
+                conn.upload(variable);
+            }
+            catch (Exception ex)
+            {
+                Assert.AreEqual("DataTable must contain at least one column", ex.Message);
+            }
+            
+            
+        }
 
-            BasicString re = (BasicString)conn.run("Foo2", args);
+        [TestMethod]
+        public void Test_up_down()
+        {
+            DBConnection conn = new DBConnection();
+            //conn.connect("115.239.209.223", 8951, "admin", "123456");
+            conn.connect("192.168.1.135", 8981, "admin", "123456");
+            conn.run("def Foo5(a){ return a; }");
+
+            var args = new List<IEntity>();
+            args.Add(new BasicDouble(1.31111111111222344555));
+            BasicDouble rd = (BasicDouble)conn.run("Foo5", args);
+            Assert.AreEqual(1.31111111111222344555, rd.getValue());
+
+            args.Clear();
+            args.Add(new BasicFloat(1.32233445667889f));
+            BasicFloat rf = (BasicFloat)conn.run("Foo5", args);
+            Assert.AreEqual(1.32233445667889f, rf.getValue());
+
+            args.Clear();
+            args.Add(new BasicInt(323452234));
+            BasicInt ri = (BasicInt)conn.run("Foo5", args);
+            Assert.AreEqual(323452234, ri.getValue());
+
+            args.Clear();
+         
+            args.Add(new BasicLong(2444422222222222));
+            BasicLong rts = (BasicLong)conn.run("Foo5", args);
+            Assert.AreEqual(2444422222222222, rts.getValue());
+
+            args.Clear();
+
+            args.Add(new BasicDate(DateTime.Now));
+            BasicDate rtd = (BasicDate)conn.run("Foo5", args);
+            Assert.AreEqual(DateTime.Now.Date, rtd.getValue().Date);
+
+            args.Clear();
+            DateTime dt = DateTime.Now;
+            args.Add(new BasicDateTime(dt));
+            BasicDateTime rtdm = (BasicDateTime)conn.run("Foo5", args);
+            Assert.AreEqual(dt.ToString(), rtdm.getValue().ToString());
         }
     }
 }

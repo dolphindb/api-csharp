@@ -31,7 +31,7 @@ namespace dolphindb.data
 
         public override object getObject()
         {
-            return this.getValue();
+            return getValue();
         }
         public new DateTime getValue()
         {
@@ -76,14 +76,6 @@ namespace dolphindb.data
             else
             {
                 return base.getValue() == ((BasicInt)o).getValue();
-            }
-        }
-
-        public override void setObject(object value)
-        {
-            if (value != null && value.GetType() == Type.GetType("System.DateTime"))
-            {
-                base.setObject(Utils.countDays(Convert.ToDateTime(value)));
             }
         }
     }

@@ -31,7 +31,7 @@ namespace dolphindb.data
 
         public override object getObject()
         {
-            return this.getValue();
+            return getValue();
         }
 
         public new TimeSpan getValue()
@@ -48,7 +48,7 @@ namespace dolphindb.data
         }
         public override object getTemporal()
         {
-            return this.getValue();
+            return getValue();
         }
 
         public int getInternalValue()
@@ -64,7 +64,7 @@ namespace dolphindb.data
             }
             else
             {
-                return this.getValue().ToString(format);
+                return getValue().ToString(format);
             }
         }
 
@@ -77,15 +77,6 @@ namespace dolphindb.data
             else
             {
                 return base.getValue() == ((BasicInt)o).getValue();
-            }
-        }
-
-        public override void setObject(object value)
-        {
-            if (value != null && value.GetType() == Type.GetType("System.TimeSpan"))
-            {
-                var t = (TimeSpan)value;
-                base.setObject(Utils.countMilliseconds(t.Hours,t.Minutes,t.Seconds,t.Milliseconds));
             }
         }
     }

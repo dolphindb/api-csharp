@@ -31,7 +31,7 @@ namespace dolphindb.data
 
         public override object getObject()
         {
-            return this.getValue();
+            return getValue();
         }
 
         public new DateTime getValue()
@@ -48,7 +48,7 @@ namespace dolphindb.data
 
         public override object getTemporal()
         {
-            return this.getValue();
+            return getValue();
         }
 
         public long getInternalValue()
@@ -64,7 +64,7 @@ namespace dolphindb.data
             }
             else
             {
-                DateTime dt = this.getValue();
+                DateTime dt = getValue();
 
                 return dt.ToString(format);
             }
@@ -79,14 +79,6 @@ namespace dolphindb.data
             else
             {
                 return base.getValue() == ((BasicLong)o).getValue();
-            }
-        }
-
-        public override void setObject(object value)
-        {
-            if (value!=null && value.GetType() == Type.GetType("System.DateTime"))
-            {
-                base.setObject(Utils.countMilliseconds(Convert.ToDateTime(value)));
             }
         }
     }

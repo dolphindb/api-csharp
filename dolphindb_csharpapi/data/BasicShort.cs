@@ -101,7 +101,7 @@ namespace dolphindb.data
 
         public override object getObject()
         {
-            return this.getValue();
+            return getValue();
         }
 
         public override void setObject(object value)

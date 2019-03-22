@@ -117,7 +117,7 @@ namespace dolphindb.data
             }
             else
             {
-                this.setNull(index);
+                setNull(index);
             }
         }
     }
