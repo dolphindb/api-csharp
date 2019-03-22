@@ -1,36 +1,43 @@
-### 1. C# API 概念
-C# API本质上实现了.Net程序和DolphinDB服务器之间的消息传递和数据转换协议。
-C# API运行在.Net Framework 4.0 及以上环境
+### 1. C# API Concepts
 
-### 2. C#对象和DolphinDB对象之间的映射
-C# API遵循面向接口编程的原则。C# API使用接口类IEntity来表示DolphinDB返回的所有数据类型。在IEntity接口类的基础上，根据DolphinDB的数据类型，C# API提供了7种拓展接口，分别是scalar，vector，matrix，set，dictionary，table和chart。这些接口类都包含在com.xxdb.data包中。
 
-拓展的接口类|命名规则|例子
+The C# API essentially implements the messaging and data conversion between the .Net program and the DolphinDB server. C# API runs in .Net Framework 4.0 and above.
+
+
+### 2. Mapping between C# objects and DolphinDB objects
+
+The C# API follows the principles of interface-oriented programming. The C# API uses the interface class `IEntity` to represent all the data types returned by DolphinDB. Based on the IEntity interface class, according to the data type of DolphinDB, the C# API provides seven extension interfaces, namely scalar, vector, matrix, set, dictionary, table and chart. These interface classes are included in the com.xxdb.data package.
+
+
+Extended Interface Classes | Naming Rules | Examples
 ---|---|---
 scalar|`Basic<DataType>`|BasicInt, BasicDouble, BasicDate, etc.
 vector，matrix|`Basic<DataType><DataForm>`|BasicIntVector, BasicDoubleMatrix, BasicAnyVector, etc.
 set， dictionary和table|`Basic<DataForm>`|BasicSet, BasicDictionary, BasicTable.
-chart|BasicChart|
+chart| |BasicChart|
 
-“Basic”表示基本的数据类型接口，`<DataType>`表示DolphinDB数据类型名称，`<DataForm>`是一个DolphinDB数据形式名称。
 
-### 3. C# API提供的主要函数
-DolphinDB C# API 提供的最核心的对象是DBConnection，它主要的功能就是让C#应用可以通过它调用DolphinDB的脚本和函数，在C#应用和DolphinDB服务器之间互通数据。
-DBConnection类提供如下主要方法：
+"Basic" indicates the basic data type interface, `<DataType>` indicates the DolphinDB data type name, and `<DataForm>` is a DolphinDB data form name.
 
-| 方法名        | 详情          |
+### 3. C# API Key Functions
+
+The core object provided by the DolphinDB C# API is DBConnection. Its main function is to allow C# applications to call DolphinDB scripts and functions to exchange data between C# applications and DolphinDB servers.
+DBConnection provides the following methods：
+
+| Method Name | Details |
 |:------------- |:-------------|
-|connect(host, port, [username, password])|将会话连接到DolphinDB服务器|
-|login(username,password,enableEncryption)|登陆服务器|
-|run(script)|将脚本在DolphinDB服务器运行|
-|run(functionName,args)|调用DolphinDB服务器上的函数|
-|upload(variableObjectMap)|将本地数据对象上传到DolphinDB服务器|
-|isBusy()|判断当前会话是否正忙|
-|close()|关闭当前会话|
+|connect(host, port, [username, password])|Connect the session to the DolphinDB server|
+|login(username,password,enableEncryption)|Log in to the server|
+|run(script)|Run the script on the DolphinDB server|
+|run(functionName,args)|Call the function on the DolphinDB server|
+|upload(variableObjectMap)|Upload local data objects to the DolphinDB server|
+|isBusy()|Determine if the current session is busy|
+|close()|Close current session|
 
-### 4. 建立DolphinDB连接
+### 4. Establish a DolphinDB connection
 
-C# API通过TCP/IP协议连接到DolphinDB服务器。 在下列例子中，我们连接正在运行的端口号为8848的本地DolphinDB服务器：
+
+The C# API connects to the DolphinDB server via the TCP/IP protocol. In the following example, we connect the running local DolphinDB server with port number 8848:
 
 ```
 using dolphindb;
@@ -43,41 +50,51 @@ public void Test_Connect(){
 }
 
 ```
-使用用户名和密码建立连接：
+
+Establish a connection with a username and password
 
 ```
 boolean success = conn.connect("localhost", 8848, "admin", "123456");
 ```
 
-### 5.运行脚本
+### 5.Run a DolphinDB script
 
-在C#中运行DolphinDB脚本的语法如下：
+The syntax for running the DolphinDB script in C# is as follows:
+
 ```
 conn.run("<SCRIPT>");
 ```
-其中，脚本的最大长度为65,535字节。
 
-如果脚本只包含一条语句，如表达式，DolphinDB会返回一个数据对象；否则返回NULL对象。如果脚本包含多条语句，将返回最后一个对象。如果脚本含有错误或者出现网络问题，它会抛出IOException。
+Note that the maximum allowed length of the script is 65,535 bytes.
 
-### 6.操作DolphinDB数据结构的数据
 
-下面介绍建立DolphinDB连接后，在C#环境中，对不同DolphinDB数据类型进行操作，运行结果显示在Console窗口。
+If the script contains only one statement, such as an expression, DolphinDB returns a data object; otherwise it returns a NULL object. If the script contains more than one statement, the last object will be returned. If the script contains an error or a network problem, it throws an IOException.
 
-首先导入DolphinDB数据类型包：
+### 6.Manipulating data from the DolphinDB server
+
+
+The following describes the establishment of the DolphinDB connection, in the C# environment, the operation of different DolphinDB data types, the results are displayed in the Console window.
+
+
+
+First import the DolphinDB data type package:
 
 ```
 using dolphindb.data;
 ```
 
-注意，下面的代码需要在建立连接后才能运行。
 
-- 向量
+Note that the code below can be run only if the connection is established.
 
-在下面的示例中，DolphinDB语句
+- Vector
+
+
+In the following example, the DolphinDB statement returns the C# object BasicStringVector. The vector.rows() method gets the size of the vector. We can access vector elements by index using the vector.getString(i) method.
+
+
 ```
 rand(`IBM`MSFT`GOOG`BIDU,10)
 ```
-返回C#对象BasicStringVector。vector.rows()方法能够获取向量的大小。我们可以使用vector.getString(i)方法按照索引访问向量元素。
 
 ```
 public void testStringVector(){
@@ -88,7 +105,9 @@ public void testStringVector(){
 }
 ```
 
-类似的，也可以处理双精度浮点类型的向量或者元组。
+
+Similarly, you can also handle vectors or tuples of double or float data types.
+
 ```
 public void testDoubleVector(){
       IVector v = (BasicDoubleVector)conn.run("1.123 2.2234 3.4567");
@@ -107,7 +126,9 @@ public void testAnyVector(){
       Console.WriteLine(((BasicDouble)((BasicDoubleVector)v.getEntity(1)).get(0)).getValue());
 }
 ```
-- 集合
+
+
+- Set
 ```
 public void testSet(){
       BasicSet s = (BasicSet)conn.run("set(1 3 5)");
@@ -117,9 +138,11 @@ public void testSet(){
 
 ```
 
-- 矩阵
+- Matrix
 
-要从整数矩阵中检索一个元素，我们可以使用getInt(row,)。 要获取行数和列数，我们可以使用函数rows()和columns()。
+
+To retrieve an element from an integer matrix, we can use get(row,col). To get the number of rows and columns, we can use the functions rows() and columns().
+
 
 ```
 public void testIntMatrix(){
@@ -132,9 +155,10 @@ public void testIntMatrix(){
 
 ```
 
-- 字典
+- Dictionary
 
-用函数keys()和values()可以从字典取得所有的键和值。要从一个键里取得它的值，可以调用get(key)。
+
+All keys and values ​​can be retrieved from the dictionary using the functions keys() and values(). To get its value from a key, you can call get(key).
 
 ```
 public void testDictionary(){
@@ -149,9 +173,9 @@ public void testDictionary(){
 ```
 
 
-- 表
+- Table
 
-要获取表的列，我们可以调用table.getColumn(index)；同样，我们可以调用table.getColumnName(index)获取列名。 对于列和行的数量，我们可以分别调用table.columns()和table.rows()。
+To get the column of the table, we can call table.getColumn(index); again, we can call table.getColumnName(index) to get the column name. For the number of columns and rows, we can call table.columns() and table.rows() respectively.
 
 ```
 public void testTable(){
@@ -161,9 +185,10 @@ public void testTable(){
 }
 
 ```
-- NULL对象
+- NULL object
 
-要描述一个NULL对象，我们可以调用函数obj.getDataType()。
+To know the data type of a NULL object, we can call the function obj.getDataType().
+
 ```
 public void testVoid(){
       IEntity obj = conn.run("NULL");
@@ -172,9 +197,10 @@ public void testVoid(){
 
 ```
 
-### 7.调用DolphinDB函数
+### 7.Call DolphinDB function
 
-调用的函数可以是内置函数或用户自定义函数。 下面的示例将一个double向量传递给服务器，并调用sum函数。
+
+The function called can be a built-in function or a user-defined function. The following example passes a double vector to the server and calls the sum function.
 
 ```
 public void testFunction(){
@@ -190,9 +216,9 @@ public void testFunction(){
 
 ```
 
-### 8.将对象上传到DolphinDB服务器
+### 8.Upload the object to the DolphinDB server
 
-我们可以将二进制数据对象上传到DolphinDB服务器，并将其分配给一个变量以备将来使用。 变量名称可以使用三种类型的字符：字母，数字或下划线。 第一个字符必须是字母。
+We can upload the binary data object to the DolphinDB server and assign it to a variable for future use. Variable names can use three types of characters: letters, numbers, or underscores. The first character must be a letter.
 
 ```
 public void testUpload(){
@@ -207,34 +233,45 @@ public void testUpload(){
 
 ```
 
-### 9. 如何将C#数据表对象保存到DolphinDB的数据库中
+### 9. How to save C# data table objects to DolphinDB database
 
-使用C# API的一个重要场景是，用户从其他数据库系统或是第三方WebAPI中取到数据，将数据进行清洗后存入DolphinDB数据库中，本节将介绍通过C# API将取到的数据上传并保存到DolphinDB的数据表中。
+An important scenario for using the C# API is that users fetch data from other database systems or third-party WebAPIs, clean the data and store it in the DolphinDB database.
+This section describes how to upload and save the data to a DolphinDB data table through the C# API.
 
-DolphinDB数据表按存储方式分为三种:
 
-- 内存表: 数据仅保存在本节点内存，存取速度最快，但是节点关闭数据就不存在了。
-- 本地磁盘表：数据保存在本地磁盘上，即使节点关闭，通过脚本就可以方便的从磁盘加载到内存。
-- 分布式表：数据在物理上分布在不同的节点，通过DolphinDB的分布式计算引擎，逻辑上仍然可以像本地表一样做统一查询。
+The DolphinDB data table is divided into three types according to storage methods:
 
-因为本地磁盘表和分布式表的数据追加方式基本相同，所以下面分两部分介绍内存表数据追加以及本地磁盘和分布式表的数据追加。
-#### 9.1. 将数据保存到DolphinDB内存表
+- In-memory table: The data is only stored in the memory of this node, and the access speed is the fastest, but the data will lose if the node is shut down.
+- Local disk table: The data is saved on the local disk. Even if the node is closed, it can be easily loaded from the disk into the memory.
+- Distributed table: Data is physically distributed across different nodes. Through DolphinDB's distributed computing engine, query a distributed table is simply like querying a local disk table.
 
-DolphinDB提供三种方式将数据新增到内存表：
-- 通过 insert into 方式保存单点数据；
-- 通过 tableInsert 函数保存多个数组对象；
-- 通过 append! 函数保存表对象。
 
-这三种方式的区别是接收的参数类型不同，具体业务场景中，可能从数据源取到的是单点数据，也可能是多个数组或者表的方式组成的数据集。
+#### 9.1. Save data to DolphinDB in-memory table
 
-下面分别介绍三种方式保存数据的实例，在例子中使用到的数据表有4个列，分别是`string,int,timestamp,double`类型，列名分别为`cstring,cint,ctimestamp,cdouble`，构建脚本如下：
+
+DolphinDB offers several ways to save data:
+
+- save a single piece of data by insert into ;
+- Save multiple pieces of data in bulk via the tableInsert function;
+- Save the table object with the append! function.
+
+
+The difference between these methods is that the types of parameters received are different. In a specific business scenario, a single data point may be obtained from the data source, or may be a data set composed of multiple arrays or tables.
+
+The following describes three examples of saving data. The data table used in the example has four columns, namely string, int, timestamp, double, and the column names are cstring,cint,ctimestamp,cdouble. The script is as follows:
+
 ```
 t = table(10000:0,`cstring`cint`ctimestamp`cdouble,[STRING,INT,TIMESTAMP,DOUBLE])
 share t as sharedTable
 ```
-由于内存表是会话隔离的，所以GUI中创建的内存表只有当前GUI会话可见，如果需要其他终端访问，需要通过share关键字在会话间共享内存表。
-##### 9.1.1. 保存单点数据
-若C#程序是每次获取单条数据记录保存到DolphinDB，那么可以通过类似SQL语句的insert into 的方式保存数据。
+
+Since an in-memory table is session-isolated, the current GUI session user can only see in-memory tables created in the current GUI session. If other terminals need to access the in-memory tables, they need to be shared among the sessions through the share keyword.
+
+##### 9.1.1. Save a single data point using SQL
+
+
+If the C# program is to save a single data record to DolphinDB each time, you can save the data through the SQL statement (insert into).
+
 ```
 public void test_save_Insert(String str, int i, long ts, double dbl)
 {
@@ -242,28 +279,35 @@ public void test_save_Insert(String str, int i, long ts, double dbl)
 }
 ```
 
-##### 9.1.2. 使用多个数组方式保存
+##### 9.1.2. Use the tableInsert function to save data in batches
 
-若C#程序获取的数据可以组织成List方式，使用tableInsert函数比较适合，这个函数可以接受多个数组作为参数，将数组追加到数据表中。
+
+If the data obtained by the C# program can be organized into a List mode, it is more suitable to use the tableInsert function. This function can accept multiple arrays as parameters and append the array to the data table
 
 ```
 public void test_save_TableInsert(string[] strArray, int[] intArray, long[] tsArray, double[] dblArray)
 {
-      //用数组构造参数
+      // Constructing parameters with arrays
       List<IEntity> args = new List<IEntity>() { new BasicStringVector(strArray), new BasicIntVector(intArray), new BasicTimestampVector(tsArray), new BasicDoubleVector(dblArray) };
       conn.run("tableInsert{sharedTable}", args);
 }
 ```
-实际运用的场景中，通常是C#程序往服务端已经存在的表中写入数据，在服务端可以用 `tableInsert(sharedTable,vec1,vec2,vec3...)` 这样的脚本，但是在C#里用 `conn.run(functionName,args)` 方式调用时，args里是无法传入服务端表的对象引用的。所以常规的做法是在预先在服务端定义一个函数，把sharedTable固化到函数体内，比如
+
+In the actual application scenario, usually the C# program writes data to a table already existing on the server side. On the server side, a script such as `tableInsert(sharedTable, vec1, vec2, vec3...)` can be used. But in C#, when called with `conn.run("tableInsert", args)`, the first parameter of tableInsert is the object reference of the server table. It cannot be obtained in the C# program, so the conventional practice is to define a function in server to embed the sharedTable, such as
+
 ```
 def saveData(v1,v2,v3,v4){tableInsert(sharedTable,v1,v2,v3,v4)}
 ```
-然后再通过`conn.run("saveData",args)`运行函数，虽然这样也能实现目标，但是对Java程序来说要多一次服务端的调用，多消耗了网络资源。
-在本例中，使用了DolphinDB 中的`部分应用`这一特性，将服务端表名以`tableInsert{sharedTable}`这样的方式固化到tableInsert中，作为一个独立函数来使用。这样就不需要再使用自定义函数的方式实现。
-具体的文档请参考[部分应用文档](https://www.dolphindb.com/cn/help/PartialApplication.html)。
 
-##### 9.1.3. 使用表方式保存
-若C#程序是从DolphinDB的服务端获取表数据做处理后保存到分布式表，那么使用append!函数会更加方便，append!函数接受一个表对象作为参数，将数据追加到数据表中。
+
+
+Then, run the function through `conn.run("saveData", args)`. Although this achieves the goal, for the C# program, one more server cal consumes more network resources.
+In this example, using the partial application feature in DolphinDB, the server table name is embeded into tableInsert in the manner of `tableInsert{sharedTable}` and used as a stand-alone function. This way you don't need to use a custom function.
+For specific documentation, please refer to [Partial Application Documentation](http://www.dolphindb.com/help/PartialApplication.html).
+
+##### 9.1.3.  Use append! Function to save data in batches
+
+The append! function accepts a table object as a parameter and appends the data to the data table.
 
 ```
 public void test_save_table(BasicTable table1)
@@ -272,12 +316,14 @@ public void test_save_table(BasicTable table1)
       conn.run("append!{shareTable}", args);
 }
 ```
-#### 9.2. 将数据保存到本地磁盘表和分布式表
-分布式表是DolphinDB推荐在生产环境下使用的数据存储方式，它支持快照级别的事务隔离，保证数据一致性; 分布式表支持多副本机制，既提供了数据容错能力，又能作为数据访问的负载均衡。
 
-本例中涉及到的数据表可以通过如下脚本构建 ：
+#### 9.2. Save data to a distributed table
 
-*请注意只有启用 `enableDFS=1` 的集群环境才能使用分布式表。*
+Distributed table is the data storage method recommended by DolphinDB in production environment. It supports snapshot level transaction isolation and ensures data consistency. Distributed table supports multiple copy mechanism, which provides data fault tolerance and data access. Load balancing.
+
+The data tables involved in this example can be built with the following script:
+
+*Please note that distributed tables can only be used in cluster environments with `enableDFS=1` enabled.*
 
 ```
 dbPath = 'dfs://testDatabase'
@@ -287,7 +333,8 @@ if(existsDatabase(dbPath)){dropDatabase(dbPath)}
 db = database(dbPath,RANGE,2018.01.01..2018.12.31)
 db.createPartitionedTable(t,tbName,'ctimestamp')
 ```
-DolphinDB提供loadTable方法可以加载分布式表，通过append!方式追加数据，具体的脚本示例如下：
+
+DolphinDB provides the loadTable method to load distributed tables and append data via append!. The specific script examples are as follows:
 
 ```
 public void test_save_table(String dbPath, BasicTable table1)
@@ -297,7 +344,8 @@ public void test_save_table(String dbPath, BasicTable table1)
 }
 ```
 
-当用户在C#程序中取到的值是数组或列表时，也可以很方便的构造出BasicTable用于追加数据，比如现在有 `boolArray, intArray, dblArray, dateArray, strArray` 5个列表对象(List<T>),可以通过以下语句构造BasicTable对象：
+
+When the value retrieved by the user in the C# program is an array or a list, it is also convenient to construct a BasicTable for appending data. For example, there are now boolArray, intArray, dblArray, dateArray, strArray 5 list objects (List< T>), you can construct a BasicTable object with the following statement:
 
 ```
 List<String> colNames = new List<string>() { "cbool", "cint", "cdouble", "cdate", "cstring" };
@@ -305,11 +353,12 @@ List<IVector> cols = new List<IVector>() { new BasicBooleanVector(boolArray), ne
 BasicTable table1 = new BasicTable(colNames, cols);
 ```
 
-#### 9.3. 将数据保存到本地磁盘表
-通常本地磁盘表用于学习环境或者单机静态数据集测试，它不支持事务，不保证运行中的数据一致性，所以不建议在生产环境中使用。
+#### 9.3. Save data to local disk table
+
+Local disk tables are commonly used for computational analysis of static data sets, either for data input or as a calculated output. It does not support transactions, and does not support concurrent reading and writing.
 
 ```
-//使用本地磁盘表
+// Create a local-disk table using the DolphinDB script
 dbPath = "C:/data/testDatabase"
 tbName = 'tb1'
 
@@ -317,7 +366,9 @@ if(existsDatabase(dbPath)){dropDatabase(dbPath)}
 db = database(dbPath,RANGE,2018.01.01..2018.12.31)
 db.createPartitionedTable(t,tbName,'ctimestamp')
 ```
-DolphinDB提供loadTable方法同样可以加载本地磁盘表，通过append!追加数据。
+
+DolphinDB provides the loadTable method to load local disk tables as well, and function append! to append data.
+
 ```
 public void test_save_table(String dbPath, BasicTable table1)
 {
@@ -325,10 +376,13 @@ public void test_save_table(String dbPath, BasicTable table1)
       conn.run(String.Format("append!{loadTable('%s','tb1')}",dbPath), args);
 }
 ```
-### 10. 循环遍历BasicTable
-由于BasicTable是列式存储，所以需要通过先取出列，再循环取出行的方式。
 
-例子中参数BasicTable的有4个列，分别是`STRING,INT,TIMESTAMP,DOUBLE`类型，列名分别为`cstring,cint,ctimestamp,cdouble`。
+### 10. Loop BasicTable
+
+
+In the C# API, the table data is saved as a BasicTable object. Since the BasicTable is a columnar store, all the desultory needs to be read and used by retrieving the columns and retrieving the rows.
+
+In the example, the parameter BasicTable has 4 columns, which are STRING, INT, TIMESTAMP, DOUBLE, and the column names are cstring, cint, ctimestamp, cdouble.
 
 ```
 public void test_loop_basicTable(BasicTable table1)
@@ -347,14 +401,18 @@ public void test_loop_basicTable(BasicTable table1)
 }
 ```
 
-### 11. DolphinDB和C#之间的数据类型转换
-C# API提供了与DolphinDB内部数据类型对应的对象，通常是以Basic+<DataType>这种方式命名，比如BasicInt，BasicDate等等。
-一些C#的基础类型，可以通过构造函数直接创建对应的DOlphinDB数据结构，比如`new BasicInt(4)`，`new BasicDouble(1.23)`，但是也有一些类型需要做一些转换，下面列出需要做简单转换的类型：
-- `CHAR`类型：DolphinDB中的`CHAR`类型以Byte形式保存，所以在C# API中用`BasicByte`类型来构造`CHAR`，例如`new BasicByte((byte)'c')`
-- `SYMBOL`类型：DolphinDB中的`SYMBOL`类型是对字符串的优化，可以提高DolphinDB对字符串数据存储和查询的效率，但是C#中并不需要这种类型，所以C# API不提供`BasicSymbol`这种对象，直接用`BasicString`来处理即可。
-- 时间类型：DolphinDB的时间类型是以整形或者长整形来描述的，DolphinDB提供`date, month, time, minute, second, datetime, timestamp, nanotime, nanotimestamp`九种类型的时间类型，最高精度可以到纳秒级。具体的描述可以参考[DolphinDB时序类型和转换](https://www.dolphindb.com/cn/help/TemporalTypeandConversion.html)。由于C#也提供了`DateTime,TimeSpan`等数据类型，所以C# API在Utils类里提供了所有C#时间类型和int或long之间的转换函数。
+### 11. Data type conversion between DolphinDB and C#
 
-以下脚本展示C# API中DolphinDB时间类型与C#原生时间类型之间的对应关系：
+The C# API provides objects that correspond to the internal data types of DolphinDB, usually named after `Basic+ <DataType>`, such as BasicInt, BasicDate, and so on.
+Some basic C# types, you can directly create the corresponding DolphinDB data structure through the constructor, such as `new BasicInt(4)`, `new BasicDouble(1.23)`, but there are some types that need to be converted. The following list needs to be simple. Type of conversion:
+- `CHAR` type: The `CHAR` type in DolphinDB is stored as a Byte, so use the `BasicByte` type to construct `CHAR` in the C# API, for example `new BasicByte((byte)'c')`
+- `SYMBOL` type: The `SYMBOL` type in DolphinDB is an optimization of strings, which can improve the efficiency of DolphinDB for string data storage and query, but this type is not needed in C#, so C# API does not provide `BasicSymbol `This kind of object can be processed directly with `BasicString`.
+- Temporal type: The Temporal data type is internal stored as int or long type. DolphinDB provides 9 temporal data types: `date, month, time, minute, second, datetime, timestamp, nanotime, nanotimestamp`, the highest precision can be Nanoseconds. For a detailed description, refer to [DolphinDB Temporal Type and Conversion](http://www.dolphindb.com/help/TemporalTypeAndConversion.html). Since C# also provides data types such as `LocalDate, LocalTime, LocalDateTime, YearMonth`, the C# API provides all C# temporal types and conversion functions between int or long in the Utils class.
+
+
+
+The following script shows the correspondence between the DolphinDB temporal type in the C# API and the C# native time type:
+
 ```
 //Date:2018.11.12
 BasicDate bd = new BasicDate(new DateTime(2018, 11, 12));
@@ -371,22 +429,79 @@ BasicDateTime bdt = new BasicDateTime(new DateTime(2018, 11, 12, 8, 1, 1));
 //Timestamp: 2018.11.12T08:01:01.123
 BasicTimestamp bts = new BasicTimestamp(new DateTime(2018, 11, 12, 8, 1, 1, 123));
 ```
-如果在第三方系统中时间以时间戳的方式存储，DolphinDB时间对象也可以用时间戳来实例化。
-C# API中的Utils类提供了各种时间类型与标准时间戳的转换算法，比如将毫秒级的时间戳转换为DolphinDB的`BasicTimestamp`对象:
+If the time is stored in a timestamp in a third-party system, the DolphinDB time object can also be instantiated with a timestamp. The Utils class in the C# API provides conversion algorithms for various time types and standard timestamps, such as converting millisecond timestamps to DolphinDB's BasicTimestamp objects:
+
 ```
 DateTime dt = Utils.parseTimestamp(154349485400L);
 BasicTimestamp ts = new BasicTimestamp(dt);
 ```
-也可以将DolphinDB对象转换为整形或长整形的时间戳，比如：
+
+You can also convert a DolphinDB object to a timestamp of an integer or long integer, such as:
+
 ```
 DateTime dt = ts.getTimestamp();
 long timestamp = Utils.countMilliseconds(dt);
 ```
-如果时间戳以其他精度保存，Utils类还中提供如下方法，可以适应各种不同的精度：
-- Utils.countMonths：计算给定时间到1970.01之间的月份差，返回int
-- Utils.countDays：计算给定时间到1970.01。01之间的天数差，返回int
-- Utils.countMinutes：计算给定时间到1970.01.01T00:00之间的分钟差，返回int
-- Utils.countSeconds：计算给定时间到1970.01.01T00:00:00之间的秒数差，返回int
-- Utils.countMilliseconds：计算给定时间到1970.01.01T00:00:00之间的毫秒数差，返回long
 
-需要注意，由于C#的DateTime和TimeSpan在精度上达不到纳秒级别，所以如果要操作纳秒精度的时间数据时，可以通过 `NanoTimestamp.getInternalValue()`来获取内部保存的long值，不要通过DateTime和TimeSpan转换，否则会造成精度损失。
+If the timestamp is saved with other precision, the Utils class also provides the following methods to accommodate a variety of different precisions:
+
+- Utils.countMonths: Calculate the monthly difference between a given time and 1970.01, returning an int
+- Utils.countDays: Calculate the difference in the number of days between the given time and 1970.01.01, return int
+- Utils.countMinutes: Calculate the minute difference between the given time and 1970.01.01T00:00, return int
+- Utils.countSeconds: Calculate the difference in seconds between a given time and 1970.01.01T00:00:00, returning int
+- Utils.countMilliseconds: Calculate the difference in milliseconds between a given time and 1970.01.01T00:00:00, return long
+- Utils.countNanoseconds: Calculate the difference in nanoseconds between a given time and 1970.01.01T00:00:00.000, return long
+
+
+Need to pay attention, due to the C# Date. Time and TimeSpan are less than nanosecond in precision, so if you want to manipulate nanosecond precision time data, you can get the internally saved long value by `NanoTimestamp.getInternalValue()`, not through DateTime and TimeSpan, otherwise will cause loss of precision.
+
+### 12. C# streaming API
+
+
+Through C# streaming API, users can subscribe streaming data from the DolphinDB server. When streaming data enters the client, there are two ways to process data in the C# API:
+
+
+* The application on the client periodically checks to see if new data has been added. If new data is added, the application gets the data and uses them at work.
+
+```
+PollingClient client = new PollingClient(subscribePort);
+TopicPoller poller1 = client.subscribe(serverIP, serverPort, tableName, offset);
+
+while (true) {
+   ArrayList<IMessage> msgs = poller1.poll(1000);
+
+   if (msgs.size() > 0) {
+       BasicInt value = msgs.get(0).getValue<BasicInt>(2);  //  Take the second field in the first row of the table
+   }
+}
+```
+* The C# API uses new data directly using a pre-configured MessageHandler.
+
+
+First, the caller needs to define the handler first, and the dolphindb.streaming.MessageHandler interface needs to be implemented.
+
+```
+public class MyHandler implements MessageHandler {
+       public void doEvent(IMessage msg) {
+               BasicInt qty = msg.getValue<BasicInt>(2);
+               //..Processing data
+       }
+}
+```
+
+When the subscription is started, the handler instance is passed as a parameter to the subscription function.
+
+```
+ThreadedClient client = new ThreadedClient(subscribePort);
+
+client.subscribe(serverIP, serverPort, tableName, new MyHandler(), offsetInt);
+```
+
+
+**Handler mode client (multithreading) (ThreadPollingClient)**
+
+```
+ThreadPooledClient client = new ThreadPooledClient(subscribePort);
+
+client.subscribe(serverIP, serverPort, tableName, new MyHandler(), offsetInt);
+```
