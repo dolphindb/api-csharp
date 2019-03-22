@@ -431,3 +431,47 @@ long timestamp = Utils.countMilliseconds(dt);
 - Utils.countMilliseconds：计算给定时间到1970.01.01T00:00:00之间的毫秒数差，返回long
 
 需要注意，由于C#的DateTime和TimeSpan在精度上达不到纳秒级别，所以如果要操作纳秒精度的时间数据时，可以通过 `NanoTimestamp.getInternalValue()`来获取内部保存的long值，不要通过DateTime和TimeSpan转换，否则会造成精度损失。
+
+
+### 9. C# 流数据 API
+
+C# 程序可以通过API订阅数据流，当流数据进入客户端后，C# API处理数据的方式有两种：
+
+* 客户机上的应用程序定期检查是否添加了新数据。如果添加了新数据，应用程序会获取数据并且在工作中使用它们。
+```
+PollingClient client = new PollingClient(subscribePort);
+TopicPoller poller1 = client.subscribe(serverIP, serverPort, tableName, offset);
+
+while (true) {
+   ArrayList<IMessage> msgs = poller1.poll(1000);
+
+   if (msgs.size() > 0) {
+       BasicInt value = msgs.get(0).getValue<BasicInt>(2);  //取表中第一行第二个字段
+   }
+}
+```
+* C# API使用预先设定的MessageHandler直接使用新数据。
+
+首先需要调用者先定义 handler , 需要实现 dolphindb.streaming.MessageHandler接口。
+```
+public class MyHandler implements MessageHandler {
+       public void doEvent(IMessage msg) {
+               BasicInt qty = msg.getValue<BasicInt>(2);
+               //..处理数据
+       }
+}
+```
+在启动订阅时，把handler实例作为参数传入订阅函数。
+
+```
+ThreadedClient client = new ThreadedClient(subscribePort);
+
+client.subscribe(serverIP, serverPort, tableName, new MyHandler(), offsetInt);
+```
+
+**handler模式客户端(多线程)(ThreadPollingClient)**
+```
+ThreadPooledClient client = new ThreadPooledClient(subscribePort);
+
+client.subscribe(serverIP, serverPort, tableName, new MyHandler(), offsetInt);
+```
