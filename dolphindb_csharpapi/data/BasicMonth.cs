@@ -85,6 +85,15 @@ namespace dolphindb.data
                 return base.getValue() == ((BasicInt)o).getValue();
             }
         }
+
+        public override void setObject(object value)
+        {
+            if (value != null && value.GetType() == Type.GetType("System.DateTime"))
+            {
+                var v = (DateTime)value;
+                base.setObject(v.Year * 12 + v.Month - 1);
+            }
+        }
     }
 
 }

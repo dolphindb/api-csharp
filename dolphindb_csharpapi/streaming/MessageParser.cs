@@ -94,7 +94,12 @@ namespace dolphindb.streaming
                     {
                         throw;
                     }
-                    if (body.isVector())
+                    if (body.isTable())
+                    {
+                        if (body.rows() != 0)
+                            throw new Exception("When message is table, it should be empty.");
+                    }
+                    else if (body.isVector())
                     {
                         BasicAnyVector dTable = (BasicAnyVector)body;
 
@@ -128,7 +133,7 @@ namespace dolphindb.streaming
                     }
                     else
                     {
-                        throw new Exception("message body has an invalid format.vector is expected");
+                        throw new Exception("message body has an invalid format. Vector or table is expected");
                     }
                 }
             }

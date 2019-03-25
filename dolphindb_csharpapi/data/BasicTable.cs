@@ -146,6 +146,11 @@ namespace dolphindb.data
             return names_[index];
         }
 
+        public virtual IList<string> getColumnNames()
+        {
+            return names_;
+        }
+
         public virtual string getString()
         {
             int rows = Math.Min(Utils.DISPLAY_ROWS, this.rows());
@@ -547,6 +552,7 @@ namespace dolphindb.data
         {
             throw new NotImplementedException();
         }
+
     }
 
 }

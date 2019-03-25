@@ -8,7 +8,7 @@ namespace dolphindb.data
     {
         private static string format = "c";
 
-        public BasicNanoTime(DateTime value) : base(Utils.countNanoseconds(value))
+        public BasicNanoTime(TimeSpan value) : base(Utils.countNanoseconds(value))
         {
         }
 
@@ -78,6 +78,14 @@ namespace dolphindb.data
             else
             {
                 return base.getValue() == ((BasicLong)o).getValue();
+            }
+        }
+
+        public override void setObject(object value)
+        {
+            if (value != null && value.GetType() == Type.GetType("System.TimeSpan"))
+            {
+                base.setObject(Utils.countNanoseconds((TimeSpan)value));
             }
         }
     }

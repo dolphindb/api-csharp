@@ -375,6 +375,7 @@ namespace dolphindb
                     {
                         login();
                     }
+                    if (this.initialScript != "") run(initialScript);
                 }
                 int numObject = int.Parse(headers[1]);
 
@@ -519,6 +520,7 @@ namespace dolphindb
                         {
                             login();
                         }
+                        if (this.initialScript != "") run(initialScript);
                     }
                     int numObject = int.Parse(headers[1]);
 
@@ -684,6 +686,7 @@ namespace dolphindb
                         {
                             login();
                         }
+                        if (this.initialScript != "") run(initialScript);
                     }
                     string msg = @in.readLine();
                     if (!msg.Equals("OK"))
