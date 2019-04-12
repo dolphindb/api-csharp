@@ -2,13 +2,17 @@
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
+using dolphindb.data;
 
 namespace dolphindb.streaming
 {
     using QueueHandlerBinder = Tuple<BlockingCollection<List<IMessage>>, MessageHandler>;
+
     public class ThreadPooledClient : AbstractClient
     {
         private Dictionary<string, QueueHandlerBinder> queueHandlers = new Dictionary<string, QueueHandlerBinder>();
+        private Thread thread;
 
         private class HandlerRunner
         {
@@ -24,6 +28,16 @@ namespace dolphindb.streaming
             public void run(Object threadContext)
             {
                 handler.doEvent(message);
+            }
+        }
+
+        class TaskPool
+        {
+            private int threadsMaxCount;
+
+            public TaskPool(int threadsMaxCount)
+            {
+                this.threadsMaxCount = threadsMaxCount;
             }
         }
 
@@ -69,16 +83,68 @@ namespace dolphindb.streaming
                 }
             }
 
-            new Thread(new ThreadStart(run)).Start();
+            thread = new Thread(new ThreadStart(run));
+            thread.Start();
+        }
+
+        protected override void doReconnect(Site site)
+        {
+            if (thread.IsAlive)
+                thread.Interrupt();
+            while (true)
+            {
+                try
+                {
+                    Thread.Sleep(5000);
+                    subscribe(site.host, site.port, site.tableName, site.actionName, site.handler, site.msgId + 1, true, site.filter);
+                    Console.WriteLine("Successfully reconnected and subscribed " + site.host + ":" + site.port + ":" + site.tableName);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Unable to subscribe table. Will try again after 5 seconds.");
+                    Console.WriteLine(ex.ToString());
+                }
+            }
+        }
+
+        public void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter)
+        {
+            BlockingCollection<List<IMessage>> queue = subscribeInternal(host, port, tableName, actionName, handler, offset, reconnect, filter);
+            lock (queueHandlers)
+            {
+                queueHandlers.Add(tableNameToTopic[host + ":" + port + ":" + tableName], new QueueHandlerBinder(queue, handler));
+            }
+        }
+
+        public void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, IVector filter)
+        {
+            subscribe(host, port, tableName, actionName, handler, offset, false, filter);
+        }
+
+        public void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect)
+        {
+            subscribe(host, port, tableName, actionName, handler, offset, reconnect, null);
+        }
+
+        public void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset)
+        {
+            subscribe(host, port, tableName, actionName, handler, offset, false, null);
+        }
+
+        public void subscribe(string host, int port, string tableName, MessageHandler handler, long offset, IVector filter)
+        {
+            subscribe(host, port, tableName, DEFAULT_ACTION_NAME, handler, offset, false, filter);
+        }
+
+        public void subscribe(string host, int port, string tableName, MessageHandler handler, long offset, bool reconnect)
+        {
+            subscribe(host, port, tableName, DEFAULT_ACTION_NAME, handler, offset, reconnect, null);
         }
 
         public void subscribe(string host, int port, string tableName, MessageHandler handler, long offset)
         {
-            BlockingCollection<List<IMessage>> queue = subscribeInternal(host, port, tableName, offset);
-            lock (queueHandlers)
-            {
-                queueHandlers.Add(tableName2Topic[host + ":" + port + ":" + tableName], new QueueHandlerBinder(queue, handler));
-            }
+            subscribe(host, port, tableName, DEFAULT_ACTION_NAME, handler, offset, false, null);
         }
 
         public void subscribe(string host, int port, string tableName, MessageHandler handler)

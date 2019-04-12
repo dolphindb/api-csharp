@@ -197,7 +197,7 @@ namespace dolphindb_csharp_api_test
                     started = true;
                     start = DateTime.Now.Ticks;
                 }
-
+                
                 Interlocked.Increment(ref count);
 
                 long countVal = Interlocked.Read(ref count);

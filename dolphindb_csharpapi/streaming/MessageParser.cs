@@ -19,6 +19,7 @@ namespace dolphindb.streaming
         Socket socket = null;
         MessageDispatcher dispatcher;
         BufferedStream bis = null;
+        string topic;
 
         public MessageParser(Socket socket, MessageDispatcher dispatcher)
         {
@@ -66,12 +67,10 @@ namespace dolphindb.streaming
 
                     @in.readLong();
                     long msgid = @in.readLong();
-
+                    
                     if (offset == -1)
                         offset = msgid;
-                    else
-                        Debug.Assert(offset == msgid);
-                    string topic = @in.readString();
+                    topic = @in.readString();
                     short flag = @in.readShort();
                     IEntityFactory factory = new BasicEntityFactory();
                     int form = flag >> 8;
@@ -101,6 +100,7 @@ namespace dolphindb.streaming
                     }
                     else if (body.isVector())
                     {
+                        dispatcher.setMsgId(topic, msgid);
                         BasicAnyVector dTable = (BasicAnyVector)body;
 
                         int colSize = dTable.rows();
@@ -137,10 +137,12 @@ namespace dolphindb.streaming
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine(ex.ToString());
-                Console.Write(ex.StackTrace);
+                if (dispatcher.isClosed(topic))
+                    return;
+                else
+                    dispatcher.tryReconnect(topic);
             }
             finally
             {

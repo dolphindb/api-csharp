@@ -34,5 +34,13 @@ namespace dolphindb.streaming
                 return q;
             }
         }
+
+        public void removeQueue(string topic)
+        {
+            lock (Lock)
+            {
+                queueMap.Remove(topic);
+            }
+        }
     }
 }

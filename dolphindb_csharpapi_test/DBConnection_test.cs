@@ -16,8 +16,8 @@ namespace dolphindb_csharpapi_test
     [TestClass]
     public class DBConnection_test
     {
-        private readonly string SERVER = "192.168.1.135";
-        private readonly int PORT = 8981;
+        private readonly string SERVER = "115.239.209.189";
+        private readonly int PORT = 18531;
 
         [TestMethod]
         public void Test_chinese_Table()
@@ -72,6 +72,7 @@ namespace dolphindb_csharpapi_test
             conn.run("share t as sharedTable");
             conn.run("sharedTable.append!(table(symbol(take(`GGG`MMS`FABB`APPL, 8000)) as 股票代码, take(today(), 8000) as 股票日期, norm(40, 5, 8000) as 买方报价, norm(45, 5, 8000) as 卖方报价, take(now(), 8000) as 时间戳,'备注' + string(1..8000) as 备注)) ");
         }
+
         [TestMethod]
         public void Test_Connect()
         {

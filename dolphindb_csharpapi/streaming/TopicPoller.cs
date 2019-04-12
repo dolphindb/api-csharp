@@ -9,7 +9,6 @@ namespace dolphindb.streaming
     public class TopicPoller
     {
         private BlockingCollection<List<IMessage>> queue;
-        //private List<IMessage> cache = null;
         private Queue<IMessage> cache = null;
 
         public TopicPoller(BlockingCollection<List<IMessage>> queue)
@@ -17,10 +16,14 @@ namespace dolphindb.streaming
             this.queue = queue;
         }
 
+        public void setQueue(BlockingCollection<List<IMessage>> queue)
+        {
+            this.queue = queue;
+        }
+
         private void fillCache(long timeout)
         {
             Debug.Assert(cache == null);
-            //queue.TryTake(out List<IMessage> list);
             List<IMessage> list = null;
             if (cache == null)
             {
@@ -31,8 +34,6 @@ namespace dolphindb.streaming
             }
             if (list != null)
             {
-                //cache = new List<IMessage>(list.Count);
-                //cache.AddRange(list);
                 cache = new Queue<IMessage>(list);
             }
         }

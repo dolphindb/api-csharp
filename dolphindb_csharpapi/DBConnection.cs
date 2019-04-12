@@ -133,7 +133,6 @@ namespace dolphindb
             {
                 close();
                 throw new IOException("Invalid ack msg : " + line);
-                //return false;
             }
             sessionID = line.Substring(0, endPos);
 
@@ -317,7 +316,7 @@ namespace dolphindb
                     @out.writeBytes(body);
                     @out.flush();
 
-                    @in = remoteLittleEndian ? (ExtendedDataInput)new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
+                    @in = remoteLittleEndian ? new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
 
                     header = @in.readLine();
                 }
@@ -338,7 +337,7 @@ namespace dolphindb
                         @out.writeBytes(body);
                         @out.flush();
 
-                        @in = remoteLittleEndian ? (ExtendedDataInput)new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
+                        @in = remoteLittleEndian ? new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
                         header = @in.readLine();
                         reconnect = true;
                     }
@@ -471,7 +470,7 @@ namespace dolphindb
                         }
                         @out.flush();
 
-                        @in = remoteLittleEndian ? (ExtendedDataInput)new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
+                        @in = remoteLittleEndian ? new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
                         headers = @in.readLine().Split(' ');
                     }
                     catch (IOException ex)
@@ -496,7 +495,7 @@ namespace dolphindb
                             }
                             @out.flush();
 
-                            @in = remoteLittleEndian ? (ExtendedDataInput)new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
+                            @in = remoteLittleEndian ? new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
                             headers = @in.readLine().Split(' ');
                             reconnect = true;
                         }
@@ -670,7 +669,7 @@ namespace dolphindb
                         }
                     }
 
-                    ExtendedDataInput @in = remoteLittleEndian ? (ExtendedDataInput)new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
+                    ExtendedDataInput @in = remoteLittleEndian ? new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
 
                     string[] headers = @in.readLine().Split(' ');
                     if (headers.Length != 3)
