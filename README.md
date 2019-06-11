@@ -50,7 +50,6 @@ public void Test_Connect(){
       DBConnection conn=new DBConnection();
       Assert.AreEqual(true,conn.connect("localhost",8848));
 }
-
 ```
 
 Establish a connection with a username and password
@@ -137,7 +136,6 @@ public void testSet(){
       Console.WriteLine(s.rows());
       Console.WriteLine(s.columns());
 }
-
 ```
 
 - Matrix
@@ -154,7 +152,6 @@ public void testIntMatrix(){
       Console.WriteLine(m.columns());
       Console.WriteLine(((BasicInt)m.get(0, 1)).getValue());
 }
-
 ```
 
 - Dictionary
@@ -171,7 +168,6 @@ public void testDictionary(){
             Console.WriteLine(val);
       }
 }
-
 ```
 
 
@@ -185,7 +181,6 @@ public void testTable(){
 	DataTable dt = tb.toDataTable();
 	Console.WriteLine(dt.Rows.Count);
 }
-
 ```
 - NULL object
 
@@ -196,7 +191,6 @@ public void testVoid(){
       IEntity obj = conn.run("NULL");
       Assert.AreEqual(obj.getObject(), null);
 }
-
 ```
 
 ### 7.Call DolphinDB function
@@ -215,7 +209,6 @@ public void testFunction(){
       BasicDouble result = (BasicDouble)conn.run("sum", args);
       Console.WriteLine(result.getValue());
 }
-
 ```
 
 ### 8.Upload the object to the DolphinDB server
@@ -232,7 +225,6 @@ public void testUpload(){
       BasicIntVector v = (BasicIntVector)conn.run("table_uploaded.id");
       Console.WriteLine(v.rows());
 }
-
 ```
 
 ### 9. How to save C# data table objects to DolphinDB database

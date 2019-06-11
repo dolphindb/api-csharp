@@ -11,7 +11,7 @@ C# API遵循面向接口编程的原则。C# API使用接口类IEntity来表示D
 scalar|`Basic<DataType>`|BasicInt, BasicDouble, BasicDate, etc.
 vector，matrix|`Basic<DataType><DataForm>`|BasicIntVector, BasicDoubleMatrix, BasicAnyVector, etc.
 set， dictionary和table|`Basic<DataForm>`|BasicSet, BasicDictionary, BasicTable.
-chart|BasicChart|
+chart||BasicChart
 
 “Basic”表示基本的数据类型接口，`<DataType>`表示DolphinDB数据类型名称，`<DataForm>`是一个DolphinDB数据形式名称。
 
@@ -42,7 +42,6 @@ public void Test_Connect(){
       DBConnection conn=new DBConnection();
       Assert.AreEqual(true,conn.connect("localhost",8848));
 }
-
 ```
 使用用户名和密码建立连接：
 
@@ -121,7 +120,6 @@ public void testSet(){
       Console.WriteLine(s.rows());
       Console.WriteLine(s.columns());
 }
-
 ```
 
 - 矩阵
@@ -136,7 +134,6 @@ public void testIntMatrix(){
       Console.WriteLine(m.columns());
       Console.WriteLine(((BasicInt)m.get(0, 1)).getValue());
 }
-
 ```
 
 - 字典
@@ -152,7 +149,6 @@ public void testDictionary(){
             Console.WriteLine(val);
       }
 }
-
 ```
 
 
@@ -166,7 +162,6 @@ public void testTable(){
 	DataTable dt = tb.toDataTable();
 	Console.WriteLine(dt.Rows.Count);
 }
-
 ```
 - NULL对象
 
@@ -176,7 +171,6 @@ public void testVoid(){
       IEntity obj = conn.run("NULL");
       Assert.AreEqual(obj.getObject(), null);
 }
-
 ```
 
 ### 7.调用DolphinDB函数
@@ -194,7 +188,6 @@ public void testFunction(){
       BasicDouble result = (BasicDouble)conn.run("sum", args);
       Console.WriteLine(result.getValue());
 }
-
 ```
 
 ### 8.将对象上传到DolphinDB服务器
@@ -211,7 +204,6 @@ public void testUpload(){
       BasicIntVector v = (BasicIntVector)conn.run("table_uploaded.id");
       Console.WriteLine(v.rows());
 }
-
 ```
 
 ### 9. 如何将C#数据表对象保存到DolphinDB的数据库中
@@ -440,4 +432,36 @@ client.subscribe(serverIP, serverPort, tableName, new MyHandler(), offsetInt);
 ThreadPooledClient client = new ThreadPooledClient(subscribePort);
 
 client.subscribe(serverIP, serverPort, tableName, new MyHandler(), offsetInt);
+```
+
+#### 断线重连
+
+`reconnect`参数是一个布尔值，表示订阅意外中断后，是否会自动重新订阅。默认值为`false`。如果`reconnect=true`，有以下三种情况：
+
+- 如果发布端与订阅端处于正常状态，但是网络中断，那么订阅端会在网络正常时，自动从中断位置重新订阅。
+- 如果发布端崩溃，订阅端会在发布端重启后不断尝试重新订阅。
+    - 如果发布端对流数据表启动了持久化，发布端重启后会首先读取硬盘上的数据，直到发布端读取到订阅中断位置的数据，订阅端才能成功重新订阅。
+    - 如果发布端没有对流数据表启用持久化，那么订阅端将自动重新订阅失败。
+- 如果订阅端崩溃，订阅端重启后不会自动重新订阅，需要重新执行`subscribe`函数。
+
+以下例子在订阅时，设置`reconnect`为`true`：
+
+```
+PollingClient client = new PollingClient(subscribePort);
+TopicPoller poller1 = client.subscribe(serverIP, serverPort, tableName, offset, true);
+```
+
+#### 启用filter
+
+`filter`参数是一个向量。该参数需要发布端配合`setStreamTableFilterColumn`函数一起使用。使用`setStreamTableFilterColumn`指定流数据表的过滤列，流数据表过滤列在`filter`中的数据才会发布到订阅端，不在`filter`中的数据不会发布。
+
+以下例子将一个包含元素1和2的整数类型向量作为`subscribe`的`filter`参数：
+
+```
+BasicIntVector filter = new BasicIntVector(2);
+filter.setInt(0, 1);
+filter.setInt(1, 2);
+
+PollingClient client = new PollingClient(subscribePort);
+TopicPoller poller1 = client.subscribe(serverIP, serverPort, tableName, actionName, offset, filter);
 ```
