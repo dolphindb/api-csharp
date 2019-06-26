@@ -10,6 +10,7 @@ using System.Data;
 using System.Collections.Generic;
 using System.Threading;
 using System.Collections;
+using System.Threading.Tasks;
 
 namespace dolphindb_csharpapi_test
 {
@@ -18,6 +19,8 @@ namespace dolphindb_csharpapi_test
     {
         private readonly string SERVER = "115.239.209.189";
         private readonly int PORT = 18531;
+        private readonly string USER = "admin";
+        private readonly string PASSWORD = "123456";
 
         [TestMethod]
         public void Test_chinese_Table()
@@ -72,7 +75,6 @@ namespace dolphindb_csharpapi_test
             conn.run("share t as sharedTable");
             conn.run("sharedTable.append!(table(symbol(take(`GGG`MMS`FABB`APPL, 8000)) as 股票代码, take(today(), 8000) as 股票日期, norm(40, 5, 8000) as 买方报价, norm(45, 5, 8000) as 卖方报价, take(now(), 8000) as 时间戳,'备注' + string(1..8000) as 备注)) ");
         }
-
         [TestMethod]
         public void Test_Connect()
         {
@@ -120,6 +122,7 @@ namespace dolphindb_csharpapi_test
             Assert.IsFalse(b);
         }
 
+        [TestMethod]
         public void Test_Upload_DataTable()
         {
             DataTable dt = new DataTable();
@@ -139,16 +142,19 @@ namespace dolphindb_csharpapi_test
             dt.Columns.Add(dc);
             dc = new DataColumn("dt_byte", Type.GetType("System.Byte"));
             dt.Columns.Add(dc);
-            DataRow dr = dt.NewRow();
-            dr["dt_short"] = 1;
-            dr["dt_int"] = 2147483646;
-            dr["dt_long"] = 2147483649;
-            dr["dt_double"] = 3.14159893984;
-            dr["dt_datetime"] = new DateTime(2018, 03, 30, 14, 59, 02, 111);
-            dr["dt_bool"] = false;
-            dr["dt_byte"] = (byte)97;
-            dr["dt_string"] = "test_string";
-            dt.Rows.Add(dr);
+            for(int i = 0; i < 2000000; i++)
+            {
+                DataRow dr = dt.NewRow();
+                dr["dt_short"] = 1;
+                dr["dt_int"] = 2147483646;
+                dr["dt_long"] = 2147483649;
+                dr["dt_double"] = 3.14159893984;
+                dr["dt_datetime"] = new DateTime(2018, 03, 30, 14, 59, 02, 111);
+                dr["dt_bool"] = false;
+                dr["dt_byte"] = (byte)97;
+                dr["dt_string"] = "test_string";
+                dt.Rows.Add(dr);
+            }
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
             BasicTable bt = new BasicTable(dt);
@@ -156,7 +162,7 @@ namespace dolphindb_csharpapi_test
             obj.Add("up_datatable", (IEntity)bt);
             db.upload(obj);
             BasicIntVector v = (BasicIntVector)db.run("up_datatable.dt_int");
-            Assert.AreEqual(2147483646, v.get(0));
+            Assert.AreEqual(2147483646, ((BasicInt)v.get(0)).getValue());
 
         }
 
@@ -1383,8 +1389,7 @@ namespace dolphindb_csharpapi_test
         public void Test_udf()
         {
             DBConnection conn = new DBConnection();
-            //conn.connect("115.239.209.223", 8951, "admin", "123456");
-            conn.connect("192.168.1.135", 8981, "admin", "123456");
+            conn.connect(SERVER, PORT, "admin", "123456");
             conn.run("def Foo5(a,b){f=file('testsharp.csv','w');f.writeLine(string(a));}");
 
             var args = new List<IEntity>();
@@ -1422,6 +1427,60 @@ namespace dolphindb_csharpapi_test
             }
             
             
+        }
+
+
+        [TestMethod]
+        public void Test_BasicTable_upload()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "admin", "123456");
+            var cols = new List<IVector>() {};
+            var colNames = new List<String>() { "Symbol", "TradingDate", "TradingTime", "RecID", "TradeChannel", "TradePrice", "TradeVolume", "TradeAmount", "UNIX", "Market", "BuyRecID", "SellRecID", "BuySellFlag", "SecurityID" };
+            int rowNum = 1;
+            cols.Add(new BasicStringVector(rowNum));
+            cols.Add(new BasicIntVector(rowNum));
+            cols.Add(new BasicDateTimeVector(rowNum));
+            cols.Add(new BasicIntVector(rowNum));
+            cols.Add(new BasicIntVector(rowNum));
+            cols.Add(new BasicDoubleVector(rowNum));
+            cols.Add(new BasicDoubleVector(rowNum));
+            cols.Add(new BasicDoubleVector(rowNum));
+            cols.Add(new BasicDoubleVector(rowNum));
+            cols.Add(new BasicStringVector(rowNum));
+            cols.Add(new BasicIntVector(rowNum));
+            cols.Add(new BasicIntVector(rowNum));
+            cols.Add(new BasicStringVector(rowNum));
+            cols.Add(new BasicDoubleVector(rowNum));
+            int i = 0;
+            //for(int i = 0;i< rowNum; i++) {
+                cols[0].set(i, new BasicString("995000"));
+                cols[1].set(i, new BasicInt(9));
+                cols[2].set(i, new BasicDateTime(DateTime.Now));
+                cols[3].set(i, new BasicInt(1));
+                cols[4].set(i, new BasicInt(1));
+                cols[5].set(i, new BasicDouble(995000.21));
+                cols[6].set(i, new BasicDouble(995000.21));
+                cols[7].set(i, new BasicDouble(995000.21));
+                cols[8].set(i, new BasicDouble(995000.21));
+                cols[9].set(i, new BasicString("SZ"));
+                cols[10].set(i, new BasicInt(995000));
+                cols[11].set(i, new BasicInt(77755));
+                cols[12].set(i, new BasicString("995000"));
+                cols[13].set(i, new BasicDouble(995000.22));
+            //}
+            
+            var bt = new BasicTable(colNames ,cols);
+            var variable = new Dictionary<string, IEntity>();
+            variable.Add("table1", bt);
+            try
+            {
+                conn.upload(variable);
+            }
+            catch (Exception ex)
+            {
+                Assert.AreEqual("ex", ex.Message);
+            }
         }
 
         [TestMethod]
@@ -1465,5 +1524,89 @@ namespace dolphindb_csharpapi_test
             BasicDateTime rtdm = (BasicDateTime)conn.run("Foo5", args);
             Assert.AreEqual(dt.ToString(), rtdm.getValue().ToString());
         }
+
+        [TestMethod]
+        public void Test_MultiTask_SaveData()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT, USER, PASSWORD);
+            string script = "login('admin','123456'); t = table(100:0, `symbol`price , [SYMBOL,INT]);db = database('dfs://testMultiTaskSaveData', VALUE, `A`B`C);db.createPartitionedTable(t,'table1',`symbol)";
+            db.run(script);
+            var colNames = new List<String>() { "symbol", "price" };
+            var cols1 = new List<IVector>();
+            int size = 100000;
+            var bs = new BasicStringVector(size);
+            var ints = new BasicIntVector(size);
+            for (int i = 0; i < size; i++)
+            {
+                bs.setString(i, "A");
+                ints.setInt(i, i);
+            }
+            cols1.Add(bs);
+            cols1.Add(ints);
+            BasicTable bt1 = new BasicTable(colNames, cols1);
+
+
+            var cols2 = new List<IVector>();
+            bs = new BasicStringVector(size);
+            ints = new BasicIntVector(size);
+            for (int i = size; i < size *2; i++)
+            {
+                int pos = i - size;
+                bs.setString(pos, "B");
+                ints.setInt(pos, i);
+            }
+            cols2.Add(bs);
+            cols2.Add(ints);
+            BasicTable bt2 = new BasicTable(colNames, cols2);
+
+            var cols3 = new List<IVector>();
+            bs = new BasicStringVector(size);
+            ints = new BasicIntVector(size);
+            for (int i = size *2; i < size *3; i++)
+            {
+                int pos = i - size *2;
+                bs.setString(pos, "C");
+                ints.setInt(pos, i);
+            }
+            cols3.Add(bs);
+            cols3.Add(ints);
+            BasicTable bt3 = new BasicTable(colNames, cols3);
+
+            Task t1 = Task.Factory.StartNew(delegate { saveData(bt1, "bt1.csv"); });
+            Task t2 = Task.Factory.StartNew(delegate { saveData(bt2, "bt2.csv"); });
+            Task t3 = Task.Factory.StartNew(delegate { saveData(bt3, "bt3.csv"); });
+            Task.WaitAll(t1, t2, t3);
+            System.Threading.Thread.Sleep(2000);
+            BasicTable btResult = (BasicTable)db.run("select * from loadTable('dfs://testMultiTaskSaveData','table1')");
+            db.run("dropDatabase('dfs://testMultiTaskSaveData')");
+            Assert.AreEqual(size * 3, btResult.rows());
+            db.close();
+        }
+
+        private void saveData(BasicTable bt,string filename)
+        {
+            DBConnection db = new DBConnection();
+            string InitScript = "def saveData(t){loadTable('dfs://testMultiTaskSaveData','table1').append!(t)}";
+            db.connect(SERVER, PORT, USER, PASSWORD, InitScript);
+
+            List<IEntity> args = new List<IEntity>(1);
+            args.Add(bt);
+            db.run("submitJob{'saveData','test csharp', saveData}", args);
+
+        }
+
+        [TestMethod]
+        public void Test_FirstLineIsEmpty()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT, USER, PASSWORD);
+            string sql = @"a = 1+1
+a";
+
+            BasicInt re = (BasicInt)db.run(sql);
+            Assert.AreEqual(2, re.getValue());
+        }
+
     }
 }

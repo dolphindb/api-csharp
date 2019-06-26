@@ -304,6 +304,8 @@ namespace dolphindb
                         @out = new LittleEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
                     }
                 }
+                // "\r\n" replace to "\n" for windows
+                script = script.Replace(Environment.NewLine, "\n");
 
                 string body = "script\n" + script;
                 ExtendedDataInput @in = null;
