@@ -127,6 +127,16 @@ namespace dolphindb.data
         {
             values[index] = new BasicString(value);
         }
+
+        public override void add(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void addRange(object list)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

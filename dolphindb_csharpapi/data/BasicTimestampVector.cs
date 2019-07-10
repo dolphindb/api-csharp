@@ -79,7 +79,7 @@ namespace dolphindb.data
             return base.getList();
         }
 
-        //set nanotime : 2018.02.02T06:07:11.123
+        //set timestamp : 2018.02.02T06:07:11.123
         public override void set(int index, string value)
         {
             DateTime dt = new DateTime();
@@ -93,6 +93,24 @@ namespace dolphindb.data
                 }
             }
             base.set(index, value);
+        }
+
+        public override void add(object value)
+        {
+            if (value is DateTime)
+            {
+                base.add(Utils.countMilliseconds((DateTime)value));
+            }
+            else if (value is String)
+            {
+                DateTime dtm = new DateTime();
+                if (DateTime.TryParse(value.ToString(), out dtm))
+                {
+                    base.add(Utils.countMilliseconds(dtm));
+                    return;
+                }
+            }
+
         }
     }
 

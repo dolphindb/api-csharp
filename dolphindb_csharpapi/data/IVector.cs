@@ -6,7 +6,6 @@ namespace dolphindb.data
 
     public interface IVector : IEntity
     {
-
         bool isNull(int index);
         void setNull(int index);
         IScalar get(int index);
@@ -15,6 +14,8 @@ namespace dolphindb.data
         DataTable toDataTable();
         object getList();
         void set(int index, string value);
+        void add(object value);
+        void addRange(object list);
     }
 
     public static class Vector_Fields

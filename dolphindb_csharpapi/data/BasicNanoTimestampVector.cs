@@ -106,6 +106,39 @@ namespace dolphindb.data
             }
             base.set(index, value);
         }
+
+        public override void add(object value)
+        {
+            if (value is DateTime)
+            {
+                base.add(Utils.countNanoseconds((DateTime)value));
+            }
+            else if (value is String)
+            {
+                long v = 0;
+                string nanostr = value.ToString();
+                if (!long.TryParse(nanostr, out v))
+                {
+                    int lastDot = nanostr.LastIndexOf('.');
+                    if (lastDot > 0)
+                    {
+                        DateTime dtm = new DateTime();
+                        string dt = nanostr.Substring(0, lastDot);
+                        string snano = nanostr.Substring(lastDot + 1);
+                        long nano = 0;
+                        if (long.TryParse(snano, out nano))
+                        {
+                            if (DateTime.TryParse(dt, out dtm))
+                            {
+                                base.add(Utils.countNanoseconds(dtm) + nano);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
     }
 
 }

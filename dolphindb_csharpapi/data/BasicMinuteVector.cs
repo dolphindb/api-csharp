@@ -98,6 +98,33 @@ namespace dolphindb.data
             }
             base.set(index, value);
         }
+
+        public override void add(object value)
+        {
+            if (value is String)
+            {
+                string monthstr = value.ToString();
+                if (monthstr.EndsWith("m"))
+                {
+                    var tmp = monthstr.Remove(monthstr.Length - 1);
+                    var hourMinute = tmp.Split(':');
+                    int hour = 0, minute = 0;
+                    if (hourMinute.Length >= 2)
+                    {
+                        int.TryParse(hourMinute[0], out hour);
+                        int.TryParse(hourMinute[1], out minute);
+                    }
+                    if (hour > 0 && minute > 0)
+                    {
+                        base.add(Utils.countMinutes(hour, minute));
+                        return;
+                    }
+                }
+
+            }
+            base.add(value);
+        }
+
     }
 
 }

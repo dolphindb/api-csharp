@@ -93,6 +93,33 @@ namespace dolphindb.data
             }
             base.set(index, value);
         }
+
+        public override void add(object value)
+        {
+            if(value is String)
+            {
+                string monthstr = value.ToString();
+                if (monthstr.EndsWith("M"))
+                {
+                    var tmp = monthstr.Remove(monthstr.Length - 1);
+                    var yearMonth = tmp.Split('.');
+                    int year = 0, month = 0;
+                    if (yearMonth.Length >= 2)
+                    {
+                        int.TryParse(yearMonth[0], out year);
+                        int.TryParse(yearMonth[1], out month);
+                    }
+                    if (year > 0 && month > 0)
+                    {
+                        base.add(Utils.countMonths(year, month));
+                        return;
+                    }
+
+                }
+
+            }
+            base.add(value);
+        }
     }
 
 }

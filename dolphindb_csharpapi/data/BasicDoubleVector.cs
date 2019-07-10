@@ -6,7 +6,7 @@ namespace dolphindb.data
 {
     public class BasicDoubleVector : AbstractVector
     {
-        private double[] values;
+        private List<double> values;
 
         public BasicDoubleVector(int size) : this(DATA_FORM.DF_VECTOR, size)
         {
@@ -16,22 +16,26 @@ namespace dolphindb.data
         {
             if (list != null)
             {
-                values = new double[list.Count];
-                for (int i = 0; i < list.Count; ++i)
-                {
-                    values[i] = list[i].Value;
-                }
+                values = list.Where(x => x != null).Cast<double>().ToList();
+                //values = new double[list.Count];
+                //for (int i = 0; i < list.Count; ++i)
+                //{
+                //    values[i] = list[i].Value;
+                //}
             }
         }
 
         public BasicDoubleVector(double[] array) : base(DATA_FORM.DF_VECTOR)
         {
-            values = array.Clone() as double[];
+            values = new List<double>(array.Length);
+            values.AddRange(array);
+            //values = array.Clone() as double[];
         }
 
         protected internal BasicDoubleVector(DATA_FORM df, int size) : base(df)
         {
-            values = new double[size];
+            values = new List<double>(size);
+            values.AddRange(new double[size]);
         }
 
         protected internal BasicDoubleVector(DATA_FORM df, ExtendedDataInput @in) : base(df)
@@ -39,7 +43,8 @@ namespace dolphindb.data
             int rows = @in.readInt();
             int cols = @in.readInt();
             int size = rows * cols;
-            values = new double[size];
+            values = new List<double>(size);
+            values.AddRange(new double[size]);
             for (int i = 0; i < size; ++i)
             {
                 values[i] = @in.readDouble();
@@ -97,12 +102,12 @@ namespace dolphindb.data
 
         public override int rows()
         {
-            return values.Length;
+            return values.Count;
         }
 
         protected internal override void writeVectorToOutputStream(ExtendedDataOutput @out)
         {
-            @out.writeDoubleArray(values);
+            @out.writeDoubleArray(values.ToArray());
         }
 
         public override object getList()
@@ -121,6 +126,17 @@ namespace dolphindb.data
             {
                 setNull(index);
             }
+        }
+
+        public override void add(object value)
+        {
+            values.Add(Convert.ToDouble(value));
+        }
+
+        public override void addRange(object list)
+        {
+            List<double> data = (List<double>)list;
+            values.AddRange(data);
         }
     }
 }

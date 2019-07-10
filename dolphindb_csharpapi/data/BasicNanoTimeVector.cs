@@ -99,6 +99,16 @@ namespace dolphindb.data
             }
             base.set(index, value);
         }
+
+
+        public override void add(object value)
+        {
+            if (value is TimeSpan)
+            {
+                base.add(Utils.countNanoseconds((TimeSpan)value));
+            }
+            base.add(value);
+        }
     }
 
 }

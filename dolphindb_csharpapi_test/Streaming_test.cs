@@ -16,8 +16,8 @@ namespace dolphindb_csharp_api_test
         private readonly int SUB_PORT = 8802;
         //private static readonly string REMOTE_HOST = "192.168.1.104";
         //private static readonly int REMOTE_PORT = 8848;
-        private readonly string REMOTE_HOST = "192.168.1.106";
-        private readonly int REMOTE_PORT = 8701;
+        private readonly string REMOTE_HOST = "localhost";
+        private readonly int REMOTE_PORT = 8080;
         private readonly string REMOTE_TABLE_NAME = "trades";
         private readonly int TIMEOUT = 1000;
 

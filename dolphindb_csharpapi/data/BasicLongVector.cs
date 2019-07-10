@@ -1,6 +1,7 @@
 ﻿using dolphindb.io;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace dolphindb.data
 {
@@ -8,7 +9,7 @@ namespace dolphindb.data
 
     public class BasicLongVector : AbstractVector
     {
-        private long[] values;
+        private List<long> values;
 
         public BasicLongVector(int size) : this(DATA_FORM.DF_VECTOR, size)
         {
@@ -18,22 +19,26 @@ namespace dolphindb.data
         {
             if (list != null)
             {
-                values = new long[list.Count];
-                for (int i = 0; i < list.Count; ++i)
-                {
-                    values[i] = list[i].Value;
-                }
+                values = list.Where(x => x != null).Cast<long>().ToList();
+                //values = new long[list.Count];
+                //for (int i = 0; i < list.Count; ++i)
+                //{
+                //    values[i] = list[i].Value;
+                //}
             }
         }
 
         public BasicLongVector(long[] array) : base(DATA_FORM.DF_VECTOR)
         {
-            values = array.Clone() as long[];
+            values = new List<long>(array.Length);
+            values.AddRange(array);
+            //values = array.Clone() as long[];
         }
 
         protected internal BasicLongVector(DATA_FORM df, int size) : base(df)
         {
-            values = new long[size];
+            values = new List<long>(size);
+            values.AddRange(new long[size]);
         }
 
         protected internal BasicLongVector(DATA_FORM df, ExtendedDataInput @in) : base(df)
@@ -41,8 +46,8 @@ namespace dolphindb.data
             int rows = @in.readInt();
             int cols = @in.readInt();
             int size = rows * cols;
-            values = new long[size];
-            
+            values = new List<long>(size);
+            values.AddRange(new long[size]);
             for (int i = 0; i < size; ++i)
             {
                 values[i] = @in.readLong();
@@ -94,7 +99,7 @@ namespace dolphindb.data
 
         public override int rows()
         {
-            return values.Length;
+            return values.Count;
         }
 
         public override Type getElementClass()
@@ -104,7 +109,7 @@ namespace dolphindb.data
 
         protected internal override void writeVectorToOutputStream(ExtendedDataOutput @out)
         {
-            @out.writeLongArray(values);
+            @out.writeLongArray(values.ToArray());
         }
 
         public override object getList()
@@ -124,6 +129,18 @@ namespace dolphindb.data
                 setNull(index);
             }
         }
+
+        public override void add(object value)
+        {
+            values.Add(Convert.ToInt64(value));
+        }
+
+        public override void addRange(object list)
+        {
+            List<long> data = (List<long>)list;
+            values.AddRange(data);
+        }
+
     }
 
 }

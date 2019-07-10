@@ -7,7 +7,7 @@ namespace dolphindb.data
 
     public class BasicStringVector : AbstractVector
     {
-        private string[] values;
+        private List<string> values;
         private bool isSymbol;
 
         public BasicStringVector(int size) : this(DATA_FORM.DF_VECTOR, size, false)
@@ -18,24 +18,28 @@ namespace dolphindb.data
         {
             if (list != null)
             {
-                values = new string[list.Count];
-                for (int i = 0; i < list.Count; ++i)
-                {
-                    values[i] = list[i];
-                }
+                values = (List<String>)list;
+                //values = new string[list.Count];
+                //for (int i = 0; i < list.Count; ++i)
+                //{
+                //    values[i] = list[i];
+                //}
             }
             isSymbol = false;
         }
 
         public BasicStringVector(string[] array) : base(DATA_FORM.DF_VECTOR)
         {
-            values = array.Clone() as string[];
+            values = new List<string>(array.Length);
+            values.AddRange(array);
+            //values = array.Clone() as string[];
             isSymbol = false;
         }
 
         protected internal BasicStringVector(DATA_FORM df, int size, bool isSymbol) : base(df)
         {
-            values = new string[size];
+            values = new List<string>(size);
+            values.AddRange(new string[size]);
             this.isSymbol = isSymbol;
         }
 
@@ -44,7 +48,8 @@ namespace dolphindb.data
             int rows = @in.readInt();
             int columns = @in.readInt();
             int size = rows * columns;
-            values = new string[size];
+            values = new List<string>(size);
+            values.AddRange(new string[size]);
             for (int i = 0; i < size; ++i)
             {
                 values[i] = @in.readString();
@@ -102,7 +107,7 @@ namespace dolphindb.data
 
         public override int rows()
         {
-            return values.Length;
+            return values.Count;
         }
 
         protected internal override void writeVectorToOutputStream(ExtendedDataOutput @out)
@@ -121,6 +126,17 @@ namespace dolphindb.data
         public override void set(int index, string value)
         {
             values[index] = value;
+        }
+
+        public override void add(object value)
+        {
+            values.Add(value.ToString());
+        }
+
+        public override void addRange(object list)
+        {
+            List<string> data = (List<string>)list;
+            values.AddRange(data);
         }
     }
 

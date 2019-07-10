@@ -86,6 +86,7 @@ namespace dolphindb.data
                 base.setObject(Utils.countDays(Convert.ToDateTime(value)));
             }
         }
+
     }
 
 }

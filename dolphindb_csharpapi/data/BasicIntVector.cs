@@ -1,12 +1,13 @@
 ﻿using dolphindb.io;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace dolphindb.data
 {
     public class BasicIntVector : AbstractVector
     {
-        private int[] values;
+        private List<int> values;
 
         public BasicIntVector(int size) : this(DATA_FORM.DF_VECTOR, size)
         {
@@ -16,22 +17,26 @@ namespace dolphindb.data
         {
             if (list != null)
             {
-                values = new int[list.Count];
-                for (int i = 0; i < list.Count; ++i)
-                {
-                    values[i] = list[i].Value;
-                }
+                
+                values = list.Where(x => x != null).Cast<int>().ToList();
+                //values = new int[list.Count];
+                //for (int i = 0; i < list.Count; ++i)
+                //{
+                //    values[i] = list[i].Value;
+                //}
             }
         }
 
         public BasicIntVector(int[] array) : base(DATA_FORM.DF_VECTOR)
         {
-            values = array.Clone() as int[];
+            values = new List<int>(array.Length);
+            values.AddRange(array);
         }
 
         protected internal BasicIntVector(DATA_FORM df, int size) : base(df)
         {
-            values = new int[size];
+            values = new List<int>(size);
+            values.AddRange(new int[size]);
         }
 
         protected internal BasicIntVector(DATA_FORM df, ExtendedDataInput @in) : base(df)
@@ -41,7 +46,8 @@ namespace dolphindb.data
             //assert(rows == 1024);
             int cols = @in.readInt();
             int size = rows * cols;
-            values = new int[size];
+            values = new List<int>(size);
+            values.AddRange(new int[size]);
             for (int i = 0; i < size; ++i)
             {
                 values[i] = @in.readInt();
@@ -95,12 +101,12 @@ namespace dolphindb.data
 
         public override int rows()
         {
-            return values.Length;
+            return values.Count;
         }
 
         protected internal override void writeVectorToOutputStream(ExtendedDataOutput @out)
         {
-            @out.writeIntArray(values);
+            @out.writeIntArray(values.ToArray());
         }
 
         public override object getList()
@@ -119,6 +125,17 @@ namespace dolphindb.data
             {
                 setNull(index);
             }
+        }
+
+        public override void add(object value)
+        {
+            values.Add(Convert.ToInt32(value));
+        }
+
+        public override void addRange(object list)
+        {
+            List<int> data = (List<int>)list;
+            values.AddRange(data);
         }
     }
 

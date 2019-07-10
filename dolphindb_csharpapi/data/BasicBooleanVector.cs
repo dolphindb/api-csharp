@@ -1,6 +1,7 @@
 ﻿using dolphindb.io;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace dolphindb.data
 {
@@ -8,7 +9,7 @@ namespace dolphindb.data
 
     public class BasicBooleanVector : AbstractVector
     {
-        private byte[] values;
+        private List<byte> values;
 
         public BasicBooleanVector(int size) : this(DATA_FORM.DF_VECTOR, size)
         {
@@ -18,22 +19,27 @@ namespace dolphindb.data
         {
             if (list != null)
             {
-                values = new byte[list.Count];
-                for (int i = 0; i < list.Count; ++i)
-                {
-                    values[i] = list[i].Value;
-                }
+                values = list.Where(x => x != null).Cast<byte>().ToList();
+                //values = new byte[list.Count];
+                //for (int i = 0; i < list.Count; ++i)
+                //{
+                //    values[i] = list[i].Value;
+                //}
             }
         }
 
         public BasicBooleanVector(byte[] array) : base(DATA_FORM.DF_VECTOR)
         {
-            values = array.Clone() as byte[];
+            values = new List<byte>(array.Length);
+            values.AddRange(array);
+            //array.Clone() as byte[];
         }
 
         protected internal BasicBooleanVector(DATA_FORM df, int size) : base(df)
         {
-            values = new byte[size];
+           
+            values = new List<byte>(size);
+            values.AddRange(new byte[size]);
         }
 
         protected internal BasicBooleanVector(DATA_FORM df, ExtendedDataInput @in) : base(df)
@@ -41,7 +47,8 @@ namespace dolphindb.data
             int rows = @in.readInt();
             int cols = @in.readInt();
             int size = rows * cols;
-            values = new byte[size];
+            values = new List<byte>(size);
+            values.AddRange(new byte[size]);
             for (int i = 0; i < size; ++i)
             {
                 values[i] = @in.readByte();
@@ -100,12 +107,12 @@ namespace dolphindb.data
 
         public override int rows()
         {
-            return values.Length;
+            return values.Count;
         }
 
         protected internal override void writeVectorToOutputStream(ExtendedDataOutput @out)
         {
-            @out.write(values);
+            @out.write(values.ToArray());
         }
 
         public override void set(int index, string value)
@@ -119,6 +126,17 @@ namespace dolphindb.data
             {
                 setNull(index);
             }
+        }
+
+        public override void add(object value)
+        {
+            values.Add(Convert.ToByte(value));
+        }
+
+        public override void addRange(object list)
+        {
+            List<byte> data = (List<byte>)list;
+            values.AddRange(data);
         }
     }
 

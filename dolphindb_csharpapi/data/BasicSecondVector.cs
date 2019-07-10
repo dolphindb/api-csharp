@@ -77,7 +77,7 @@ namespace dolphindb.data
             return base.getList();
         }
 
-        //set nanotime : 06:07:11
+        //set second : 06:07:11
         public override void set(int index, string value)
         {
             TimeSpan ts = new TimeSpan();
@@ -91,6 +91,15 @@ namespace dolphindb.data
                  }
             }
             base.set(index, value);
+        }
+
+        public override void add(object value)
+        {
+            if (value is TimeSpan)
+            {
+                base.add(Utils.countSeconds((TimeSpan)value));
+            }
+            base.add(value);
         }
     }
 

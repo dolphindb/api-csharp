@@ -97,7 +97,10 @@ namespace dolphindb.data
             throw new NotImplementedException();
         }
 
+
         public abstract void set(int index, string value);
+        public abstract void add(object value);
+        public abstract void addRange(object list);
     }
 
 }

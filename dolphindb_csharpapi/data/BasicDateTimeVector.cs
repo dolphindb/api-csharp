@@ -86,6 +86,24 @@ namespace dolphindb.data
             }
             base.set(index, value);
         }
+
+        public override void add(object value)
+        {
+            if (value is DateTime)
+            {
+                base.add(Utils.countSeconds((DateTime)value));
+            }
+            else if (value is String)
+            {
+                DateTime dtm = new DateTime();
+                if (DateTime.TryParse(value.ToString(), out dtm))
+                {
+                    base.add(Utils.countSeconds(dtm));
+                    return;
+                }
+            }
+
+        }
     }
 
 }

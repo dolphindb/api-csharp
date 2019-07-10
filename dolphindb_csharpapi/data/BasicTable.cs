@@ -553,6 +553,34 @@ namespace dolphindb.data
             throw new NotImplementedException();
         }
 
+        public void add(BasicRow br)
+        {
+            for(int i = 0; i < columns_.Count; i++)
+            {
+                columns_[i].add(br[i]);
+            }
+        }
+
+    }
+
+    public class BasicRow : List<object>
+    {
+
+        public BasicRow(int size):base(size)
+        {
+            
+        }
+        public new object this[int index]
+        {
+            get
+            {
+                return base[index];
+            }
+            set
+            {
+                base[index] = value;
+            }
+        }
     }
 
 }

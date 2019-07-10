@@ -83,6 +83,22 @@ namespace dolphindb.data
             }
             base.set(index, value);
         }
+
+        public override void add(object value)
+        {
+            if (value is TimeSpan)
+            {
+                base.add(Utils.countMilliseconds((TimeSpan)value));
+            }
+            else if(value is DateTime)
+            {
+                base.add(Utils.countMilliseconds(((DateTime)value).TimeOfDay));
+            }
+            else
+            { 
+            base.add(value);
+            }
+        }
     }
 
 }
