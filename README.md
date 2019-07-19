@@ -331,10 +331,10 @@ db.createPartitionedTable(t,tbName,'ctimestamp')
 DolphinDB provides the loadTable method to load distributed tables and append data via append!. The specific script examples are as follows:
 
 ```
-public void test_save_table(String dbPath, BasicTable table1)
+public void test_save_table(string dbPath, string tableName, BasicTable table1)
 {
-    List<IEntity> args = new List<IEntity>() { table1 };
-    conn.run(String.Format("append!{loadTable('%s','tb1')}",dbPath), args);
+      List<IEntity> args = new List<IEntity>() { table1 };
+      conn.run(String.Format("append!{{loadTable('{0}','{1}')}}", dbPath,tableName), args);
 }
 ```
 
@@ -364,10 +364,10 @@ db.createPartitionedTable(t,tbName,'ctimestamp')
 DolphinDB provides the loadTable method to load local disk tables as well, and function append! to append data.
 
 ```
-public void test_save_table(String dbPath, BasicTable table1)
+public void test_save_table(string dbPath, string tableName, BasicTable table1)
 {
       List<IEntity> args = new List<IEntity>() { table1 };
-      conn.run(String.Format("append!{loadTable('%s','tb1')}",dbPath), args);
+      conn.run(String.Format("append!{{loadTable('{0}','{1}')}}", dbPath,tableName), args);
 }
 ```
 

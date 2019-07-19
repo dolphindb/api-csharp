@@ -106,6 +106,7 @@ namespace dolphindb.data
             if (value is TimeSpan)
             {
                 base.add(Utils.countNanoseconds((TimeSpan)value));
+                return;
             }
             base.add(value);
         }

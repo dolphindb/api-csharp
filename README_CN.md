@@ -289,10 +289,10 @@ db.createPartitionedTable(t,tbName,'ctimestamp')
 DolphinDB提供loadTable方法可以加载分布式表，通过append!方式追加数据，具体的脚本示例如下：
 
 ```
-public void test_save_table(String dbPath, BasicTable table1)
+public void test_save_table(string dbPath, string tableName, BasicTable table1)
 {
     List<IEntity> args = new List<IEntity>() { table1 };
-    conn.run(String.Format("append!{loadTable('%s','tb1')}",dbPath), args);
+    conn.run(String.Format("append!{{loadTable('{0}','{1}')}}", dbPath,tableName), args);
 }
 ```
 
@@ -318,10 +318,10 @@ db.createPartitionedTable(t,tbName,'ctimestamp')
 ```
 DolphinDB提供loadTable方法同样可以加载本地磁盘表，通过append!追加数据。
 ```
-public void test_save_table(String dbPath, BasicTable table1)
+public void test_save_table(string dbPath, string tableName, BasicTable table1)
 {
       List<IEntity> args = new List<IEntity>() { table1 };
-      conn.run(String.Format("append!{loadTable('%s','tb1')}",dbPath), args);
+      conn.run(String.Format("append!{{loadTable('{0}','{1}')}}", dbPath,tableName), args);
 }
 ```
 ### 10. 循环遍历BasicTable
