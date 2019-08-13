@@ -1,6 +1,8 @@
 ﻿using dolphindb.io;
 using System;
 using System.Text;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace dolphindb.data
 {
@@ -126,6 +128,11 @@ namespace dolphindb.data
         public override void set(int index, string value)
         {
             values[index] = new BasicString(value);
+        }
+
+        public override object getList()
+        {
+            return values.ToList();
         }
 
         public override void add(object value)
