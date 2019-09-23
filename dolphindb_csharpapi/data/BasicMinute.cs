@@ -15,7 +15,7 @@ namespace dolphindb.data
         {
         }
 
-        protected internal BasicMinute(int value) : base(value)
+        public BasicMinute(int value) : base(value)
         {
         }
 

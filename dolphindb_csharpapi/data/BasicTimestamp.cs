@@ -15,7 +15,7 @@ namespace dolphindb.data
         {
         }
 
-        protected internal BasicTimestamp(long value) : base(value)
+        public BasicTimestamp(long value) : base(value)
         {
         }
 

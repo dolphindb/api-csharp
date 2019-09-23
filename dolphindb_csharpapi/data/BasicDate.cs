@@ -15,7 +15,7 @@ namespace dolphindb.data
         {
         }
 
-        protected internal BasicDate(int value) : base(value)
+        public BasicDate(int value) : base(value)
         {
         }
 

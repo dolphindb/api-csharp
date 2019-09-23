@@ -38,26 +38,31 @@ namespace dolphindb
         private Socket socket;
         private bool remoteLittleEndian;
         private ExtendedDataOutput @out;
+        private ExtendedDataInput @in;
         private IEntityFactory factory;
         private string hostName;
         private int port;
         private string userId;
         private string password;
         private bool encrypted;
-        private string initialScript;
+        private string startup;
+        //=============HighAvailability 2019.07.17 Linl======================
+        private bool highAvailability;
+        private string controllerHost = null;
+        private int controllerPort;
+        //===================================================================
+        
         public bool isConnected
         {
             get
             {
-                if (socket != null)
-                {
-                    return socket.Connected;
-                }
-                else
-                {
-                    return false;
-                }
+                return sessionID.Length > 0;
             }
+        }
+
+        public string getSessionID()
+        {
+            return sessionID;
         }
         public DBConnection()
         {
@@ -82,7 +87,7 @@ namespace dolphindb
             return connect(hostName, port, "", "");
         }
 
-        public bool connect(string hostName, int port, string userId, string password, string initialScript="")
+        public bool connect(string hostName, int port, string userId, string password, string startup="", bool highAvailability=false)
         {
             lock (threadLock)
             {
@@ -98,9 +103,9 @@ namespace dolphindb
                     this.userId = userId;
                     this.password = password;
                     encrypted = false;
-                    this.initialScript = initialScript;
+                    this.startup = startup;
+                    this.highAvailability = highAvailability;
                     return connect();
-
                 }
                 finally
                 {
@@ -118,7 +123,7 @@ namespace dolphindb
             socket.NoDelay = true;
             @out = new LittleEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
 
-            ExtendedDataInput @in = new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
+            @in = new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
             string body = "connect\n";
             @out.writeBytes("API 0 ");
             @out.writeBytes(body.Length.ToString());
@@ -154,12 +159,22 @@ namespace dolphindb
             {
                 remoteLittleEndian = true;
             }
+            @in = remoteLittleEndian ? new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
 
             if (userId.Length > 0 && password.Length > 0) login();
-            if (initialScript != "") run(initialScript);
+            if (startup != "") run(startup);
+            if (highAvailability && controllerHost == null)
+            {
+                try
+                {
+                    controllerHost = ((BasicString)run("rpc(getControllerAlias(),getNodeHost)")).getString();
+                    controllerPort = ((BasicInt)run("rpc(getControllerAlias(),getNodePort)")).getValue();
+                }
+                catch (Exception) { }
+            }
             return true;
-
         }
+
         public void login(string userId, string password, bool enableEncryption)
         {
             lock (threadLock)
@@ -246,7 +261,7 @@ namespace dolphindb
             socket.Connect(hostName, port);
             @out = new LittleEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
 
-            ExtendedDataInput @in = new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
+            @in = new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
             string body = "connect\n";
             @out.writeBytes("API 0 ");
             @out.writeBytes(body.Length.ToString());
@@ -281,6 +296,7 @@ namespace dolphindb
             {
                 remoteLittleEndian = true;
             }
+            @in = remoteLittleEndian ? new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
 
             return true;
         }
@@ -289,131 +305,140 @@ namespace dolphindb
         {
             lock (threadLock)
             {
-                bool reconnect = false;
-                if (socket == null || !socket.Connected)
-                {
-                    if (sessionID.Length == 0)
-                    {
-                        throw new IOException("Database connection is not established yet.");
-                    }
-                    else
-                    {
-                        socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                        socket.Connect(hostName, port);
-
-                        @out = new LittleEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
-                    }
-                }
-                // "\r\n" replace to "\n" for windows
-                script = script.Replace(Environment.NewLine, "\n");
-
-                string body = "script\n" + script;
-                ExtendedDataInput @in = null;
-                string header = null;
                 try
                 {
-                    @out.writeBytes((listener != null ? "API2 " : "API ") + sessionID + " ");
-                    @out.writeBytes(AbstractExtendedDataOutputStream.getUTFlength(body, 0, 0).ToString());
-                    @out.writeByte('\n');
-                    @out.writeBytes(body);
-                    @out.flush();
-
-                    @in = remoteLittleEndian ? new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
-
-                    header = @in.readLine();
-                }
-                catch (IOException ex)
-                {
-                    if (reconnect)
+                    bool reconnect = false;
+                    if (socket == null || !socket.Connected)
                     {
-                        socket = null;
-                        throw ex;
-                    }
+                        if (sessionID.Length == 0)
+                        {
+                            throw new IOException("Database connection is not established yet.");
+                        }
+                        else
+                        {
+                            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                            socket.Connect(hostName, port);
 
+                            @out = new LittleEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
+                            @in = remoteLittleEndian ? new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
+                        }
+                    }
+                    // "\r\n" replace to "\n" for windows
+                    script = script.Replace(Environment.NewLine, "\n");
+
+                    string body = "script\n" + script;
+                    string header = null;
                     try
                     {
-                        tryReconnect();
                         @out.writeBytes((listener != null ? "API2 " : "API ") + sessionID + " ");
                         @out.writeBytes(AbstractExtendedDataOutputStream.getUTFlength(body, 0, 0).ToString());
                         @out.writeByte('\n');
                         @out.writeBytes(body);
                         @out.flush();
-
-                        @in = remoteLittleEndian ? new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
+                        
                         header = @in.readLine();
-                        reconnect = true;
                     }
-                    catch (Exception e)
+                    catch (IOException ex)
+                    {
+                        if (reconnect)
+                        {
+                            socket = null;
+                            throw ex;
+                        }
+
+                        try
+                        {
+                            tryReconnect();
+                            @out.writeBytes((listener != null ? "API2 " : "API ") + sessionID + " ");
+                            @out.writeBytes(AbstractExtendedDataOutputStream.getUTFlength(body, 0, 0).ToString());
+                            @out.writeByte('\n');
+                            @out.writeBytes(body);
+                            @out.flush();
+
+                            header = @in.readLine();
+                            reconnect = true;
+                        }
+                        catch (Exception e)
+                        {
+                            socket = null;
+                            throw e;
+                        }
+                    }
+                    string msg;
+
+                    while (header.Equals("MSG"))
+                    {
+                        //read intermediate message to indicate the progress
+                        msg = @in.readString();
+                        if (listener != null)
+                        {
+                            listener.progress(msg);
+                        }
+                        header = @in.readLine();
+                    }
+
+                    string[] headers = header.Split(' ');
+                    if (headers.Length != 3)
                     {
                         socket = null;
-                        throw e;
+                        throw new IOException("Received invalid header: " + header);
                     }
-                }
-                string msg;
 
-                while (header.Equals("MSG"))
-                {
-                    //read intermediate message to indicate the progress
-                    msg = @in.readString();
-                    if (listener != null)
+                    if (reconnect)
                     {
-                        listener.progress(msg);
+                        sessionID = headers[0];
+                        if (userId.Length > 0 && password.Length > 0)
+                        {
+                            login();
+                        }
+                        if (this.startup != "") run(startup);
                     }
-                    header = @in.readLine();
-                }
+                    int numObject = int.Parse(headers[1]);
 
-                string[] headers = header.Split(' ');
-                if (headers.Length != 3)
-                {
-                    socket = null;
-                    throw new IOException("Received invalid header: " + header);
-                }
-
-                if (reconnect)
-                {
-                    sessionID = headers[0];
-                    if (userId.Length>0 && password.Length>0)
+                    msg = @in.readLine();
+                    if (!msg.Equals("OK"))
                     {
-                        login();
+                        throw new IOException(msg);
                     }
-                    if (this.initialScript != "") run(initialScript);
-                }
-                int numObject = int.Parse(headers[1]);
 
-                msg = @in.readLine();
-                if (!msg.Equals("OK"))
-                {
-                    throw new IOException(msg);
-                }
-
-                if (numObject == 0)
-                {
-                    return new data.Void();
-                }
-                try
-                {
-                    short flag = @in.readShort();
-                    int form = flag >> 8;
-                    int type = flag & 0xff;
-
-                    if (form < 0 || form > MAX_FORM_VALUE)
+                    if (numObject == 0)
                     {
-                        throw new IOException("Invalid form value: " + form);
+                        return new data.Void();
                     }
-                    if (type < 0 || type > MAX_TYPE_VALUE)
+                    try
                     {
-                        throw new IOException("Invalid type value: " + type);
+                        short flag = @in.readShort();
+                        int form = flag >> 8;
+                        int type = flag & 0xff;
+
+                        if (form < 0 || form > MAX_FORM_VALUE)
+                        {
+                            throw new IOException("Invalid form value: " + form);
+                        }
+                        if (type < 0 || type > MAX_TYPE_VALUE)
+                        {
+                            throw new IOException("Invalid type value: " + type);
+                        }
+
+                        DATA_FORM df = (DATA_FORM)Enum.GetValues(typeof(DATA_FORM)).GetValue(form);
+                        DATA_TYPE dt = (DATA_TYPE)Enum.GetValues(typeof(DATA_TYPE)).GetValue(type);
+
+                        return factory.createEntity(df, dt, @in);
                     }
-
-                    DATA_FORM df = (DATA_FORM)Enum.GetValues(typeof(DATA_FORM)).GetValue(form);
-                    DATA_TYPE dt = (DATA_TYPE)Enum.GetValues(typeof(DATA_TYPE)).GetValue(type);
-
-                    return factory.createEntity(df, dt, @in);
+                    catch (IOException ex)
+                    {
+                        socket = null;
+                        throw ex;
+                    }
                 }
-                catch (IOException ex)
+                catch (Exception ex)
                 {
-                    socket = null;
-                    throw ex;
+                    if (socket != null || !highAvailability)
+                        throw ex;
+                    else if (switchServer())
+                        return run(script, listener);
+                    else
+                        throw ex;
                 }
             }
         }
@@ -451,14 +476,14 @@ namespace dolphindb
                             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                             socket.Connect(hostName, port);
                             @out = new LittleEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
+                            @in = remoteLittleEndian ? new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
                         }
                     }
 
                     string body = "function\n" + function;
                     body += ("\n" + arguments.Count + "\n");
                     body += remoteLittleEndian ? "1" : "0";
-
-                    ExtendedDataInput @in = null;
+                    
                     string[] headers = null;
                     try
                     {
@@ -472,7 +497,6 @@ namespace dolphindb
                         }
                         @out.flush();
 
-                        @in = remoteLittleEndian ? new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
                         headers = @in.readLine().Split(' ');
                     }
                     catch (IOException ex)
@@ -521,7 +545,7 @@ namespace dolphindb
                         {
                             login();
                         }
-                        if (this.initialScript != "") run(initialScript);
+                        if (this.startup != "") run(startup);
                     }
                     int numObject = int.Parse(headers[1]);
 
@@ -561,6 +585,15 @@ namespace dolphindb
                         socket = null;
                         throw ex;
                     }
+                }
+                catch (Exception ex)
+                {
+                    if (socket != null || !highAvailability)
+                        throw ex;
+                    else if (switchServer())
+                        return run(function, arguments);
+                    else
+                        throw ex;
                 }
                 finally
                 {
@@ -609,6 +642,7 @@ namespace dolphindb
                             socket.Connect(hostName, port);
 
                             @out = new LittleEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
+                            @in = remoteLittleEndian ? new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
                         }
                     }
 
@@ -666,13 +700,23 @@ namespace dolphindb
                         }
                         catch (Exception e)
                         {
-                            socket = null;
-                            throw e;
+                            if (socket != null || !highAvailability)
+                            {
+                                throw ex;
+                            }
+                            else
+                            {
+                                if (switchServer())
+                                {
+                                    upload(variableObjectMap);
+                                }
+                                throw ex;
+                            }
+                            //socket = null;
+                            //throw e;
                         }
                     }
-
-                    ExtendedDataInput @in = remoteLittleEndian ? new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
-
+                    
                     string[] headers = @in.readLine().Split(' ');
                     if (headers.Length != 3)
                     {
@@ -687,7 +731,7 @@ namespace dolphindb
                         {
                             login();
                         }
-                        if (this.initialScript != "") run(initialScript);
+                        if (this.startup != "") run(startup);
                     }
                     string msg = @in.readLine();
                     if (!msg.Equals("OK"))
@@ -764,6 +808,38 @@ namespace dolphindb
             {
                 return ((IPEndPoint)socket.LocalEndPoint).Address.ToString();
             }
+        }
+
+        public bool switchServer()
+        {
+            if (!highAvailability)
+                return false;
+            if (controllerHost == null)
+                return false;
+            // 1 find live datanodes and pick one
+            DBConnection tmp = new DBConnection();
+            tmp.connect(controllerHost, controllerPort);
+            BasicStringVector liveDataNodes = (BasicStringVector) tmp.run("getLiveDataNodes(false)");
+            tmp.close();
+
+            // 2 try get connection to new datanode
+            int size = liveDataNodes.rows();
+            Console.WriteLine("living node size: " + size);
+            for (int i = 0; i < size; i++)
+            {
+
+                string[] liveDataNodeSite = liveDataNodes.get(i).getString().Split(':');
+                hostName = liveDataNodeSite[0];
+                port = int.Parse(liveDataNodeSite[1]);
+                Console.WriteLine("Try node " + i + ": " + hostName + ":" + port);
+                try
+                {
+                    connect();
+                    return true;
+                }
+                catch (Exception) { }
+            }
+            return false;
         }
     }
 

@@ -16,7 +16,7 @@ namespace dolphindb.data
         {
         }
 
-        protected internal BasicDateTime(int value) : base(value)
+        public BasicDateTime(int value) : base(value)
         {
         }
 

@@ -16,7 +16,7 @@ namespace dolphindb.data
 		{
 		}
 
-		protected internal BasicSecond(int value) : base(value)
+        public BasicSecond(int value) : base(value)
 		{
 		}
 
