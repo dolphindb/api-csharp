@@ -307,7 +307,7 @@ The append! function accepts a table object as a parameter and appends the data 
 public void test_save_table(BasicTable table1)
 {
       List<IEntity> args = new  List<IEntity>(){ table1};
-      conn.run("append!{shareTable}", args);
+      conn.run("tableInsert{shareTable}", args);
 }
 ```
 
@@ -328,13 +328,13 @@ db = database(dbPath,RANGE,2018.01.01..2018.12.31)
 db.createPartitionedTable(t,tbName,'ctimestamp')
 ```
 
-DolphinDB provides the loadTable method to load distributed tables and append data via append!. The specific script examples are as follows:
+DolphinDB provides the loadTable method to load distributed tables and append data via tableInsert. The specific script examples are as follows:
 
 ```
 public void test_save_table(string dbPath, string tableName, BasicTable table1)
 {
       List<IEntity> args = new List<IEntity>() { table1 };
-      conn.run(String.Format("append!{{loadTable('{0}','{1}')}}", dbPath,tableName), args);
+      conn.run(String.Format("tableInsert{{loadTable('{0}','{1}')}}", dbPath,tableName), args);
 }
 ```
 
@@ -361,13 +361,13 @@ db = database(dbPath,RANGE,2018.01.01..2018.12.31)
 db.createPartitionedTable(t,tbName,'ctimestamp')
 ```
 
-DolphinDB provides the loadTable method to load local disk tables as well, and function append! to append data.
+DolphinDB provides the loadTable method to load local disk tables as well, and function tableInsert to append data.
 
 ```
 public void test_save_table(string dbPath, string tableName, BasicTable table1)
 {
       List<IEntity> args = new List<IEntity>() { table1 };
-      conn.run(String.Format("append!{{loadTable('{0}','{1}')}}", dbPath,tableName), args);
+      conn.run(String.Format("tableInsert{{loadTable('{0}','{1}')}}", dbPath,tableName), args);
 }
 ```
 

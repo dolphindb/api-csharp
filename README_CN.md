@@ -262,13 +262,13 @@ def saveData(v1,v2,v3,v4){tableInsert(sharedTable,v1,v2,v3,v4)}
 具体的文档请参考[部分应用文档](https://www.dolphindb.cn/cn/help/PartialApplication.html)。
 
 ##### 9.1.3. 使用表方式保存
-若C#程序是从DolphinDB的服务端获取表数据做处理后保存到分布式表，那么使用append!函数会更加方便，append!函数接受一个表对象作为参数，将数据追加到数据表中。
+若C#程序是从DolphinDB的服务端获取表数据做处理后保存到分布式表，tableInsert函数也可以接受一个表对象作为参数，将数据追加到数据表中。
 
 ```
 public void test_save_table(BasicTable table1)
 {
       List<IEntity> args = new  List<IEntity>(){ table1};
-      conn.run("append!{shareTable}", args);
+      conn.run("tableInsert{shareTable}", args);
 }
 ```
 #### 9.2. 将数据保存到本地磁盘表和分布式表
@@ -286,13 +286,13 @@ if(existsDatabase(dbPath)){dropDatabase(dbPath)}
 db = database(dbPath,RANGE,2018.01.01..2018.12.31)
 db.createPartitionedTable(t,tbName,'ctimestamp')
 ```
-DolphinDB提供loadTable方法可以加载分布式表，通过append!方式追加数据，具体的脚本示例如下：
+DolphinDB提供loadTable方法可以加载分布式表，通过tableInsert方式追加数据，具体的脚本示例如下：
 
 ```
 public void test_save_table(string dbPath, string tableName, BasicTable table1)
 {
     List<IEntity> args = new List<IEntity>() { table1 };
-    conn.run(String.Format("append!{{loadTable('{0}','{1}')}}", dbPath,tableName), args);
+    conn.run(String.Format("tableInsert{{loadTable('{0}','{1}')}}", dbPath,tableName), args);
 }
 ```
 
@@ -316,12 +316,12 @@ if(existsDatabase(dbPath)){dropDatabase(dbPath)}
 db = database(dbPath,RANGE,2018.01.01..2018.12.31)
 db.createPartitionedTable(t,tbName,'ctimestamp')
 ```
-DolphinDB提供loadTable方法同样可以加载本地磁盘表，通过append!追加数据。
+DolphinDB提供loadTable方法同样可以加载本地磁盘表，tableInsert追加数据。
 ```
 public void test_save_table(string dbPath, string tableName, BasicTable table1)
 {
       List<IEntity> args = new List<IEntity>() { table1 };
-      conn.run(String.Format("append!{{loadTable('{0}','{1}')}}", dbPath,tableName), args);
+      conn.run(String.Format("tableInsert{{loadTable('{0}','{1}')}}", dbPath,tableName), args);
 }
 ```
 ### 10. 循环遍历BasicTable
