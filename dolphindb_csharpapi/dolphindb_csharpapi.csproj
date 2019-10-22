@@ -126,6 +126,7 @@
     <Compile Include="io\ProgressListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RSAUtils.cs" />
+    <Compile Include="ServerExceptionUtils.cs" />
     <Compile Include="streaming\AbstractClient.cs" />
     <Compile Include="streaming\BasicMessage.cs" />
     <Compile Include="streaming\Deamon.cs" />

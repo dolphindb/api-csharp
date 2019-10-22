@@ -17,8 +17,8 @@ namespace dolphindb_csharpapi_test
     [TestClass]
     public class DBConnection_test
     {
-        private readonly string SERVER = "115.239.209.189";
-        private readonly int PORT = 18531;
+        private readonly string SERVER = "192.168.1.201";
+        private readonly int PORT = 8848;
         private readonly string USER = "admin";
         private readonly string PASSWORD = "123456";
 
@@ -33,6 +33,8 @@ namespace dolphindb_csharpapi_test
             Assert.AreEqual("备注1", ((BasicString)bt.getColumn("备注").get(0)).getString());
             DataTable dt =  bt.toDataTable();
             Assert.AreEqual("备注10", dt.Rows[9]["备注"].ToString());
+
+
         }
 
         [TestMethod]
@@ -377,6 +379,8 @@ namespace dolphindb_csharpapi_test
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
             IVector v = (BasicFloatVector)db.run("1.123f 2.2234f 3.4567f");
+
+            BasicDateTimeVector v1 = new BasicDateTimeVector(1);
             Assert.IsTrue(v.isVector());
             Assert.AreEqual(3, v.rows());
             Assert.AreEqual(2.2234, Math.Round(((BasicFloat)v.get(1)).getValue(), 4));
@@ -1608,5 +1612,20 @@ a";
             Assert.AreEqual(2, re.getValue());
         }
 
+        [TestMethod]
+        public void Test_ReLogin()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT, USER, PASSWORD);
+
+            db.run(@"if(existsDatabase('dfs://db1')) dropDatabase('dfs://db1')
+                    db = database('dfs://db1', VALUE, 1..10)
+                    t = table(1..100 as id)
+                    db.createPartitionedTable(t,'t1', 'id')");
+            db.run("logout()");
+            db.run("exec count(*) from loadTable('dfs://db1','t1')");
+            BasicInt re = (BasicInt)db.run("exec count(*) from loadTable('dfs://db1','t1')");
+            Assert.AreEqual(0, re.getValue());
+        }
     }
 }

@@ -398,7 +398,15 @@ namespace dolphindb
                     msg = @in.readLine();
                     if (!msg.Equals("OK"))
                     {
-                        throw new IOException(msg);
+                        if (ServerExceptionUtils.isNotLogin(msg))
+                        {
+                            if (userId.Length > 0 && password.Length > 0) login();
+                        }
+                        else
+                        {
+                            throw new IOException(msg);
+                        }
+                        
                     }
 
                     if (numObject == 0)
