@@ -400,8 +400,12 @@ namespace dolphindb
                     {
                         if (ServerExceptionUtils.isNotLogin(msg))
                         {
-                            if (userId.Length > 0 && password.Length > 0) login();
+                            if (userId.Length > 0 && password.Length > 0)
+                                login();
+                            else
+                                throw new IOException(msg);
                         }
+
                         else
                         {
                             throw new IOException(msg);
