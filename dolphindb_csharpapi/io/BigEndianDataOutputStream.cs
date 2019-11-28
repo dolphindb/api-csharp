@@ -163,6 +163,33 @@ namespace dolphindb.io
             }
         }
 
+        public override void writeLong2Array(Long2[] A, int startIdx, int len)
+        {
+            if (longBuf == null)
+            {
+                longBuf = new long[longBufSize];
+            }
+            int end = startIdx + len;
+            int pos = 0;
+            for (int i = startIdx; i < end; ++i)
+            {
+                if (pos >= longBufSize)
+                {
+                    writeLongArray(longBuf, 0, pos);
+                    pos = 0;
+                }
+                longBuf[pos++] = A[i].high;
+                longBuf[pos++] = A[i].low;
+            }
+            if (pos > 0)
+                writeLongArray(longBuf, 0, pos);
+        }
+
+        public override void writeLong2(Long2 v)
+        {
+            writeLong(v.high);
+            writeLong(v.low);
+        }
     }
 
 }

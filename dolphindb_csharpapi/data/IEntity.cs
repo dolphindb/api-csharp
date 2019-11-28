@@ -51,7 +51,12 @@ namespace dolphindb.data
         DT_DATASOURCE,
         DT_RESOURCE,
         DT_ANY,
+        DT_COMPRESS,
         DT_DICTIONARY,
+        DT_DATEHOUR,
+        DT_DATEMINUTE,
+        DT_IPADDR,
+        DT_INT128,
         DT_OBJECT
     }
 
@@ -64,7 +69,8 @@ namespace dolphindb.data
         TEMPORAL,
         LITERAL,
         SYSTEM,
-        MIXED
+        MIXED,
+        BINARY
     }
 
     public enum DATA_FORM
@@ -85,7 +91,9 @@ namespace dolphindb.data
         SEQ,
         VALUE,
         RANGE,
-        LIST
+        LIST,
+        COMPO,
+        HASH
     }
 
 }

@@ -20,6 +20,10 @@ namespace dolphindb.data
 
         private DATA_FORM df_;
 
+        protected static int BUF_SIZE = 4096;
+
+        protected byte[] buf = new byte[BUF_SIZE];
+
         public virtual DataTable toDataTable()
         {
             DataTable dt = buildTable();

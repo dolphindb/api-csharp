@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 namespace dolphindb.io
 {
 
@@ -32,12 +33,26 @@ namespace dolphindb.io
             return fromBytes(b8, b7, b6, b5, b4, b3, b2, b1);
         }
 
+        public override Long2 readLong2()
+        {
+            long low = readLong();
+            long high = readLong();
+		    return new Long2(high, low);
+        }
+
         public override int readUnsignedShort()
         {
             byte b1 = readAndCheckByte();
             byte b2 = readAndCheckByte();
             return fromBytes((byte)0, (byte)0, b2, b1);
         }
+
+        public override bool isLittleEndian()
+        {
+            return true;
+        }
+   
     }
+
 
 }

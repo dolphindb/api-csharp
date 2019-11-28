@@ -17,8 +17,8 @@ namespace dolphindb_csharpapi_test
     [TestClass]
     public class DBConnection_test
     {
-        private readonly string SERVER = "192.168.1.201";
-        private readonly int PORT = 8848;
+        private readonly string SERVER = "115.239.209.224";
+        private readonly int PORT = 18531;
         private readonly string USER = "admin";
         private readonly string PASSWORD = "123456";
 
@@ -1626,6 +1626,49 @@ a";
             db.run("exec count(*) from loadTable('dfs://db1','t1')");
             BasicInt re = (BasicInt)db.run("exec count(*) from loadTable('dfs://db1','t1')");
             Assert.AreEqual(0, re.getValue());
+        }
+
+        [TestMethod]
+        public void testUUID()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT, USER, PASSWORD);
+            string uuidStr = "92274dfe-d589-4598-84a3-c381592fdf3f";
+            Guid a =  Guid.Parse(uuidStr);
+            BasicUuid b = BasicUuid.fromString(uuidStr);
+		    List<IEntity> args = new List<IEntity>(1);
+            args.Add(b);
+            BasicUuid reuuid = (BasicUuid)db.run("uuid", args);
+		    BasicString re = (BasicString)db.run("string", args);
+            Assert.AreEqual(uuidStr, re.getString());
+	    }
+
+        [TestMethod]
+        public void testIPADDR6()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT, USER, PASSWORD);
+            string ipv6Str = "aba8:f04:e12c:e0aa:b967:f4bf:481c:d400";
+            BasicIPAddr b = BasicIPAddr.fromString(ipv6Str);
+            List<IEntity> args = new List<IEntity>(1);
+            args.Add(b);
+            BasicIPAddr reuuid = (BasicIPAddr)db.run("ipaddr", args);
+            BasicString re = (BasicString)db.run("string", args);
+            Assert.AreEqual(ipv6Str, re.getString());
+        }
+
+        [TestMethod]
+        public void testIPADDR4()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT, USER, PASSWORD);
+            string ipv4Str = "192.168.1.142";
+            BasicIPAddr b = BasicIPAddr.fromString(ipv4Str);
+            List<IEntity> args = new List<IEntity>(1);
+            args.Add(b);
+            BasicIPAddr reuuid = (BasicIPAddr)db.run("ipaddr", args);
+            BasicString re = (BasicString)db.run("string", args);
+            Assert.AreEqual(ipv4Str, re.getString());
         }
     }
 }

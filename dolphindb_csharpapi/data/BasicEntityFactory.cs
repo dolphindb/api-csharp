@@ -35,6 +35,9 @@ namespace dolphindb.data
             factories[(int)DATA_TYPE.DT_CODE] = new MetaCodeFactory();
             factories[(int)DATA_TYPE.DT_DATASOURCE] = new DataSourceFactory();
             factories[(int)DATA_TYPE.DT_RESOURCE] = new ResourceFactory();
+            factories[(int)DATA_TYPE.DT_UUID] = new UuidFactory();
+            factories[(int)DATA_TYPE.DT_INT128] = new Int128Factory();
+            factories[(int)DATA_TYPE.DT_IPADDR] = new IPAddrFactory();
         }
 
         public IEntity createEntity(DATA_FORM form, DATA_TYPE type, ExtendedDataInput @in)
@@ -228,6 +231,45 @@ namespace dolphindb.data
             public IVector createPairWithDefaultValue() { return new BasicDoubleVector(DATA_FORM.DF_PAIR, 2); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicDoubleMatrix(rows, columns); }
         }
+
+        private class UuidFactory : TypeFactory
+        {
+
+            public IScalar createScalar(ExtendedDataInput @in) { return new BasicUuid(@in); }
+            public IVector createVector(ExtendedDataInput @in) { return new BasicUuidVector(DATA_FORM.DF_VECTOR, @in); }
+            public IVector createPair(ExtendedDataInput @in) { return new BasicUuidVector(DATA_FORM.DF_PAIR, @in); }
+            public IMatrix createMatrix(ExtendedDataInput @in) { throw new Exception("Matrix for UUID not supported yet.");}
+            public IScalar createScalarWithDefaultValue() { return new BasicUuid(0, 0); }
+            public IVector createVectorWithDefaultValue(int size) { return new BasicUuidVector(size); }
+            public IVector createPairWithDefaultValue() { return new BasicUuidVector(DATA_FORM.DF_PAIR, 2); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { throw new Exception("Matrix for UUID not supported yet."); }
+	}
+
+        private class IPAddrFactory : TypeFactory
+        {
+
+            public IScalar createScalar(ExtendedDataInput @in) { return new BasicIPAddr(@in); }
+            public IVector createVector(ExtendedDataInput @in){ return new BasicIPAddrVector(DATA_FORM.DF_VECTOR, @in); }
+            public IVector createPair(ExtendedDataInput @in){ return new BasicIPAddrVector(DATA_FORM.DF_PAIR, @in);}
+            public IMatrix createMatrix(ExtendedDataInput @in){ throw new Exception("Matrix for IPADDR not supported yet.");}
+		    public IScalar createScalarWithDefaultValue() { return new BasicIPAddr(0, 0); }
+            public IVector createVectorWithDefaultValue(int size) { return new BasicIPAddrVector(size); }
+            public IVector createPairWithDefaultValue() { return new BasicIPAddrVector(DATA_FORM.DF_PAIR, 2); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { throw new Exception("Matrix for IPADDR not supported yet."); }
+	    }
+
+        private class Int128Factory : TypeFactory
+        {
+
+            public IScalar createScalar(ExtendedDataInput @in){ return new BasicInt128(@in);  }
+            public IVector createVector(ExtendedDataInput @in){ return new BasicInt128Vector(DATA_FORM.DF_VECTOR, @in);}
+            public IVector createPair(ExtendedDataInput @in){ return new BasicInt128Vector(DATA_FORM.DF_PAIR, @in);}
+		    public IMatrix createMatrix(ExtendedDataInput @in){ throw new Exception("Matrix for INT128 not supported yet.");}
+		    public IScalar createScalarWithDefaultValue() { return new BasicInt128(0, 0); }
+            public IVector createVectorWithDefaultValue(int size) { return new BasicInt128Vector(size); }
+            public IVector createPairWithDefaultValue() { return new BasicInt128Vector(DATA_FORM.DF_PAIR, 2); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { throw new Exception("Matrix for INT128 not supported yet."); }
+	    }
 
         private class StringFactory : TypeFactory
         {

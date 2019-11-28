@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace dolphindb.io
 {
@@ -10,6 +11,11 @@ namespace dolphindb.io
         public BigEndianDataInputStream(Stream @in) : base(@in)
         {
 
+        }
+
+        public override bool isLittleEndian()
+        {
+            return false;
         }
 
         public override int readInt()
@@ -47,6 +53,14 @@ namespace dolphindb.io
             {
                 throw ex;
             }
+        }
+
+        public override Long2 readLong2()
+        {
+
+            long high = readLong();
+            long low = readLong();
+		    return new Long2(high, low);
         }
 
         public override int readUnsignedShort()

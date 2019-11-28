@@ -6,6 +6,8 @@ namespace dolphindb.io
 
     public interface ExtendedDataInput
     {
+        bool isLittleEndian();
+
         bool readBoolean();
 
         byte readByte();
@@ -33,6 +35,8 @@ namespace dolphindb.io
         int readUnsignedByte();
 
         int skipBytes(int n);
+
+        Long2 readLong2();
 
 
     }

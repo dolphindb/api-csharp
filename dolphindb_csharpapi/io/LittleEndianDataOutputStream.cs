@@ -40,6 +40,12 @@ namespace dolphindb.io
             write((int)(0xFF & (v >> 56)));
         }
 
+        public override void writeLong2(Long2 v)
+        {
+            writeLong(v.low);
+            writeLong(v.high);
+        }
+
         public override void writeIntArray(int[] A, int startIdx, int len)
         {
             List<byte> byteSource = new List<byte>();
@@ -132,6 +138,28 @@ namespace dolphindb.io
                 write((byte[])(Array)buf, 0, pos);
             }
         }
+
+
+        public override void writeLong2Array(Long2[] A, int startIdx, int len)
+        {
+		    if (longBuf == null) {
+			    longBuf = new long[longBufSize];
+		    }
+    int end = startIdx + len;
+    int pos = 0;
+		for (int i = startIdx; i<end; ++i) {
+			if (pos >= longBufSize) {
+
+                writeLongArray(longBuf,0, pos);
+    pos = 0;
+			}
+longBuf[pos++] = A[i].low;
+			longBuf[pos++] = A[i].high;
+		}
+		if (pos > 0)
+
+            writeLongArray(longBuf, 0, pos);
+	}
     }
 
 }

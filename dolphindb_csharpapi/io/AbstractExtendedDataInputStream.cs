@@ -155,6 +155,9 @@ namespace dolphindb.io
         {
             return readUTF8((byte)0);
         }
+
+        public abstract bool isLittleEndian();
+        public abstract Long2 readLong2();
     }
 
 }

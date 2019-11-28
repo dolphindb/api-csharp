@@ -20,6 +20,8 @@
         void writeFloatArray(float[] A, int startIdx, int len);
         void writeStringArray(string[] A);
         void writeStringArray(string[] A, int startIdx, int len);
+        void writeLong2Array(Long2[] A);
+        void writeLong2Array(Long2[] A, int startIdx, int len);
         void writeBoolean(bool v);
         void writeByte(int v);
         void writeChar(char v);
@@ -30,5 +32,6 @@
         void writeUTF(string value);
         void writeInt(int value);
         void writeLong(long value);
+        void writeLong2(Long2 v);
     }
 }

@@ -14,10 +14,10 @@ namespace dolphindb.io
         private const int UTF8_STRING_LIMIT = 65535;
         protected internal const int BUF_SIZE = 4096;
         protected internal byte[] buf;
-        private static readonly int longBufSize = BUF_SIZE / 8;
-        private static readonly int intBufSize = BUF_SIZE / 4;
-        private int[] intBuf;
-        private long[] longBuf;
+        protected static readonly int longBufSize = BUF_SIZE / 8;
+        protected static readonly int intBufSize = BUF_SIZE / 4;
+        protected int[] intBuf;
+        protected long[] longBuf;
         //Stream _outStream;
         public AbstractExtendedDataOutputStream(Stream outStream) : base(outStream)
         {
@@ -435,11 +435,19 @@ namespace dolphindb.io
 
         }
 
-        public abstract void writeInt(int value);
+        
+    public void writeLong2Array(Long2[] A)
+    {
+        writeLong2Array(A, 0, A.Length);
+	}
 
-        public abstract void writeLong(long value);
+    public abstract void writeInt(int value);
 
-        public abstract void writeShort(int s);
+    public abstract void writeLong(long value);
+
+    public abstract void writeShort(int s);
+
+        public abstract void writeLong2Array(Long2[] A, int startIdx, int len);
 
         public void write(byte[] b)
         {
@@ -456,6 +464,6 @@ namespace dolphindb.io
             base.Write((byte)b);
         }
 
-
+        public abstract void writeLong2(Long2 v);
     }
 }
