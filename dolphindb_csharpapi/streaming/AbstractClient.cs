@@ -273,15 +273,19 @@ namespace dolphindb.streaming
                 dbConn.run("stopPublishTable", @params);
                 string topic = null;
                 string fullTableName = host + ":" + port + ":" + tableName;
-                lock (tableNameToTopic)
-                {
-                    topic = tableNameToTopic[fullTableName];
+                if (tableNameToTopic.Count > 0) { 
+                    lock (tableNameToTopic)
+                    {
+                        topic = tableNameToTopic[fullTableName];
+                    }
                 }
-                lock (topicToSite)
-                {
-                    Site site = topicToSite[topic];
-                    if (site != null)
-                        site.closed = true;
+                if ( topicToSite.Count>0 ) { 
+                    lock (topicToSite)
+                    {
+                        Site site = topicToSite[topic];
+                        if (site != null)
+                            site.closed = true;
+                    }
                 }
                 Console.WriteLine("Successfully unsubscribed table " + fullTableName);
             }
