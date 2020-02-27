@@ -13,6 +13,7 @@ namespace dolphindb.streaming
         protected static readonly int DEFAULT_PORT = 8849;
         protected static readonly string DEFAULT_HOST = "localhost";
         protected static readonly string DEFAULT_ACTION_NAME = "csharpStreamingApi";
+        protected string listeningHost;
         protected int listeningPort;
         protected QueueManager queueManager = new QueueManager();
         protected Dictionary<string, List<IMessage>> messageCache = new Dictionary<string, List<IMessage>>();
@@ -85,7 +86,9 @@ namespace dolphindb.streaming
                     conn.connect(site.host, site.port);
                     try
                     {
-                        string localIP = conn.LocalAddress;
+                        string localIP = listeningHost;
+                        if (localIP == null || localIP.Equals(String.Empty))
+                            localIP = conn.LocalAddress;
                         List<IEntity> @params = new List<IEntity>
                         {
                             new BasicString(localIP),
@@ -121,6 +124,14 @@ namespace dolphindb.streaming
             pThread.Start();
         }
 
+        public AbstractClient(string subscribeHost, int subscribePort)
+        {
+            listeningHost = subscribeHost;
+            listeningPort = subscribePort;
+            Deamon deamon = new Deamon(subscribePort, this);
+            pThread = new Thread(new ThreadStart(deamon.run));
+            pThread.Start();
+        }
         private void addMessageToCache(IMessage msg)
         {
             string topic = msg.getTopic();
@@ -201,7 +212,9 @@ namespace dolphindb.streaming
             dbConn.connect(host, port);
             try
             {
-                string localIP = dbConn.LocalAddress;
+                string localIP = listeningHost;
+                if (localIP == null || localIP.Equals(String.Empty))
+                    localIP = dbConn.LocalAddress;
 
                 if (!hostEndian.ContainsKey(host))
                     hostEndian.Add(host, dbConn.RemoteLittleEndian);

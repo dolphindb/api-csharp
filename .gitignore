@@ -34,3 +34,8 @@ dolphindb_csharpapi/obj/
 *.cache
 *.cache
 dolphindb_csharpapi_test/obj/Release/CoreCompileInputs.cache
+dolphindb_csharpapi/bin/Release/dolphindb_csharpapi.instr.pdb
+dolphindb_csharpapi/bin/Release/dolphindb_csharpapi.pdb
+dolphindb_csharpapi/dolphindb_csharpapi.csproj.user
+dolphindb_csharpapi/dolphindb_csharpapi.csproj.user
+*.user

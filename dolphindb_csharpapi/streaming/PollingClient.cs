@@ -14,6 +14,8 @@ namespace dolphindb.streaming
 
         public PollingClient(int subscribePort) : base(subscribePort) { }
 
+        public PollingClient(string subscribeHost, int subscribePort) : base(subscribeHost, subscribePort) { }
+
         override protected void doReconnect(Site site)
         {
             while (true)

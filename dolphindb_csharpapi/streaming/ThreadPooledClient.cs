@@ -43,6 +43,49 @@ namespace dolphindb.streaming
 
         public ThreadPooledClient() : this(DEFAULT_PORT) { }
 
+        public ThreadPooledClient(string subscribeHost, int subscribePort) : base(subscribeHost,subscribePort) {
+            Queue<IMessage> backlog = new Queue<IMessage>();
+
+            bool fillBacklog()
+            {
+                bool filled = false;
+                lock (queueHandlers)
+                {
+                    foreach (QueueHandlerBinder binder in queueHandlers.Values)
+                    {
+                        if (binder.Item1.TryTake(out List<IMessage> messages))
+                        {
+                            messages.ForEach(backlog.Enqueue);
+                            filled = true;
+                        }
+                    }
+                }
+                return filled;
+            }
+
+            void run()
+            {
+                while (true)
+                {
+                    while (backlog.Count > 0)
+                    {
+                        IMessage msg = backlog.Dequeue();
+                        QueueHandlerBinder binder;
+                        lock (queueHandlers)
+                        {
+                            binder = queueHandlers[msg.getTopic()];
+                        }
+                        HandlerRunner handlerRunner = new HandlerRunner(binder.Item2, msg);
+                        ThreadPool.QueueUserWorkItem(new WaitCallback(handlerRunner.run));
+                    }
+                    fillBacklog();
+                }
+            }
+
+            thread = new Thread(new ThreadStart(run));
+            thread.Start();
+        }
+
         public ThreadPooledClient(int subscribePort) : base(subscribePort)
         {
             Queue<IMessage> backlog = new Queue<IMessage>();

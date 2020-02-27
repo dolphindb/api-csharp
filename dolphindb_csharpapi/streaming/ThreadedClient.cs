@@ -15,6 +15,9 @@ namespace dolphindb.streaming
 
         public ThreadedClient(int subscribePort) : base(subscribePort) { }
 
+        public ThreadedClient(string subscribeHost, int subscribePort) : base(subscribeHost, subscribePort) { }
+
+
         class HandlerLooper
         {
             BlockingCollection<List<IMessage>> queue;

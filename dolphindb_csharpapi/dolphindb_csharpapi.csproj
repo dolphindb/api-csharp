@@ -67,8 +67,12 @@
     <Compile Include="data\BasicFloatMatrix.cs" />
     <Compile Include="data\BasicFloatVector.cs" />
     <Compile Include="data\BasicInt.cs" />
+    <Compile Include="data\BasicInt128.cs" />
+    <Compile Include="data\BasicInt128Vector.cs" />
     <Compile Include="data\BasicIntMatrix.cs" />
     <Compile Include="data\BasicIntVector.cs" />
+    <Compile Include="data\BasicIPAddr.cs" />
+    <Compile Include="data\BasicIPAddrVector.cs" />
     <Compile Include="data\BasicLong.cs" />
     <Compile Include="data\BasicLongMatrix.cs" />
     <Compile Include="data\BasicLongVector.cs" />
@@ -102,6 +106,8 @@
     <Compile Include="data\BasicTimestampMatrix.cs" />
     <Compile Include="data\BasicTimestampVector.cs" />
     <Compile Include="data\BasicTimeVector.cs" />
+    <Compile Include="data\BasicUuid.cs" />
+    <Compile Include="data\BasicUuidVector.cs" />
     <Compile Include="data\IDictionary.cs" />
     <Compile Include="data\IEntity.cs" />
     <Compile Include="data\IEntityFactory.cs" />
@@ -123,6 +129,7 @@
     <Compile Include="io\ExtendedDataOutput.cs" />
     <Compile Include="io\LittleEndianDataInputStream.cs" />
     <Compile Include="io\LittleEndianDataOutputStream.cs" />
+    <Compile Include="io\Long2.cs" />
     <Compile Include="io\ProgressListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RSAUtils.cs" />
