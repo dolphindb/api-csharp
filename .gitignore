@@ -39,3 +39,11 @@ dolphindb_csharpapi/bin/Release/dolphindb_csharpapi.pdb
 dolphindb_csharpapi/dolphindb_csharpapi.csproj.user
 dolphindb_csharpapi/dolphindb_csharpapi.csproj.user
 *.user
+.vs/dolphindb_csharpapi/v15/.suo
+dolphindb_csharpapi/nuget.exe
+dolphindb_csharpapi/dolphindb_csharpapi.nuspec
+dolphindb_csharpapi/dolphindb_csharpapi.1.0.0.nupkg
+dolphindb_csharpapi/release.bat
+dolphindb_csharpapi_test/obj/Release/CoreCompileInputs.cache
+dolphindb_csharpapi/obj/Release/CoreCompileInputs.cache
+.vs/dolphindb_csharpapi/v15/.suo

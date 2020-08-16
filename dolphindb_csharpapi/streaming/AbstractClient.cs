@@ -275,7 +275,9 @@ namespace dolphindb.streaming
             dbConn.connect(host, port);
             try
             {
-                string localIP = dbConn.LocalAddress;
+                string localIP = listeningHost;
+                if (localIP == null || localIP.Equals(String.Empty))
+                    localIP = dbConn.LocalAddress; 
                 List<IEntity> @params = new List<IEntity>
                 {
                     new BasicString(localIP),

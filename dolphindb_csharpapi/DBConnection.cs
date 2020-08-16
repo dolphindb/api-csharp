@@ -250,12 +250,12 @@ namespace dolphindb
             }
         }
 
-        public virtual IEntity run(string script)
+        public IEntity run(string script)
         {
             return run(script, (ProgressListener)null);
         }
 
-        public virtual bool tryReconnect()
+        public bool tryReconnect()
         {
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             socket.Connect(hostName, port);
@@ -301,7 +301,7 @@ namespace dolphindb
             return true;
         }
 
-        public virtual IEntity run(string script, ProgressListener listener)
+        public IEntity run(string script, ProgressListener listener)
         {
             lock (threadLock)
             {
@@ -455,7 +455,7 @@ namespace dolphindb
             }
         }
 
-        public virtual IEntity tryRun(string function, IList<IEntity> arguments)
+        public IEntity tryRun(string function, IList<IEntity> arguments)
         {
             if (isBusy())
             {
@@ -470,7 +470,7 @@ namespace dolphindb
             }
         }
 
-        public virtual IEntity run(string function, IList<IEntity> arguments)
+        public IEntity run(string function, IList<IEntity> arguments)
         {
             lock (threadLock)
             {
@@ -615,7 +615,7 @@ namespace dolphindb
 
         }
 
-        public virtual void tryUpload(IDictionary<string, IEntity> variableObjectMap)
+        public void tryUpload(IDictionary<string, IEntity> variableObjectMap)
         {
             if (isBusy())
             {
@@ -629,7 +629,7 @@ namespace dolphindb
             {
             }
         }
-        public virtual void upload(IDictionary<string, IEntity> variableObjectMap)
+        public void upload(IDictionary<string, IEntity> variableObjectMap)
         {
             if (variableObjectMap == null || variableObjectMap.Count == 0)
             {
@@ -745,10 +745,42 @@ namespace dolphindb
                         }
                         if (this.startup != "") run(startup);
                     }
+
+                    int numObject = int.Parse(headers[1]);
+
                     string msg = @in.readLine();
                     if (!msg.Equals("OK"))
                     {
                         throw new IOException(msg);
+                    }
+
+                    if (numObject > 0)
+                    {
+                        try
+                        {
+                            short flag = @in.readShort();
+                            int form = flag >> 8;
+                            int type = flag & 0xff;
+
+                            if (form < 0 || form > MAX_FORM_VALUE)
+                            {
+                                throw new IOException("Invalid form value: " + form);
+                            }
+                            if (type < 0 || type > MAX_TYPE_VALUE)
+                            {
+                                throw new IOException("Invalid type value: " + type);
+                            }
+
+                            DATA_FORM df = (DATA_FORM)Enum.GetValues(typeof(DATA_FORM)).GetValue(form);
+                            DATA_TYPE dt = (DATA_TYPE)Enum.GetValues(typeof(DATA_TYPE)).GetValue(type);
+
+                            IEntity re = factory.createEntity(df, dt, @in);
+                        }
+                        catch (IOException ex)
+                        {
+                            socket = null;
+                            throw ex;
+                        }
                     }
                 }
                 finally

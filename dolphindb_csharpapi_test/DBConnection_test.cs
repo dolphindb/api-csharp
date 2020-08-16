@@ -17,8 +17,8 @@ namespace dolphindb_csharpapi_test
     [TestClass]
     public class DBConnection_test
     {
-        private readonly string SERVER = "115.239.209.224";
-        private readonly int PORT = 18531;
+        private readonly string SERVER = "localhost";
+        private readonly int PORT = 8848;
         private readonly string USER = "admin";
         private readonly string PASSWORD = "123456";
 
@@ -89,11 +89,8 @@ namespace dolphindb_csharpapi_test
         public void Test_Connect_withLogin()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
-            // Assert.AreEqual(true, db.connect(SERVER, PORT,"admin","1234567"));
-            db.login("admin", "123456", false);
-            //db.login("admin", "123456", true);
-            //db.run("login('admin', '123456')");
+            bool re = db.connect(SERVER, PORT);
+            Assert.AreEqual(true, re);
         }
 
 
