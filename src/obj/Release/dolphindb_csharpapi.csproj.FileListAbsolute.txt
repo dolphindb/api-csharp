@@ -1,0 +1,10 @@
+F:\Source\openSource\api-csharp\dolphindb_csharpapi\bin\Release\dolphindb_csharpapi.dll
+F:\Source\openSource\api-csharp\dolphindb_csharpapi\bin\Release\dolphindb_csharpapi.pdb
+F:\Source\openSource\api-csharp\dolphindb_csharpapi\obj\Release\dolphindb_csharpapi.dll
+F:\Source\openSource\api-csharp\dolphindb_csharpapi\obj\Release\dolphindb_csharpapi.pdb
+F:\Source\openSource\api-csharp\dolphindb_csharpapi\obj\Release\dolphindb_csharpapi.csprojResolveAssemblyReference.cache
+F:\Source\private\api-csharp\dolphindb_csharpapi\bin\Release\dolphindb_csharpapi.dll
+F:\Source\private\api-csharp\dolphindb_csharpapi\bin\Release\dolphindb_csharpapi.pdb
+F:\Source\private\api-csharp\dolphindb_csharpapi\obj\Release\dolphindb_csharpapi.dll
+F:\Source\private\api-csharp\dolphindb_csharpapi\obj\Release\dolphindb_csharpapi.pdb
+F:\Source\private\api-csharp\dolphindb_csharpapi\obj\Release\dolphindb_csharpapi.csprojResolveAssemblyReference.cache
