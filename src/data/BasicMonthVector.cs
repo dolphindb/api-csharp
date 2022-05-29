@@ -55,6 +55,8 @@ namespace dolphindb.data
             {
                 setMonth(index, ((BasicMonth)value).getValue());
             }
+            else
+                throw new Exception("The value must be a month scalar. ");
         }
 
         public virtual void setMonth(int index, DateTime month)

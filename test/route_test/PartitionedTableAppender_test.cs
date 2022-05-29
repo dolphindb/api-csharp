@@ -18,7 +18,7 @@ namespace dolphindb_csharp_api_test.route_test
         public void createPartitionedTableAppender()
         {
 
-            IDBConnectionPool pool = new ExclusiveDBConnectionPool("localhost", 8848, "admin", "123456", 5, true, true);
+            IDBConnectionPool pool = new ExclusiveDBConnectionPool("192.168.1.37", 8848, "admin", "123456", 5, true, true);
             IDBTask conn = new BasicDBTask("dbPath = \"dfs://demohash\";if(existsDatabase(dbPath))    dropDatabase(dbPath); db = database(dbPath, HASH,[STRING, 2]);t= table(100:0,`id`valuie,[STRING,INT]);pt=db.createPartitionedTable(t,`pt,`id);");
             pool.execute(conn);
 

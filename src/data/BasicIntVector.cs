@@ -82,7 +82,10 @@ namespace dolphindb.data
 
         public override void set(int index, IScalar value)
         {
-            values[index] = Convert.ToInt32(value.getString());
+            if (value.getDataType() == DATA_TYPE.DT_INT)
+                values[index] = ((BasicInt)value).getInt();
+            else
+                values[index] = Convert.ToInt32(value.getString());
         }
 
         public virtual void setInt(int index, int value)
@@ -211,8 +214,65 @@ namespace dolphindb.data
             }
             return end;
         }
+        
+        protected override void writeVectorToBuffer(ByteBuffer buffer)
+        {
+            foreach (int val in values)
+            {
+                buffer.WriteInt(val);
+            }
+        }
 
+        public override void deserialize(int start, int count, ExtendedDataInput @in)
+        {
+            if (start + count > values.Count)
+            {
+                values.AddRange(new int[start + count - values.Count]);
+            }
+            for (int i = 0; i < count; ++i)
+            {
+                values[start + i] = @in.readInt();
+            }
+        }
 
+        public override void serialize(int start, int count, ExtendedDataOutput @out)
+        {
+            for (int i = 0; i < count; ++i)
+            {
+                @out.writeInt(values[start + i]);
+            }
+        }
+
+        public override int serialize(int indexStart, int offect, int targetNumElement, out int numElement, out int partial, ByteBuffer @out)
+        {
+            targetNumElement = Math.Min((@out.remain() / getUnitLength()), targetNumElement);
+            for (int i = 0; i < targetNumElement; ++i)
+            {
+                @out.WriteInt(values[indexStart + i]);
+            }
+            numElement = targetNumElement;
+            partial = 0;
+            return targetNumElement * 4;
+        }
+
+        public override int getUnitLength()
+        {
+            return 4;
+        }
+
+        public override void append(IScalar value)
+        {
+            values.Add(((BasicInt)value).getValue());
+        }
+
+        public override void append(IVector value)
+        {
+            values.AddRange(((BasicIntVector)value).getdataArray());
+        }
+
+        public List<int> getdataArray()
+        {
+            return values;
+        }
     }
-
 }

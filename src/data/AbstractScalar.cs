@@ -74,5 +74,12 @@ namespace dolphindb.data
         public abstract object getObject();
 
         public abstract void setObject(object value);
+
+        public void writeCompressed(ExtendedDataOutput output)
+        {
+            throw new NotImplementedException();
+        }
+
+        public abstract int hashBucket(int buckets);
     }
 }

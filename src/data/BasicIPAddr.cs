@@ -164,6 +164,18 @@ namespace dolphindb.data
             else
                 return null;
         }
+
+        public override bool Equals(object o)
+        {
+            if (!(o is BasicIPAddr) || o == null)
+            {
+                return false;
+            }
+            else
+            {
+                return getValue().equals(((BasicInt128)o).getValue());
+            }
+        }
     }
 
 }

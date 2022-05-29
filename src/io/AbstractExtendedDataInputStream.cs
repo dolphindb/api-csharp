@@ -29,12 +29,20 @@ namespace dolphindb.io
 
         public void readFully(byte[] arg0)
         {
-            base.Read(arg0, 0, arg0.Length);
+            int offect = 0;
+            do
+            {
+                offect += base.Read(arg0, offect, arg0.Length - offect);
+            } while (offect < arg0.Length);
         }
 
         public void readFully(byte[] arg0, int arg1, int arg2)
         {
-            base.Read(arg0, arg1, arg2);
+            int offect = 0;
+            do
+            {
+                offect += base.Read(arg0, arg1 + offect, arg2 - offect);
+            } while (offect < arg2);
         }
 
         public int readUnsignedByte()
@@ -91,7 +99,7 @@ namespace dolphindb.io
 
         int ExtendedDataInput.skipBytes(int n)
         {
-            throw new NotImplementedException();
+            return base.ReadByte();
         }
 
         public abstract int readInt();

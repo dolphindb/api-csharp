@@ -27,6 +27,9 @@ namespace dolphindb.data
             short flag = @in.readShort();
             int form = flag >> 8;
             int type = flag & 0xff;
+            bool extended = type >= 128;
+            if (type >= 128)
+                type -= 128;
             if (form != (int)DATA_FORM.DF_VECTOR)
             {
                 throw new IOException("The form of dictionary keys must be vector");
@@ -36,12 +39,15 @@ namespace dolphindb.data
                 throw new IOException("Invalid key type: " + type);
             }
             keyType = types[type];
-            IVector keys = (IVector)factory.createEntity(DATA_FORM.DF_VECTOR, types[type], @in);
+            IVector keys = (IVector)factory.createEntity(DATA_FORM.DF_VECTOR, types[type], @in, extended);
 
             //read value vector
             flag = @in.readShort();
             form = flag >> 8;
             type = flag & 0xff;
+            extended = type >= 128;
+            if (type >= 128)
+                type -= 128;
             if (form != (int)DATA_FORM.DF_VECTOR)
             {
                 throw new IOException("The form of dictionary values must be vector");
@@ -51,7 +57,7 @@ namespace dolphindb.data
                 throw new IOException("Invalid value type: " + type);
             }
 
-            IVector values = (IVector)factory.createEntity(DATA_FORM.DF_VECTOR, types[type], @in);
+            IVector values = (IVector)factory.createEntity(DATA_FORM.DF_VECTOR, types[type], @in, extended);
 
             if (keys.rows() != values.rows())
             {
@@ -129,6 +135,21 @@ namespace dolphindb.data
         public virtual IEntity get(IScalar key)
         {
             return dict[key];
+        }
+
+        public virtual IEntity get(string key)
+        {
+            return dict[new BasicString(key)];
+        }
+
+        public bool ContainsKey(IScalar key)
+        {
+            return dict.ContainsKey(key);
+        }
+
+        public bool ContainsKey(string key)
+        {
+            return dict.ContainsKey(new BasicString(key));
         }
 
         public virtual bool put(IScalar key, IEntity value)
@@ -310,6 +331,11 @@ namespace dolphindb.data
             return dt;
         }
         public object getObject()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void writeCompressed(ExtendedDataOutput output)
         {
             throw new NotImplementedException();
         }

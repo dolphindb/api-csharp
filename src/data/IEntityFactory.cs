@@ -4,7 +4,7 @@ namespace dolphindb.data
 {
     public interface IEntityFactory
     {
-        IEntity createEntity(DATA_FORM form, DATA_TYPE type, ExtendedDataInput @in);
+        IEntity createEntity(DATA_FORM form, DATA_TYPE type, ExtendedDataInput @in, bool extended);
         IMatrix createMatrixWithDefaultValue(DATA_TYPE type, int rows, int columns);
         IVector createVectorWithDefaultValue(DATA_TYPE type, int size);
         IVector createPairWithDefaultValue(DATA_TYPE type);

@@ -41,6 +41,29 @@ namespace dolphindb.route
 
         }
 
+        public int getPartitionKey(IScalar partitionCol)
+        {
+            if (partitionCol.getDataCategory() != cat)
+                throw new Exception("Data category incompatible.");
+            if (cat == DATA_CATEGORY.TEMPORAL && type != partitionCol.getDataType())
+            {
+                DATA_TYPE old = partitionCol.getDataType();
+                partitionCol = (IScalar)Utils.castDateTime(partitionCol, type);
+                if (partitionCol == null)
+                    throw new Exception("Can't convert type from " + old.ToString() + " to " + type.ToString());
+            }
+            int index = 0;
+            if (dict.ContainsKey(partitionCol))
+                {
+                    index = (int)dict[partitionCol];
+                }
+                else
+                {
+                    index = -1;
+                }
+            return index;
+        }
+
         public List<int> getPartitionKeys(IVector partitionCol)
         {
             if (partitionCol.getDataCategory() != cat)
@@ -57,11 +80,14 @@ namespace dolphindb.route
             List<int> keys = new List<int>(rows);
             for (int i = 0; i < rows; ++i)
             {
-                int? index = dict[partitionCol.get(i)];
-                if (index == null)
-                    keys.Add(-1);
+                if (dict.ContainsKey(partitionCol.get(i)))
+                {
+                    keys.Add((int)dict[partitionCol.get(i)]);
+                }
                 else
-                    keys.Add((int)index);
+                {
+                    keys.Add(-1);
+                }
             }
             return keys;
         }

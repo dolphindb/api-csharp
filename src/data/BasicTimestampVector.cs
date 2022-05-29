@@ -50,6 +50,8 @@ namespace dolphindb.data
             {
                 setTimestamp(index, ((BasicTimestamp)value).getValue());
             }
+            else
+                throw new Exception("The value must be a timestamp scalar. ");
         }
 
         public virtual DateTime getTimestamp(int index)
@@ -110,6 +112,8 @@ namespace dolphindb.data
                     return;
                 }
             }
+            else
+                throw new Exception("The value must be a timeStamp scalar. ");
 
         }
 

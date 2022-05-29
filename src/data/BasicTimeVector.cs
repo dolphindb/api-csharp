@@ -65,6 +65,7 @@ namespace dolphindb.data
 
         public virtual void setTime(int index, TimeSpan time)
         {
+            BasicTime.checkTimeSpanToTime(time);
             setInt(index, (int)Utils.countMilliseconds(time.Hours,time.Minutes,time.Seconds,time.Milliseconds));
         }
 
@@ -78,6 +79,7 @@ namespace dolphindb.data
             TimeSpan ts = new TimeSpan();
             if (TimeSpan.TryParse(value, out ts))
             {
+                BasicTime.checkTimeSpanToTime(ts);
                 base.set(index, new BasicInt(Utils.countMilliseconds(ts)));
                 return;
             }
@@ -88,6 +90,7 @@ namespace dolphindb.data
         {
             if (value is TimeSpan)
             {
+                BasicTime.checkTimeSpanToTime((TimeSpan)value);
                 base.add(Utils.countMilliseconds((TimeSpan)value));
             }
             else if(value is DateTime)

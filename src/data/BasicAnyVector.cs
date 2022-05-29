@@ -38,11 +38,14 @@ namespace dolphindb.data
                 short flag = @in.readShort();
                 int form = flag >> 8;
                 int type = flag & 0xff;
+                bool extended = type >= 128;
+                if (type >= 128)
+                    type -= 128;
                 //if (form != 1)
                 //assert (form == 1);
                 //if (type != 4)
                 //assert(type == 4);
-                IEntity obj = factory.createEntity((DATA_FORM)form, (DATA_TYPE)type, @in);
+                IEntity obj = factory.createEntity((DATA_FORM)form, (DATA_TYPE)type, @in, extended);
                 values[i] = obj;
             }
 
@@ -168,7 +171,35 @@ namespace dolphindb.data
             throw new Exception("BasicAnyVector.asof not supported.");
         }
 
+        public override void deserialize(int start, int count, ExtendedDataInput @in)
+        {
+            throw new NotImplementedException();
+        }
 
+        public override void serialize(int start, int count, ExtendedDataOutput @out)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override int getUnitLength()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override int serialize(int start, int count, int offect, out int numElement, out int parition, ByteBuffer @out)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void append(IScalar value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void append(IVector value)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

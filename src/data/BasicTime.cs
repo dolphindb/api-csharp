@@ -9,6 +9,7 @@ namespace dolphindb.data
 
         public BasicTime(TimeSpan value) : base((int)Utils.countMilliseconds(value.Hours,value.Minutes,value.Seconds,value.Milliseconds))
         {
+            checkTimeSpanToTime(value);
         }
 
         public BasicTime(ExtendedDataInput @in) : base(@in)
@@ -85,7 +86,13 @@ namespace dolphindb.data
             if (value != null && value.GetType() == Type.GetType("System.TimeSpan"))
             {
                 var t = (TimeSpan)value;
+                checkTimeSpanToTime(t);
                 base.setObject(Utils.countMilliseconds(t.Hours,t.Minutes,t.Seconds,t.Milliseconds));
+            }
+        }
+        public static void checkTimeSpanToTime(TimeSpan value){
+            if(value.Days != 0){
+                throw new TimeoutException("To convert BasicTime, TimeSpan's days must equal zero. ");
             }
         }
     }

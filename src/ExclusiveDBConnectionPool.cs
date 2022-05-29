@@ -59,31 +59,27 @@ namespace dolphindb
                 throw new Exception("The number of tasks can't exceed the number of connections in the pool.");
             for (int i = 0; i < taskSize; i++)
                 tasks[i].setDBConnection(conns[i]);
+            WaitHandle[] waits = new WaitHandle[taskSize];
             try
             {
                 for (int i = 0; i < taskSize; i++)
-                    ThreadPool.QueueUserWorkItem(new WaitCallback(threadexec),tasks[i]);
+                {
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(threadexec), tasks[i]);
+                    waits[i] = ((BasicDBTask)tasks[i]).WaitFor();
+                }    
             }
             catch (NotSupportedException ie)
             {
                 throw new Exception(ie.Message);
             }
-            int maxWorkerThreads, workerThreads, portThreads;
-            while (true)
-            {
-                ThreadPool.GetMaxThreads(out maxWorkerThreads, out portThreads);
-                ThreadPool.GetAvailableThreads(out workerThreads, out portThreads);
-                if (maxWorkerThreads == workerThreads+1)
-                {
-                    Console.WriteLine("Thread Finished!");
-                    break;
-                }
-            }
+
+            WaitHandle.WaitAll(waits);
         }
         private void threadexec(object obj)
         {
             IDBTask task = (IDBTask)obj;
             task.call();
+            ((BasicDBTask)task).Finish();
         }
         public void execute(IDBTask task) {
             if (conns.Count == 0)

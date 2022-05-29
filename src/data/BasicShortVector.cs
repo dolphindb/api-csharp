@@ -69,7 +69,8 @@ namespace dolphindb.data
             {
                 setShort(index, ((BasicShort)value).getValue());
             }
-                
+            else
+                throw new Exception("The value must be a short scalar. ");
         }
 
         public virtual void setShort(int index, short value)
@@ -189,7 +190,65 @@ namespace dolphindb.data
             return end;
         }
 
+        protected override void writeVectorToBuffer(ByteBuffer buffer)
+        {
+            foreach (short val in values)
+            {
+                buffer.WriteShort(val);
+            }
+        }
 
+        public override void deserialize(int start, int count, ExtendedDataInput @in)
+        {
+            if (start + count > values.Count)
+            {
+                values.AddRange(new short[start + count - values.Count]);
+            }
+            for (int i = 0; i < count; ++i)
+            {
+                values[start + i] = @in.readShort();
+            }
+        }
+
+        public override void serialize(int start, int count, ExtendedDataOutput @out)
+        {
+            for(int i = 0; i < count; ++i)
+            {
+                @out.writeShort(values[start + i]);
+            }
+        }
+
+        public override int getUnitLength()
+        {
+            return 2;
+        }
+
+        public override int serialize(int indexStart, int offect, int targetNumElement, out int numElement, out int partial, ByteBuffer @out)
+        {
+            targetNumElement = Math.Min((@out.remain() / getUnitLength()), targetNumElement);
+            for (int i = 0; i < targetNumElement; ++i)
+            {
+                @out.WriteShort(values[indexStart + i]);
+            }
+            numElement = targetNumElement;
+            partial = 0;
+            return targetNumElement * 2;
+        }
+
+        public override void append(IScalar value)
+        {
+            values.Add(((BasicShort)value).getValue());
+        }
+
+        public override void append(IVector value)
+        {
+            values.AddRange(((BasicShortVector)value).getdataArray());
+        }
+
+        public List<short> getdataArray()
+        {
+            return values;
+        }
     }
 
 }

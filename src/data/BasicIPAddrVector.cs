@@ -36,7 +36,18 @@ namespace dolphindb.data
         return new BasicIPAddr(values[index].high, values[index].low);
     }
 
-    public override DATA_TYPE getDataType()
+    public override void set(int index, IScalar value)
+    {
+        if (value.getDataType() == DATA_TYPE.DT_IPADDR)
+        {
+            values[index].high = ((BasicInt128)value).getMostSignicantBits();
+            values[index].low = ((BasicInt128)value).getLeastSignicantBits();
+            }
+        else
+            throw new Exception("The value must be a ipaddr scalar. ");
+    }
+
+        public override DATA_TYPE getDataType()
     {
         return DATA_TYPE.DT_IPADDR;
     }

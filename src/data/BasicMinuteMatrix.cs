@@ -22,6 +22,7 @@ namespace dolphindb.data
 
         public virtual void setMinute(int row, int column, TimeSpan value)
         {
+            BasicMinute.checkTimeSpanToMinute(value);
             setInt(row, column, Utils.countMinutes(value));
         }
 

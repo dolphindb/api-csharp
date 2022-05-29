@@ -10,6 +10,7 @@ namespace dolphindb.data
 
         public BasicNanoTime(TimeSpan value) : base(Utils.countNanoseconds(value))
         {
+            checkTimeSpanToNanoTime(value);
         }
 
 
@@ -71,7 +72,7 @@ namespace dolphindb.data
 
         public override bool Equals(object o)
         {
-            if (!(o is BasicMinute) || o == null)
+            if (!(o is BasicNanoTime) || o == null)
             {
                 return false;
             }
@@ -85,7 +86,14 @@ namespace dolphindb.data
         {
             if (value != null && value.GetType() == Type.GetType("System.TimeSpan"))
             {
+                checkTimeSpanToNanoTime((TimeSpan)value);
                 base.setObject(Utils.countNanoseconds((TimeSpan)value));
+            }
+        }
+
+        public static void checkTimeSpanToNanoTime(TimeSpan value){
+            if(value.Days != 0){
+                throw new TimeoutException("To convert BasicNanoTime, TimeSpan's days must equal zero. ");
             }
         }
     }

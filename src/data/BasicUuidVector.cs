@@ -30,7 +30,18 @@ namespace dolphindb.data
     {
     }
 
-    public override IScalar get(int index)
+    public override void set(int index, IScalar value)
+    {
+        if (value.getDataType() == DATA_TYPE.DT_UUID)
+        {
+            Long2 t = ((BasicInt128)value).getLong2();
+            setInt128(index, t.high, t.low);
+        }
+        else
+            throw new Exception("The value must be a uuid scalar. ");
+    }
+
+        public override IScalar get(int index)
     {
         return new BasicUuid(values[index].high, values[index].low);
     }

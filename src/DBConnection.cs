@@ -35,15 +35,15 @@ namespace dolphindb
 
     public class DBConnection
     {
-        private enum NotLeaderStatus
+        private enum ExceptionType
         {
-            NEW_LEADER, WAIT, CONN_FAIL, OTHER_EXCEPTION
+            NEW_LEADER, WAIT, CONN_FAIL, OTHER_EXCEPTION, DataNodeNoAvail, DataNodeNotReady
         }
 
         private static readonly int MAX_FORM_VALUE = Enum.GetValues(typeof(DATA_FORM)).Length - 1;
         private static readonly int MAX_TYPE_VALUE = Enum.GetValues(typeof(DATA_TYPE)).Length - 1;
 
-        private static readonly object threadLock = new object();
+        private readonly object threadLock = new object();
         private string sessionID;
         private Socket socket;
         private bool remoteLittleEndian;
@@ -72,6 +72,9 @@ namespace dolphindb
         //=============Asyntask 2021.02.04 cwj======================
         private SslStream sslStream;
         //===================================================================
+        private bool compress = false;
+
+        private int lastConnectIndex = 0;
 
         public bool isConnected
         {
@@ -85,6 +88,19 @@ namespace dolphindb
         {
             return sessionID;
         }
+
+        private int generateRequestFlag(bool clearSessionMemory)
+        {
+            int flag = 0;
+            if (asynTask)
+                flag += 4;
+            if (clearSessionMemory)
+                flag += 16;
+            if (compress)
+                flag += 64;
+            return flag;
+        }
+
         public DBConnection()
         {
             factory = new BasicEntityFactory();
@@ -103,6 +119,15 @@ namespace dolphindb
             sessionID = "";
             asynTask = asynchronousTask;
             isUseSSL = useSSL;
+        }
+
+        public DBConnection(bool asynchronousTask, bool useSSL, bool compress)
+        {
+            factory = new BasicEntityFactory();
+            sessionID = "";
+            asynTask = asynchronousTask;
+            isUseSSL = useSSL;
+            this.compress = compress;
         }
 
         public bool isBusy()
@@ -459,6 +484,11 @@ namespace dolphindb
             }
             @in = remoteLittleEndian ? new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket))) : (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket)));
 
+            if (userId.Length > 0 && password.Length > 0)
+            {
+                login();
+            }
+            if (this.startup != "") run(startup);
             return true;
         }
 
@@ -508,6 +538,9 @@ namespace dolphindb
                             flag += 4;
                         if (clearSessionMemory)
                             flag += 16;
+                        if (compress)
+                            flag += 64;
+                        string tmp = " / " + flag.ToString() + "_1_4_2";
                         @out.writeBytes(" / "+ flag.ToString() +"_1_4_2");
                         @out.writeByte('\n');
                         @out.writeBytes(body);
@@ -571,15 +604,15 @@ namespace dolphindb
                         throw new IOException("Received invalid header: " + header);
                     }
 
-                    if (reconnect)
-                    {
-                        sessionID = headers[0];
-                        if (userId.Length > 0 && password.Length > 0)
-                        {
-                            login();
-                        }
-                        if (this.startup != "") run(startup);
-                    }
+                    //if (reconnect)
+                    //{
+                    //    sessionID = headers[0];
+                    //    if (userId.Length > 0 && password.Length > 0)
+                    //    {
+                    //        login();
+                    //    }
+                    //    if (this.startup != "") run(startup);
+                    //}
                     int numObject = int.Parse(headers[1]);
 
                     msg = @in.readLine();
@@ -609,20 +642,23 @@ namespace dolphindb
                         short flag = @in.readShort();
                         int form = flag >> 8;
                         int type = flag & 0xff;
+                        bool extended = type >= 128;
+                        if (type >= 128)
+                            type -= 128;
 
                         if (form < 0 || form > MAX_FORM_VALUE)
                         {
                             throw new IOException("Invalid form value: " + form);
                         }
-                        if (type < 0 || type > MAX_TYPE_VALUE)
+                        if (type < 0 || type > (int)DATA_TYPE.DT_INT128_ARRAY || type > (int)DATA_TYPE.DT_OBJECT && type < (int)(int)DATA_TYPE.DT_BOOL_ARRAY)
                         {
                             throw new IOException("Invalid type value: " + type);
                         }
 
                         DATA_FORM df = (DATA_FORM)Enum.GetValues(typeof(DATA_FORM)).GetValue(form);
-                        DATA_TYPE dt = (DATA_TYPE)Enum.GetValues(typeof(DATA_TYPE)).GetValue(type);
+                        DATA_TYPE dt = (DATA_TYPE)type;
 
-                        return factory.createEntity(df, dt, @in);
+                        return factory.createEntity(df, dt, @in, extended);
                     }
                     catch (IOException ex)
                     {
@@ -632,12 +668,37 @@ namespace dolphindb
                 }
                 catch (Exception ex)
                 {
+                    ExceptionType status = handleNotLeaderException(ex, null);
+                    if (status == ExceptionType.NEW_LEADER)
+                        return run(script, listener, clearSessionMemory);
+                    else if (status == ExceptionType.WAIT)
+                    {
+                        if (!HAreconnect)
+                        {
+                            HAreconnect = true;
+                            for (int i = 0; i < 10; ++i)
+                            {
+                                try
+                                {
+                                    IEntity re = run(script, listener, clearSessionMemory);
+                                    HAreconnect = false;
+                                    return re;
+                                }
+                                catch (Exception e)
+                                {
+                                }
+                            }
+                        }
+                        throw ex;
+                    }else if((status == ExceptionType.DataNodeNoAvail || status == ExceptionType.DataNodeNotReady) && highAvailability){
+                        return run(script, listener, clearSessionMemory);
+                    }
                     if (socket != null || !highAvailability) { 
                         Console.WriteLine("socket not null or highAvailability is not set");
                         throw ex;
                     }
                     else if (switchToRandomAvailableSite())
-                        return run(script, listener);
+                        return run(script, listener, clearSessionMemory);
                     else
                         throw ex;
                 }
@@ -746,15 +807,15 @@ namespace dolphindb
                         throw new IOException("Received invalid header: " + header);
                     }
 
-                    if (reconnect)
-                    {
-                        sessionID = headers[0];
-                        if (userId.Length > 0 && password.Length > 0)
-                        {
-                            login();
-                        }
-                        if (this.startup != "") run(startup);
-                    }
+                    //if (reconnect)
+                    //{
+                    //    sessionID = headers[0];
+                    //    if (userId.Length > 0 && password.Length > 0)
+                    //    {
+                    //        login();
+                    //    }
+                    //    if (this.startup != "") run(startup);
+                    //}
                     int numObject = int.Parse(headers[1]);
 
                     msg = @in.readLine();
@@ -788,13 +849,13 @@ namespace dolphindb
                         {
                             throw new IOException("Invalid form value: " + form);
                         }
-                        if (type < 0 || type > MAX_TYPE_VALUE)
+                        if (type < 0 || type > (int)DATA_TYPE.DT_INT128_ARRAY || type > (int)DATA_TYPE.DT_OBJECT && type < (int)(int)DATA_TYPE.DT_BOOL_ARRAY)
                         {
                             throw new IOException("Invalid type value: " + type);
                         }
 
                         DATA_FORM df = (DATA_FORM)Enum.GetValues(typeof(DATA_FORM)).GetValue(form);
-                        DATA_TYPE dt = (DATA_TYPE)Enum.GetValues(typeof(DATA_TYPE)).GetValue(type);
+                        DATA_TYPE dt = (DATA_TYPE)type;
                         if (df != DATA_FORM.DF_VECTOR)
                             throw new IOException("Invalid input data form,should be DF_VECTOR");
                         if (dt != DATA_TYPE.DT_ANY)
@@ -809,10 +870,35 @@ namespace dolphindb
                 }
                 catch (Exception ex)
                 {
+                    ExceptionType status = handleNotLeaderException(ex, null);
+                    if (status == ExceptionType.NEW_LEADER)
+                        return run(script, listener, priority, parallelism, fetchSize);
+                    else if (status == ExceptionType.WAIT)
+                    {
+                        if (!HAreconnect)
+                        {
+                            HAreconnect = true;
+                            for (int i = 0; i < 10; ++i)
+                            {
+                                try
+                                {
+                                    IEntity re = run(script, listener, priority, parallelism, fetchSize);
+                                    HAreconnect = false;
+                                    return re;
+                                }
+                                catch (Exception e)
+                                {
+                                }
+                            }
+                        }else if((status == ExceptionType.DataNodeNoAvail || status == ExceptionType.DataNodeNotReady) && highAvailability){
+                            return run(script, listener, priority, parallelism, fetchSize);
+                        }
+                        throw ex;
+                    }
                     if (socket != null || !highAvailability)
                         throw ex;
                     else if (switchServer())
-                        return run(script, listener);
+                        return run(script, listener, priority, parallelism, fetchSize);
                     else
                         throw ex;
                 }
@@ -849,19 +935,16 @@ namespace dolphindb
                     {
                         @out.writeBytes("API " + sessionID + " ");
                         @out.writeBytes(body.Length.ToString());
-                        if (asynTask)
-                        {
-                            @out.writeBytes(" / 4_1_4_2");
-                        }
-                        else
-                        {
-                            @out.writeBytes(" / 0_1_4_2");
-                        }
+                        int flag = generateRequestFlag(false);
+                        @out.writeBytes(" / " + flag.ToString() + "_1_4_2");
                         @out.writeByte('\n');
                         @out.writeBytes(body);
                         for (int i = 0; i < arguments.Count; ++i)
                         {
-                            arguments[i].write(@out);
+                            if(compress && arguments[i].isTable())//TODO: which compress method to use
+                                arguments[i].writeCompressed((ExtendedDataOutput)@out);
+                            else
+                                arguments[i].write(@out);
                         }
                         @out.flush();
 
@@ -876,10 +959,10 @@ namespace dolphindb
                             socket = null;
                             throw ex;
                         }
-                        NotLeaderStatus status = handleNotLeaderException(ex, null);
-                        if (status == NotLeaderStatus.NEW_LEADER)
+                        ExceptionType status = handleNotLeaderException(ex, null);
+                        if (status == ExceptionType.NEW_LEADER)
                             return run(function, arguments);
-                        else if (status == NotLeaderStatus.WAIT)
+                        else if (status == ExceptionType.WAIT)
                         {
                             if (!HAreconnect)
                             {
@@ -898,6 +981,8 @@ namespace dolphindb
                                 }
                             }
                             throw ex;
+                        }else if((status == ExceptionType.DataNodeNoAvail || status == ExceptionType.DataNodeNotReady) && highAvailability){
+                            return run(function, arguments);
                         }
                         try
                         {
@@ -905,19 +990,17 @@ namespace dolphindb
                             @out = new LittleEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
                             @out.writeBytes("API " + sessionID + " ");
                             @out.writeBytes(body.Length.ToString());
-                            if (asynTask)
-                            {
-                                @out.writeBytes(" / 4_1_4_2");
-                            }
-                            else
-                            {
-                                @out.writeBytes(" / 0_1_4_2");
-                            }
+                            
+                            int flag = generateRequestFlag(false);
+                            @out.writeBytes(" / " + flag.ToString() + "_1_4_2");
                             @out.writeByte('\n');
                             @out.writeBytes(body);
                             for (int i = 0; i < arguments.Count; ++i)
                             {
-                                arguments[i].write(@out);
+                                if (compress && arguments[i].isTable())//TODO: which compress method to use
+                                    arguments[i].writeCompressed((ExtendedDataOutput)@out);
+                                else
+                                    arguments[i].write(@out);
                             }
                             @out.flush();
 
@@ -940,15 +1023,15 @@ namespace dolphindb
                         throw new IOException("Received invalid header.");
                     }
 
-                    if (reconnect)
-                    {
-                        sessionID = headers[0];
-                        if (userId.Length > 0 && password.Length > 0)
-                        {
-                            login();
-                        }
-                        if (this.startup != "") run(startup);
-                    }
+                    //if (reconnect)
+                    //{
+                    //    sessionID = headers[0];
+                    //    if (userId.Length > 0 && password.Length > 0)
+                    //    {
+                    //        login();
+                    //    }
+                    //    if (this.startup != "") run(startup);
+                    //}
                     int numObject = int.Parse(headers[1]);
 
                     string msg = @in.readLine();
@@ -967,20 +1050,23 @@ namespace dolphindb
                         short flag = @in.readShort();
                         int form = flag >> 8;
                         int type = flag & 0xff;
+                        bool extended = type >= 128;
+                        if (type >= 128)
+                            type -= 128;
 
                         if (form < 0 || form > MAX_FORM_VALUE)
                         {
                             throw new IOException("Invalid form value: " + form);
                         }
-                        if (type < 0 || type > MAX_TYPE_VALUE)
+                        if (type < 0 || type > (int)DATA_TYPE.DT_INT128_ARRAY || type > (int)DATA_TYPE.DT_OBJECT && type < (int)(int)DATA_TYPE.DT_BOOL_ARRAY)
                         {
                             throw new IOException("Invalid type value: " + type);
                         }
 
                         DATA_FORM df = (DATA_FORM)Enum.GetValues(typeof(DATA_FORM)).GetValue(form);
-                        DATA_TYPE dt = (DATA_TYPE)Enum.GetValues(typeof(DATA_TYPE)).GetValue(type);
+                        DATA_TYPE dt = (DATA_TYPE)type;
 
-                        return factory.createEntity(df, dt, @in);
+                        return factory.createEntity(df, dt, @in, extended);
                     }
                     catch (IOException ex)
                     {
@@ -990,15 +1076,15 @@ namespace dolphindb
                 }
                 catch (Exception ex)
                 {
-                    NotLeaderStatus status = handleNotLeaderException(ex, null);
-                    if (status == NotLeaderStatus.NEW_LEADER)
+                    ExceptionType status = handleNotLeaderException(ex, null);
+                    if (status == ExceptionType.NEW_LEADER)
                         return run(function, arguments);
-                    else if (status == NotLeaderStatus.WAIT)
+                    else if (status == ExceptionType.WAIT)
                     {
                         if (!HAreconnect)
                         {
                             HAreconnect = true;
-                            while (true)
+                            for(int i = 0; i < 10; ++i)
                             {
                                 try
                                 {
@@ -1012,6 +1098,8 @@ namespace dolphindb
                             }
                         }
                         throw ex;
+                    }else if((status == ExceptionType.DataNodeNoAvail || status == ExceptionType.DataNodeNotReady) && highAvailability){
+                        return run(function, arguments);
                     }
                     if (socket != null || !highAvailability)
                         throw ex;
@@ -1096,7 +1184,10 @@ namespace dolphindb
                         @out.writeBytes(body);
                         for (int i = 0; i < objects.Count; ++i)
                         {
-                            objects[i].write(@out);
+                            if (compress && objects[i].isTable())//TODO: which compress method to use
+                                objects[i].writeCompressed((ExtendedDataOutput)@out);
+                            else
+                                objects[i].write(@out);
                         }
                         @out.flush();
                     }
@@ -1110,16 +1201,17 @@ namespace dolphindb
 
                         try
                         {
-                            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                            socket.Connect(hostName, port);
-                            @out = new LittleEndianDataOutputStream(new BufferedStream(new NetworkStream(socket)));
+                            tryReconnect();
                             @out.writeBytes("API " + sessionID + " ");
                             @out.writeBytes(body.Length.ToString());
                             @out.writeByte('\n');
                             @out.writeBytes(body);
                             for (int i = 0; i < objects.Count; ++i)
                             {
-                                objects[i].write(@out);
+                                if (compress && objects[i].isTable())//TODO: which compress method to use
+                                    objects[i].writeCompressed((ExtendedDataOutput)@out);
+                                else
+                                    objects[i].write(@out);
                             }
                             @out.flush();
                             reconnect = true;
@@ -1150,15 +1242,15 @@ namespace dolphindb
                         throw new IOException("Received invalid header.");
                     }
 
-                    if (reconnect)
-                    {
-                        sessionID = headers[0];
-                        if (userId.Length > 0 && password.Length > 0)
-                        {
-                            login();
-                        }
-                        if (this.startup != "") run(startup);
-                    }
+                    //if (reconnect)
+                    //{
+                    //    sessionID = headers[0];
+                    //    if (userId.Length > 0 && password.Length > 0)
+                    //    {
+                    //        login();
+                    //    }
+                    //    if (this.startup != "") run(startup);
+                    //}
 
                     int numObject = int.Parse(headers[1]);
 
@@ -1175,20 +1267,23 @@ namespace dolphindb
                             short flag = @in.readShort();
                             int form = flag >> 8;
                             int type = flag & 0xff;
+                            bool extended = type >= 128;
+                            if (type >= 128)
+                                type -= 128;
 
                             if (form < 0 || form > MAX_FORM_VALUE)
                             {
                                 throw new IOException("Invalid form value: " + form);
                             }
-                            if (type < 0 || type > MAX_TYPE_VALUE)
+                            if (type < 0 || type > (int)DATA_TYPE.DT_INT128_ARRAY || type > (int)DATA_TYPE.DT_OBJECT && type < (int)(int)DATA_TYPE.DT_BOOL_ARRAY)
                             {
                                 throw new IOException("Invalid type value: " + type);
                             }
 
                             DATA_FORM df = (DATA_FORM)Enum.GetValues(typeof(DATA_FORM)).GetValue(form);
-                            DATA_TYPE dt = (DATA_TYPE)Enum.GetValues(typeof(DATA_TYPE)).GetValue(type);
+                            DATA_TYPE dt = (DATA_TYPE)type;
 
-                            IEntity re = factory.createEntity(df, dt, @in);
+                            IEntity re = factory.createEntity(df, dt, @in, extended);
                         }
                         catch (IOException ex)
                         {
@@ -1221,7 +1316,7 @@ namespace dolphindb
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.ToString());
-                    Console.Write(ex.StackTrace);
+                    Console.WriteLine(ex.StackTrace);
                 }
             }
         }
@@ -1278,18 +1373,10 @@ namespace dolphindb
             int tryCount = 0;
             if (highAvailabilitySites != null)
             {
-                if (tryCount < 3)
-                {
-                    hostName = mainHostName;
-                    port = mainPort;
-                }
-                else
-                {
-                    int rnd = new Random().Next(highAvailabilitySites.Length);
-                    String[] site = highAvailabilitySites[rnd].Split(':');
-                    hostName = site[0];
-                    port = int.Parse(site[1]);
-                }
+                lastConnectIndex = (lastConnectIndex + 1) % highAvailabilitySites.Length;
+                String[] site = highAvailabilitySites[lastConnectIndex].Split(':');
+                hostName = site[0];
+                port = int.Parse(site[1]);
                 tryCount++;
             }
             else {
@@ -1330,17 +1417,10 @@ namespace dolphindb
                 HAreconnect = true;
                 if(highAvailabilitySites != null)
                 {
-                    if(tryCount < 3)
-                    {
-                        ;
-                    }
-                    else
-                    {
-                        int rnd = new Random().Next(highAvailabilitySites.Length);
-                        string[] site = highAvailabilitySites[rnd].Split(':');
-                        hostName = site[0];
-                        port = Convert.ToInt32(site[1]);
-                    }
+                    lastConnectIndex = (lastConnectIndex + 1) % highAvailabilitySites.Length;
+                    string[] site = highAvailabilitySites[lastConnectIndex].Split(':');
+                    hostName = site[0];
+                    port = Convert.ToInt32(site[1]);
                     tryCount++;
                 }
                 else
@@ -1363,11 +1443,11 @@ namespace dolphindb
 
                 try
                 {
-                    Console.Write("Trying to reconnect to " + hostName + ":" + port);
+                    Console.WriteLine("Trying to reconnect to " + hostName + ":" + port);
                     if (connect())
                     {
                         HAreconnect = false;
-                        Console.Write("Successfully reconnected to " + hostName + ":" + port);
+                        Console.WriteLine("Successfully reconnected to " + hostName + ":" + port);
                         return true;
                     }
                 }
@@ -1383,7 +1463,7 @@ namespace dolphindb
             }
         }
 
-        private NotLeaderStatus handleNotLeaderException(Exception ex, String function)
+        private ExceptionType handleNotLeaderException(Exception ex, String function)
         {
             String errMsg = ex.Message;
             if (ServerExceptionUtils.isNotLeader(errMsg))
@@ -1402,7 +1482,7 @@ namespace dolphindb
                     catch (Exception e)
                     {
                     }
-                    return NotLeaderStatus.WAIT;
+                    return ExceptionType.WAIT;
                 }
                 hostName = newHostName;
                 port = newPort;
@@ -1410,16 +1490,42 @@ namespace dolphindb
                 {
                     Console.WriteLine("Got NotLeader exception. Switching to " + hostName + ":" + port);
                     if (connect())
-                        return NotLeaderStatus.NEW_LEADER;
+                        return ExceptionType.NEW_LEADER;
                     else
-                        return NotLeaderStatus.CONN_FAIL;
+                        return ExceptionType.CONN_FAIL;
                 }
                 catch (IOException e)
                 {
-                    return NotLeaderStatus.CONN_FAIL;
+                    return ExceptionType.CONN_FAIL;
                 }
             }
-            return NotLeaderStatus.OTHER_EXCEPTION;
+            else if(ex.Message.IndexOf("<DataNodeNotAvail>") != -1)
+            {
+                if(highAvailability)
+                    switchToRandomAvailableSite();
+                return ExceptionType.DataNodeNoAvail;
+            }else if(ex.Message.IndexOf("<DataNodeNotReady>") != -1)
+            {
+                if(highAvailability)
+                    switchToRandomAvailableSite();
+                return ExceptionType.DataNodeNotReady;
+            }else if (ex.Message.IndexOf("DFS is not enabled") != -1)
+            {
+                if(highAvailability)
+                    switchToRandomAvailableSite();
+                return ExceptionType.DataNodeNotReady;
+            }
+            else if (ex.Message.IndexOf("ChunkInTransaction") != -1)
+            {
+                if (highAvailability)
+                {
+                    Console.Out.WriteLine("Wait 10 seconds because " + ex.Message);
+                    Thread.Sleep(10000);
+                    switchToRandomAvailableSite();
+                }
+                return ExceptionType.DataNodeNotReady;
+            }
+            return ExceptionType.OTHER_EXCEPTION;
         }
         public static bool ValidateServerCertificate(
                         object sender,

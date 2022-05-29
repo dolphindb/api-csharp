@@ -12,28 +12,23 @@ namespace dolphindb.streaming
     {
         private TopicPoller topicPoller = null;
 
-        public PollingClient(int subscribePort) : base(subscribePort) { }
+        public PollingClient(int subscribePort) : base(DEFAULT_HOST, subscribePort) { }
 
         public PollingClient(string subscribeHost, int subscribePort) : base(subscribeHost, subscribePort) { }
 
-        override protected void doReconnect(Site site)
+        override protected bool doReconnect(SubscribeInfo subscribeInfo, Site site)
         {
-            while (true)
+            try
             {
-                try
-                {
-                    Thread.Sleep(5000);
-                    BlockingCollection<List<IMessage>> queue = subscribeInternal(site.host, site.port, site.tableName, site.actionName, null, site.msgId + 1, true, site.filter);
-                    Console.WriteLine("Successfully reconnected and subscribed " + site.host + ":" + site.port + ":" + site.tableName);
-                    topicPoller.setQueue(queue);
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Unable to subscribe table. Will try again after 5 seconds.");
-                    Console.WriteLine(ex.ToString());
-                }
+                BlockingCollection<List<IMessage>> queue = subscribeInternal(site.host, site.port, subscribeInfo.getTableName(), subscribeInfo.getActionName(), null, subscribeInfo.getMsgId() + 1, true, subscribeInfo.getFilter(), false);
+                Console.WriteLine("Successfully reconnected and subscribed " + site.host + ":" + site.port + ":" + subscribeInfo.getTableName());
+                return true;
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            return false;
         }
 
         public TopicPoller subscribe(string host, int port, string tableName, string actionName, long offset, bool reconnect, IVector filter)

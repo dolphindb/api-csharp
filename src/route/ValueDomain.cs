@@ -39,5 +39,22 @@ namespace dolphindb.route
             return keys;
         }
 
+        public int getPartitionKey(IScalar partitionCol)
+        {
+            if (partitionCol.getDataCategory() != cat)
+                throw new Exception("Data category incompatible.");
+            if (cat == DATA_CATEGORY.TEMPORAL && type != partitionCol.getDataType())
+            {
+                DATA_TYPE old = partitionCol.getDataType();
+                partitionCol = (IScalar)Utils.castDateTime(partitionCol, type);
+                if (partitionCol == null)
+                    throw new Exception("Can't convert type from " + old.ToString() + " to " + type.ToString());
+            }
+            if (type == DATA_TYPE.DT_LONG)
+                throw new Exception("Long type value can't be used as a partition column.");
+            int key = partitionCol.hashBucket(1048576);
+            return key;
+        }
+
     }
 }

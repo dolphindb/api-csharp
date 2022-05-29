@@ -9,6 +9,7 @@ using dolphindb.route;
 using System.Collections;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Data;
+using System.Threading;
 
 
 namespace dolphindb_csharp_api_test.route_test
@@ -16,17 +17,18 @@ namespace dolphindb_csharp_api_test.route_test
     [TestClass]
     public class autoFittableAppend_test
     {
-        private readonly string SERVER = "127.0.0.1";
+        private readonly string SERVER = "192.168.1.37";
         private readonly int PORT = 8848;
         private readonly string USER = "admin";
         private readonly string PASSWORD = "123456";
+
         [TestMethod]
         public void append_test()
         {
-            DBConnection conn = new DBConnection();
+            DBConnection conn = new DBConnection(false);
             conn.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("dbPath = \"dfs://demohash\";if(existsDatabase(dbPath))    dropDatabase(dbPath); db = database(dbPath, HASH,[STRING, 2]);t= table(100:0,`股票代码`股票日期`买方报价`卖方报价`时间戳`备注`timespan,[STRING,MONTH,DOUBLE,DOUBLE,DATE,STRING,TIME]);pt=db.createPartitionedTable(t,`pt,`股票代码);");
-            autoFitTableAppender aft = new autoFitTableAppender("dfs://demohash", "pt", true, conn);
+            autoFitTableAppender aft = new autoFitTableAppender("dfs://demohash", "pt", false, conn);
 
             DataTable dt = new DataTable();
             List<DataColumn> cols = new List<DataColumn>(){
@@ -48,16 +50,38 @@ namespace dolphindb_csharp_api_test.route_test
                 dr["卖方报价"] = 3333.33322145;
                 dr["时间戳"] = new DateTime(2021, 1, 26, 15, 1, 2);
                 dr["备注"] = "备注" + i.ToString();
-                dr["timespan"] = new TimeSpan(25, 15, 15, 14, 123);
+                dr["timespan"] = new TimeSpan(0, 15, 15, 14, 123);
                 dt.Rows.Add(dr);
             }
             IEntity res = aft.append(dt);
-            Assert.AreEqual(res, null);
-            //System.Threading.Thread.Sleep(3000);
+            //Assert.AreEqual(res, null);
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT, USER, PASSWORD);
-            BasicTable t = (BasicTable)db.run("select * from loadTable(\"dfs://demohash\",`pt)");
-            Assert.AreEqual(t.rows(), 1000);
+            for (int i = 0; i < 10; i++)
+            {
+                Thread.Sleep(1000);
+                try
+                {
+                    BasicLong x = (BasicLong)db.run("exec count(*) from loadTable(\"dfs://demohash\",`pt)");
+                    if (x.getValue() == 1000)
+                    {
+                        break;
+                    }
+                }
+                catch(Exception ex)
+                {
+                    BasicInt x = (BasicInt)db.run("exec count(*) from loadTable(\"dfs://demohash\",`pt)");
+                    if (x.getValue() == 1000)
+                    {
+                        break;
+                    }
+                }
+
+            }
+            BasicLong re = (BasicLong)db.run("exec count(*) from loadTable(\"dfs://demohash\",`pt)");
+            Assert.AreEqual(re.getValue(), 1000);
+            db.run("dropDatabase(\"dfs://demohash\")");
+            db.close();
 
 
         }

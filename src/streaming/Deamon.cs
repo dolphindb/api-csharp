@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Net;
 using System.Net.Sockets;
+using System.Collections.Concurrent;
 
 namespace dolphindb.streaming
 {
@@ -65,30 +66,47 @@ namespace dolphindb.streaming
             return Result;
         }
 
-        private int listeningPort = 0;
-        private MessageDispatcher dispatcher;
+        private int listeningPort_ = 0;
+        private MessageDispatcher dispatcher_;
+        private TcpListener ssocket_;
+        Thread thread_;
+        Thread rcThread;
+        private ConcurrentBag<Tuple<Thread, Socket>> parserThreads = new ConcurrentBag<Tuple<Thread, Socket>>();
+        
 
-        public Deamon(int port, MessageDispatcher dispatcher) {
-            listeningPort = port;
-            this.dispatcher = dispatcher;
+        public Deamon(string host, int port, MessageDispatcher dispatcher) {
+            listeningPort_ = port;
+            this.dispatcher_ = dispatcher;
+            IPAddress localAddr = IPAddress.Parse(host);
+            ssocket_ = new TcpListener(localAddr, listeningPort_);
+            ssocket_.Start();
+            ReconnectDetector reDetector = new ReconnectDetector(dispatcher);
+            rcThread = new Thread(reDetector.run);
+            reDetector.setRunningThread(rcThread);
+            rcThread.Start();
+        }
+
+        public void setThread(Thread thread)
+        {
+            thread_ = thread;
         }
 
         public void run()
         {
-            TcpListener ssocket = null;
             try
             {
-                IPAddress localAddr = IPAddress.Parse("0.0.0.0");
-                ssocket = new TcpListener(localAddr, listeningPort);
-                ssocket.Start();
-                while (true)
+                while (!dispatcher_.isClose())
                 {
-                    Socket socket = ssocket.AcceptSocket();
+                    Socket socket = ssocket_.AcceptSocket();
                     SetKeepAliveValues(socket, true, 30000, 5000);
-                    MessageParser listener = new MessageParser(socket, dispatcher);
+                    MessageParser listener = new MessageParser(socket, dispatcher_);
                     Thread listeningThread = new Thread(new ThreadStart(listener.run));
+                    parserThreads.Add(new Tuple<Thread, Socket>(listeningThread, socket));
                     listeningThread.Start();
                 }
+            }
+            catch (ThreadInterruptedException)
+            {
             }
             catch (Exception ex)
             {
@@ -97,11 +115,11 @@ namespace dolphindb.streaming
             }
             finally
             {
-                if (ssocket != null)
+                if (ssocket_ != null)
                 {
                     try
                     {
-                        ssocket.Stop();
+                        ssocket_.Stop();
                     }
                     catch (Exception ex)
                     {
@@ -109,6 +127,82 @@ namespace dolphindb.streaming
                         Console.Write(ex.StackTrace);
                     }
                 }
+            }
+            Console.WriteLine("Deamon thread stopped.");
+        }
+
+        public void close()
+        {
+            rcThread.Interrupt();
+            try
+            {
+                ssocket_.Stop();
+            }
+            catch (SocketException)
+            {
+
+            }
+            thread_.Interrupt();
+            foreach(Tuple<Thread, Socket> value in parserThreads)
+            {
+                value.Item2.Close();
+                value.Item1.Interrupt();
+            }
+        }
+
+        class ReconnectDetector
+        {
+            MessageDispatcher dispatcher_ = null;
+            public ReconnectDetector(MessageDispatcher d)
+            {
+                this.dispatcher_ = d;
+            }
+            private Thread thread = null;
+            public void setRunningThread(Thread runningThread)
+            {
+                thread = runningThread;
+            }
+
+            public void run()
+            {
+                ConcurrentDictionary<string, SubscribeInfo> subscribeInfos = dispatcher_.getSubscribeInfos();
+                try
+                {
+                    while (!dispatcher_.isClose())
+                    {
+                        foreach (SubscribeInfo subscribeInfo in subscribeInfos.Values)
+                        {
+                            lock (subscribeInfo)
+                            {
+                                if (!subscribeInfo.isClose())
+                                {
+                                    if (subscribeInfo.getConnectState() == ConnectState.NO_CONNECT)
+                                    {
+                                        System.Console.Out.WriteLine("try to reconnect topic " + subscribeInfo.getTopic());
+                                        dispatcher_.tryReconnect(subscribeInfo);
+                                    }
+                                    // try reconnect after 3 second when reconnecting stat
+                                    //if messageParser can't get the schema timeout 3 second, will reconnect
+                                    else if (subscribeInfo.getConnectState() == ConnectState.REQUEST && (DateTime.Now - subscribeInfo.getLastActivateTime()).Seconds > 3)
+                                    {
+                                        System.Console.Out.WriteLine("try to reconnect topic " + subscribeInfo.getTopic());
+                                        dispatcher_.tryReconnect(subscribeInfo);
+                                    }
+                                }
+                            }
+                        }
+                        Thread.Sleep(1000);
+                    }
+                }
+                catch (ThreadInterruptedException)
+                {
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                    Console.WriteLine(e.StackTrace);
+                }
+                Console.WriteLine("Deamon thread stopped.");
             }
         }
     }

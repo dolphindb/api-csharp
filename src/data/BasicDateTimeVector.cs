@@ -66,6 +66,8 @@ namespace dolphindb.data
             {
                 setDateTime(index, ((BasicDateTime)value).getValue());
             }
+            else
+                throw new Exception("The value must be a dateTime scalar. ");
         }
 
         public virtual void setDateTime(int index, DateTime dt)
@@ -107,6 +109,8 @@ namespace dolphindb.data
                     return;
                 }
             }
+            else
+                throw new Exception("The value must be a dateTime scalar. ");
 
         }
         public override IVector getSubVector(int[] indices)

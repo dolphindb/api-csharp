@@ -18,6 +18,24 @@ namespace dolphindb.route
             this.type = type;
             this.cat = cat;
         }
+
+        public int getPartitionKey(IScalar partitionCol)
+        {
+            if(partitionCol.getDataCategory() != cat)
+                throw new Exception("Data category incompatible.");
+            if(cat == DATA_CATEGORY.TEMPORAL && type != partitionCol.getDataType())
+            {
+                //类型转化
+                DATA_TYPE old = partitionCol.getDataType();
+                partitionCol = (IScalar)Utils.castDateTime(partitionCol, type);
+                if (partitionCol == null)
+                    throw new Exception("Can't convert type from " + old.ToString() + " to " + type.ToString());
+            }
+            int rows = partitionCol.rows();
+            int key = partitionCol.hashBucket(buckets);
+            return key;
+        }
+
         public List<int> getPartitionKeys(IVector partitionCol)
         {
             if(partitionCol.getDataCategory() != cat)

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using dolphindb.io;
 
 namespace dolphindb.data
 {
@@ -9,6 +10,7 @@ namespace dolphindb.data
         string getColumnName(int index);
         IList<string> getColumnNames();
         ITable getSubTable(int[] indices);
+        void writeCompressed(ExtendedDataOutput output);
     }
 
 }

@@ -7,10 +7,12 @@ namespace dolphindb.data
     public class BasicString : AbstractScalar, IComparable<BasicString>
     {
         private string value;
+        private bool isBlob;
 
-        public BasicString(string value)
+        public BasicString(string value, bool isBlob = false)
         {
             this.value = value;
+            this.isBlob = isBlob;
         }
 
         public BasicString(ExtendedDataInput @in)
@@ -56,7 +58,10 @@ namespace dolphindb.data
 
         public override DATA_TYPE getDataType()
         {
-            return DATA_TYPE.DT_STRING;
+            if(isBlob)
+                return DATA_TYPE.DT_BLOB;
+            else 
+                return DATA_TYPE.DT_STRING;
         }
 
         public override Number getNumber()
@@ -259,9 +264,10 @@ namespace dolphindb.data
             }
         }
 
-
-
-
+        public override int hashBucket(int buckets)
+        {
+            return hashBucket(this.value, buckets);
+        }
     }
 
 }

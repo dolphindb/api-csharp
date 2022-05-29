@@ -9,5 +9,6 @@ namespace dolphindb.route
     public interface Domain
     {
         List<int> getPartitionKeys(IVector partitionCol);
+        int getPartitionKey(IScalar partitionCol);
     }
 }

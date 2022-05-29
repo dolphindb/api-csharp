@@ -112,6 +112,18 @@ namespace dolphindb.data
         {
             this.value = Convert.ToInt32(value);
         }
+
+        public override int hashBucket(int buckets)
+        {
+            if (value >= 0)
+                return value % buckets;
+            else if (value == int.MinValue)
+                return -1;
+            else
+            {
+                return (int)((4294967296l + value) % buckets);
+            }
+        }
     }
 
 }

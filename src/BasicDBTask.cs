@@ -7,6 +7,8 @@
 using dolphindb.data;
 using System.Collections.Generic;
 using System;
+using System.Threading;
+
 namespace dolphindb
 {
     public class BasicDBTask:IDBTask
@@ -17,6 +19,16 @@ namespace dolphindb
         private string script;
         private List<IEntity> args;
         private DBConnection conn;
+        private WaitHandle waitHandle = new AutoResetEvent(false);
+
+        public WaitHandle WaitFor()
+        {
+            return waitHandle;
+        }
+        public void Finish()
+        {
+            ((AutoResetEvent)waitHandle).Set();
+        }
         public BasicDBTask(string script, List<IEntity> args)
         {
             this.script = script;

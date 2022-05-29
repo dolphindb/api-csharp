@@ -4,14 +4,22 @@ using dolphindb.io;
 
 namespace dolphindb.data
 {
-
     public class BasicEntityFactory : IEntityFactory
     {
+        int ARRARY_BASE = 64;
         private TypeFactory[] factories;
+        private TypeFactory[] factoriesExt;
+        private static IEntityFactory factory = new BasicEntityFactory();
+        
+        public static IEntityFactory instance()
+        {
+            return factory;
+        }
 
         public BasicEntityFactory()
         {
             factories = new TypeFactory[Enum.GetValues(typeof(DATA_TYPE)).Length];
+            factoriesExt = new TypeFactory[Enum.GetValues(typeof(DATA_TYPE)).Length];
             factories[(int)DATA_TYPE.DT_BOOL] = new BooleanFactory();
             factories[(int)DATA_TYPE.DT_BYTE] = new ByteFactory();
             factories[(int)DATA_TYPE.DT_SHORT] = new ShortFactory();
@@ -26,6 +34,7 @@ namespace dolphindb.data
             factories[(int)DATA_TYPE.DT_DATE] = new DateFactory();
             factories[(int)DATA_TYPE.DT_MONTH] = new MonthFactory();
             factories[(int)DATA_TYPE.DT_DATETIME] = new DateTimeFactory();
+            factories[(int)DATA_TYPE.DT_DATEHOUR] = new DateHourFactory();
             factories[(int)DATA_TYPE.DT_TIMESTAMP] = new TimestampFactory();
             factories[(int)DATA_TYPE.DT_NANOTIMESTAMP] = new NanoTimestampFactory();
             factories[(int)DATA_TYPE.DT_SYMBOL] = new SymbolFactory();
@@ -42,9 +51,11 @@ namespace dolphindb.data
             //2021.01.19 cwj
             factories[(int)DATA_TYPE.DT_BLOB] = new BlobFactory();
             //
+            factoriesExt[(int)DATA_TYPE.DT_SYMBOL] = new ExtendedSymbolFactory();
+
         }
 
-        public IEntity createEntity(DATA_FORM form, DATA_TYPE type, ExtendedDataInput @in)
+        public IEntity createEntity(DATA_FORM form, DATA_TYPE type, ExtendedDataInput @in, bool extend)
         {
             if (form == DATA_FORM.DF_TABLE)
             {
@@ -72,6 +83,10 @@ namespace dolphindb.data
             {
                 return new BasicAnyVector(@in);
             }
+            else if(type >= DATA_TYPE.DT_BOOL_ARRAY && type <= DATA_TYPE.DT_INT128_ARRAY)
+            {
+                return new BasicArrayVector(type, @in);
+            }
             else if (type == DATA_TYPE.DT_VOID && form == DATA_FORM.DF_SCALAR)
             {
                 @in.readBoolean();
@@ -86,7 +101,10 @@ namespace dolphindb.data
                 }
                 else if (form == DATA_FORM.DF_VECTOR)
                 {
-                    return factories[index].createVector(@in);
+                    if(!extend)
+                        return factories[index].createVector(@in);
+                    else
+                        return factoriesExt[index].createVector(@in);
                 }
                 else if (form == DATA_FORM.DF_SCALAR)
                 {
@@ -120,10 +138,24 @@ namespace dolphindb.data
         public IVector createVectorWithDefaultValue(DATA_TYPE type, int size)
         {
             int index = (int)type;
-            if (factories[index] == null)
-                return null;
+            if ((int)type > ARRARY_BASE)
+            {
+                if (size != 0)
+                {
+                    throw new Exception("If there is no value, an empty ArrayVector can only be created. ");
+                }
+                else
+                {
+                    return new BasicArrayVector(type);
+                }
+            }
             else
-                return factories[index].createVectorWithDefaultValue(size);
+            {
+                if (factories[index] == null)
+                    return null;
+                else
+                    return factories[index].createVectorWithDefaultValue(size);
+            }
         }
 
 
@@ -315,6 +347,19 @@ namespace dolphindb.data
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicStringMatrix(rows, columns); }
         }
 
+        private class ExtendedSymbolFactory : TypeFactory
+        {
+
+            public IScalar createScalar(ExtendedDataInput @in) { return new BasicString(@in); }
+            public IVector createVector(ExtendedDataInput @in) { return new BasicSymbolVector(DATA_FORM.DF_VECTOR, @in); }
+            public IVector createPair(ExtendedDataInput @in) { return new BasicSymbolVector(DATA_FORM.DF_PAIR, @in); }
+            public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicStringMatrix(@in); }
+            public IScalar createScalarWithDefaultValue() { return new BasicString(""); }
+            public IVector createVectorWithDefaultValue(int size) { return new BasicSymbolVector(size); }
+            public IVector createPairWithDefaultValue() { return new BasicStringVector(DATA_FORM.DF_PAIR, 2, true); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicStringMatrix(rows, columns); }
+        }
+
         private class DateFactory : TypeFactory
         {
             public IScalar createScalar(ExtendedDataInput @in) { return new BasicDate(@in); }
@@ -326,6 +371,7 @@ namespace dolphindb.data
             public IVector createPairWithDefaultValue() { return new BasicDateVector(DATA_FORM.DF_PAIR, 2); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicDateMatrix(rows, columns); }
         }
+
         private class DateTimeFactory : TypeFactory
         {
             public IScalar createScalar(ExtendedDataInput @in) { return new BasicDateTime(@in); }
@@ -336,6 +382,18 @@ namespace dolphindb.data
             public IVector createVectorWithDefaultValue(int size) { return new BasicDateTimeVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicDateTimeVector(DATA_FORM.DF_PAIR, 2); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicDateTimeMatrix(rows, columns); }
+        }
+
+        private class DateHourFactory : TypeFactory
+        {
+            public IScalar createScalar(ExtendedDataInput @in) { return new BasicDateHour(@in); }
+            public IVector createVector(ExtendedDataInput @in) { return new BasicDateHourVector(DATA_FORM.DF_VECTOR, @in); }
+            public IVector createPair(ExtendedDataInput @in) { return new BasicDateHourVector(DATA_FORM.DF_PAIR, @in); }
+            public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicDateHourMatrix(@in); }
+            public IScalar createScalarWithDefaultValue() { return new BasicDateHour(0); }
+            public IVector createVectorWithDefaultValue(int size) { return new BasicDateHourVector(size); }
+            public IVector createPairWithDefaultValue() { return new BasicDateHourVector(DATA_FORM.DF_PAIR, 2); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicDateHourMatrix(rows, columns); }
         }
 
         private class TimestampFactory : TypeFactory
@@ -390,7 +448,7 @@ namespace dolphindb.data
             public IVector createVector(ExtendedDataInput @in) { return new BasicSecondVector(DATA_FORM.DF_VECTOR, @in); }
             public IVector createPair(ExtendedDataInput @in) { return new BasicSecondVector(DATA_FORM.DF_PAIR, @in); }
             public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicSecondMatrix(@in); }
-            public IScalar createScalarWithDefaultValue() { return new BasicInt(0); }
+            public IScalar createScalarWithDefaultValue() { return new BasicSecond(0); }
             public IVector createVectorWithDefaultValue(int size) { return new BasicSecondVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicSecondVector(DATA_FORM.DF_PAIR, 2); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicSecondMatrix(rows, columns); }

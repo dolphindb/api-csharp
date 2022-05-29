@@ -68,7 +68,7 @@ namespace dolphindb.data
 
         public override bool Equals(object o)
         {
-            if (!(o is BasicMinute) || o == null)
+            if (!(o is BasicNanoTimestamp) || o == null)
             {
                 return false;
             }

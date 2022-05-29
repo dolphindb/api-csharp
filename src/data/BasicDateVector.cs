@@ -64,6 +64,16 @@ namespace dolphindb.data
             return typeof(BasicDate);
         }
 
+        public override void set(int index, IScalar value)
+        {
+            if (value.getDataType() == DATA_TYPE.DT_DATE)
+            {
+                setInt(index, ((BasicDate)value).getInt());
+            }
+            else
+                throw new Exception("The value must be a date scalar. ");
+        }
+
         public override void set(int index, string value)
         {
             DateTime dtm = new DateTime();

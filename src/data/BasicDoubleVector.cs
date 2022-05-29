@@ -67,7 +67,8 @@ namespace dolphindb.data
             {
                 setDouble(index, ((BasicDouble)value).getValue());
             }
-                
+            else
+                throw new Exception("The value must be a double scalar. ");
         }
 
         public virtual void setDouble(int index, double value)
@@ -174,5 +175,64 @@ namespace dolphindb.data
             return end;
         }
 
+        protected override void writeVectorToBuffer(ByteBuffer buffer)
+        {
+            foreach (double val in values)
+            {
+                buffer.WriteDouble(val);
+            }
+        }
+
+        public override void deserialize(int start, int count, ExtendedDataInput @in)
+        {
+            if (start + count > values.Count)
+            {
+                values.AddRange(new double[start + count - values.Count]);
+            }
+            for (int i = 0; i < count; ++i)
+            {
+                values[start + i] = @in.readDouble();
+            }
+        }
+
+        public override void serialize(int start, int count, ExtendedDataOutput @out)
+        {
+            for (int i = 0; i < count; ++i)
+            {
+                @out.writeDouble(values[start + i]);
+            }
+        }
+
+        public override int getUnitLength()
+        {
+            return 8;
+        }
+
+        public override int serialize(int indexStart, int offect, int targetNumElement, out int numElement, out int partial, ByteBuffer @out)
+        {
+            targetNumElement = Math.Min((@out.remain() / getUnitLength()), targetNumElement);
+            for (int i = 0; i < targetNumElement; ++i)
+            {
+                @out.WriteDouble(values[indexStart + i]);
+            }
+            numElement = targetNumElement;
+            partial = 0;
+            return targetNumElement * 8;
+        }
+
+        public override void append(IScalar value)
+        {
+            values.Add(((BasicDouble)value).getValue());
+        }
+
+        public override void append(IVector value)
+        {
+            values.AddRange(((BasicDoubleVector)value).getdataArray());
+        }
+
+        public List<double> getdataArray()
+        {
+            return values;
+        }
     }
 }

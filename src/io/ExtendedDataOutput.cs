@@ -38,5 +38,8 @@
         void writeInt(int value);
         void writeLong(long value);
         void writeLong2(Long2 v);
+
+        bool isLittleEndian();
+        void write(byte[] b, int offset, int length);
     }
 }

@@ -32,7 +32,7 @@ namespace dolphindb.route
             }
             else if (type == PARTITION_TYPE.LIST)
             {
-                DATA_TYPE dataType = partitionSchema.getDataType();
+                DATA_TYPE dataType = ((BasicAnyVector)partitionSchema).getEntity(0).getDataType();
                 DATA_CATEGORY dataCat = Utils.getCategory(dataType);
                 return new ListDomain((IVector)partitionSchema, dataType, dataCat);
             }

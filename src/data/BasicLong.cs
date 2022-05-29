@@ -120,6 +120,18 @@ namespace dolphindb.data
         {
             this.value = Convert.ToInt64(value);
         }
+
+        public override int hashBucket(int buckets)
+        {
+            if (value >= 0)
+                return (int)(value % buckets);
+            else if (value == long.MinValue)
+                return -1;
+            else
+            {
+                return (int)(((long.MaxValue % buckets) + 2 + ((long.MaxValue + value) % buckets)) % buckets);
+            }
+        }
     }
 
 }

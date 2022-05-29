@@ -4,97 +4,77 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Collections.Concurrent;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace dolphindb.streaming
 {
-
     public abstract class AbstractClient : MessageDispatcher
     {
         protected static readonly int DEFAULT_PORT = 8849;
-        protected static readonly string DEFAULT_HOST = "localhost";
+        protected static readonly string DEFAULT_HOST = "127.0.0.1";
         protected static readonly string DEFAULT_ACTION_NAME = "csharpStreamingApi";
-        protected string listeningHost;
-        protected int listeningPort;
-        protected QueueManager queueManager = new QueueManager();
-        protected Dictionary<string, List<IMessage>> messageCache = new Dictionary<string, List<IMessage>>();
-        protected Dictionary<string, string> tableNameToTopic = new Dictionary<string, string>();
-        protected Dictionary<string, bool> hostEndian = new Dictionary<string, bool>();
-        protected Thread pThread;
-        protected Dictionary<string, Site> topicToSite = new Dictionary<string, Site>();
+        protected string listeningHost_;
+        protected int listeningPort_;
+        protected Thread pThread_;
+        protected ConcurrentDictionary<string, string> HATopicToTrueTopic_ = new ConcurrentDictionary<string, string>();
 
-        protected class Site
+        protected ConcurrentDictionary<string, SubscribeInfo> subscribeInfos_ = new ConcurrentDictionary<string, SubscribeInfo>();
+        Deamon deamon_;
+        bool isClose_ = false;
+
+        public ConcurrentDictionary<string, SubscribeInfo> getSubscribeInfos()
         {
-            public string host;
-            public int port;
-            public string tableName;
-            public string actionName;
-            public MessageHandler handler;
-            public long msgId;
-            public bool reconnect;
-            public IVector filter = null;
-            public bool closed = false;
+            return subscribeInfos_;
+        }
 
-            public Site(string host, int port, string tableName, string actionName, MessageHandler handler, long msgId, bool reconnect, IVector filter)
+        abstract protected bool doReconnect(SubscribeInfo subscribeInfo, Site site);
+        
+        public string getTopicForHATopic(string HATopic)
+        {
+            string topic = null;
+            if (HATopicToTrueTopic_.TryGetValue(HATopic, out topic))
+                return topic;
+            else
             {
-                this.host = host;
-                this.port = port;
-                this.tableName = tableName;
-                this.actionName = actionName;
-                this.handler = handler;
-                this.msgId = msgId;
-                this.reconnect = reconnect;
-                this.filter = filter;
+                System.Console.Out.WriteLine("Subscription with topic " + HATopic + " doesn't exist. ");
+                return null;
             }
         }
 
-        abstract protected void doReconnect(Site site);
-
-        public void setMsgId(string topic, long msgId)
+        public bool tryReconnect(SubscribeInfo subscribeInfo)
         {
-            lock (topicToSite)
+            Site[] sites = subscribeInfo.getSites();
+            List<Site> activateSites = getActiveSites(sites);
+            foreach (Site site in activateSites)
             {
-                Site site = topicToSite[topic];
-                if (site != null)
-                    site.msgId = msgId;
+                if (doReconnect(subscribeInfo, site))
+                {
+                    return true;
+                }
             }
+            return false;
+            
         }
 
-        public void tryReconnect(string topic)
+        public List<Site> getActiveSites(Site[] sites)
         {
-            Console.WriteLine("Trigger reconnect");
-            queueManager.removeQueue(topic);
-            Site site = null;
-            lock (topicToSite)
-            {
-                site = topicToSite[topic];
-            }
-            if (site == null || !site.reconnect)
-                return;
-            tableNameToTopic.Remove(site.host + ":" + site.port + ":" + site.tableName);
-            topicToSite.Remove(topic);
-            activeCloseConnection(site);
-            doReconnect(site);
-        }
+            int siteId = 0;
+            int siteNum = sites.Length;
 
-        private void activeCloseConnection(Site site)
-        {
-            while (true)
+            List<Site> activateSites = new List<Site>();
+            while (siteId < siteNum)
             {
+                siteId = siteId % siteNum;
+                Site site = sites[siteId];
+                siteId = (siteId + 1);
                 try
                 {
                     DBConnection conn = new DBConnection();
                     conn.connect(site.host, site.port);
                     try
                     {
-                        string localIP = listeningHost;
-                        if (localIP == null || localIP.Equals(String.Empty))
-                            localIP = conn.LocalAddress;
-                        List<IEntity> @params = new List<IEntity>
-                        {
-                            new BasicString(localIP),
-                            new BasicInt(listeningPort)
-                        };
-                        conn.run("activeClosePublishConnection", @params);
+                        conn.run("1");
+                        activateSites.Add(site);
                     }
                     catch (Exception ioex)
                     {
@@ -104,52 +84,81 @@ namespace dolphindb.streaming
                     {
                         conn.close();
                     }
-                    return;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    Console.WriteLine("Unable to actively close the publish connection from site " + site.host + ":" + site.port);
+                    System.Console.Out.WriteLine(ex.Message);
+                    System.Console.Out.WriteLine(ex.StackTrace);
                 }
-                Thread.Sleep(1000);
             }
+            return activateSites;
         }
 
-        public AbstractClient() : this(DEFAULT_PORT) { }
-
-        public AbstractClient(int subscribePort)
+        public void activeCloseConnection(Site site)
         {
-            listeningPort = subscribePort;
-            Deamon deamon = new Deamon(subscribePort, this);
-            pThread = new Thread(new ThreadStart(deamon.run));
-            pThread.Start();
+            try
+            {
+                DBConnection conn = new DBConnection();
+                conn.connect(site.host, site.port);
+                try
+                {
+                    string localIP = listeningHost_;
+                    if (localIP == null || localIP.Equals(String.Empty))
+                        localIP = conn.LocalAddress;
+                    List<IEntity> @params = new List<IEntity>
+                        {
+                            new BasicString(localIP),
+                            new BasicInt(listeningPort_)
+                        };
+                    conn.run("activeClosePublishConnection", @params);
+                }
+                catch (Exception ioex)
+                {
+                    throw ioex;
+                }
+                finally
+                {
+                    conn.close();
+                }
+                return;
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Unable to actively close the publish connection from site " + site.host + ":" + site.port);
+            }
         }
 
         public AbstractClient(string subscribeHost, int subscribePort)
         {
-            listeningHost = subscribeHost;
-            listeningPort = subscribePort;
-            Deamon deamon = new Deamon(subscribePort, this);
-            pThread = new Thread(new ThreadStart(deamon.run));
-            pThread.Start();
-        }
-        private void addMessageToCache(IMessage msg)
-        {
-            string topic = msg.getTopic();
-            if (!messageCache.TryGetValue(topic, out List<IMessage> cache))
-            {
-                cache = new List<IMessage>();
-                messageCache.Add(topic, cache);
-            }
-            cache.Add(msg);
+            listeningHost_ = subscribeHost;
+            listeningPort_ = subscribePort;
+            deamon_ = new Deamon(subscribeHost, subscribePort, this);
+            pThread_ = new Thread(new ThreadStart(deamon_.run));
+            deamon_.setThread(pThread_);
+            pThread_.Start();
         }
 
-        private void flushToQueue()
+        public BlockingCollection<List<IMessage>> getQueue(string HATopic)
         {
-            foreach (string topic in messageCache.Keys)
+            string topic = getTopicForHATopic(HATopic);
+            SubscribeInfo subscribeInfo = null;
+            if (!subscribeInfos_.TryGetValue(topic, out subscribeInfo))
+            {
+                System.Console.Out.WriteLine("Subscription with topic " + topic + " doesn't exist. ");
+                return null;
+            }
+            return subscribeInfo.getQueue();
+        }
+
+        public void dispatch(IMessage msg)
+        {
+            foreach (string topic in msg.getTopic().Split(','))
             {
                 try
                 {
-                    queueManager.getQueue(topic).Add(messageCache[topic]);
+                    BlockingCollection<List<IMessage>> queue = getQueue(topic);
+                    if(queue != null)
+                        queue.Add(new List<IMessage> { msg });
                 }
                 catch (Exception ex)
                 {
@@ -157,67 +166,61 @@ namespace dolphindb.streaming
                     Console.Write(ex.StackTrace);
                 }
             }
-            messageCache.Clear();
-        }
-
-        public void dispatch(IMessage msg)
-        {
-            BlockingCollection<List<IMessage>> queue = queueManager.getQueue(msg.getTopic());
-            try
-            {
-                queue.Add(new List<IMessage> { msg });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                Console.Write(ex.StackTrace);
-            }
         }
 
         public void batchDispatch(List<IMessage> messages)
         {
+            Dictionary<string, List<IMessage>> queMap = new Dictionary<string, List<IMessage>>();
             foreach (IMessage message in messages)
             {
-                addMessageToCache(message);
+                foreach (string topic in message.getTopic().Split(','))
+                {
+                    if (!queMap.ContainsKey(topic))
+                    {
+                        queMap[topic] = new List<IMessage>();
+                    }
+                    queMap[topic].Add(message);
+                }
             }
-            flushToQueue();
-        }
-
-        public bool isRemoteLittleEndian(string host)
-        {
-            if (hostEndian.ContainsKey(host))
-                return hostEndian[host];
-            else
-                return false;
-        }
-
-        public bool isClosed(string topic)
-        {
-            lock (topicToSite)
+            foreach(KeyValuePair<string, List<IMessage>> value in queMap)
             {
-                Site site = topicToSite[topic];
-                if (site != null)
-                    return site.closed;
-                else
-                    return true;
+                try
+                {
+                    BlockingCollection<List<IMessage>> queue = getQueue(value.Key);
+                    if (queue != null)
+                        queue.Add(value.Value);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    Console.Write(ex.StackTrace);
+                }
             }
+        }
+
+        private String getTopic(String host, int port, String alias, String tableName, String actionName)
+        {
+            return String.Format("{0:G}:{1:G}:{2:G}/{3:G}/{4:G}", host, port, alias, tableName, actionName);
         }
 
         protected BlockingCollection<List<IMessage>> subscribeInternal(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter)
         {
+            return subscribeInternal(host, port, tableName, actionName, handler, offset, reconnect, filter, true);
+        }
+
+        protected BlockingCollection<List<IMessage>> subscribeInternal(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, bool createSubInfo)
+        {
             string topic = "";
             IEntity re;
+            BlockingCollection<List<IMessage>> queue;
 
             DBConnection dbConn = new DBConnection();
             dbConn.connect(host, port);
             try
             {
-                string localIP = listeningHost;
+                string localIP = listeningHost_;
                 if (localIP == null || localIP.Equals(String.Empty))
                     localIP = dbConn.LocalAddress;
-
-                if (!hostEndian.ContainsKey(host))
-                    hostEndian.Add(host, dbConn.RemoteLittleEndian);
 
                 List<IEntity> @params = new List<IEntity>
                 {
@@ -228,34 +231,82 @@ namespace dolphindb.streaming
                 topic = ((BasicAnyVector)re).getEntity(0).getString();
                 @params.Clear();
 
-                lock (tableNameToTopic)
-                {
-                    tableNameToTopic.Add(host + ":" + port + ":" + tableName, topic);
-                }
-                lock (topicToSite)
-                {
-                    topicToSite.Add(topic, new Site(host, port, tableName, actionName, handler, offset - 1, reconnect, filter));
-                }
-
                 @params.Add(new BasicString(localIP));
-                @params.Add(new BasicInt(listeningPort));
+                @params.Add(new BasicInt(listeningPort_));
                 @params.Add(new BasicString(tableName));
                 @params.Add(new BasicString(actionName));
                 @params.Add(new BasicLong(offset));
                 if (filter != null)
                     @params.Add(filter);
                 re = dbConn.run("publishTable", @params);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
+                lock (subscribeInfos_)
+                {
+                    if (createSubInfo)
+                    {
+                        Site[] sites;
+                        if (re is BasicAnyVector)
+                        {
+                            BasicStringVector HASiteStrings = (BasicStringVector)((BasicAnyVector)re).getEntity(1);
+                            int HASiteNum = HASiteStrings.rows();
+                            sites = new Site[HASiteNum];
+                            for (int i = 0; i < HASiteNum; ++i)
+                            {
+                                String HASite = HASiteStrings.get(i).getString();
+                                String[] HASiteHostAndPort = HASite.Split(':');
+                                String HASiteHost = HASiteHostAndPort[0];
+                                int HASitePort = int.Parse(HASiteHostAndPort[1]);
+                                String HASiteAlias = HASiteHostAndPort[2];
+                                sites[i] = new Site(HASiteHost, HASitePort);
+                                String HATopic = getTopic(HASiteHost, HASitePort, HASiteAlias, tableName, actionName);
+                                HATopicToTrueTopic_[HATopic] = topic;
+                            }
+                        }
+                        else
+                        {
+                            sites = new Site[] { new Site(host, port) };
+                            lock (HATopicToTrueTopic_)
+                            {
+                                HATopicToTrueTopic_[topic] = topic;
+                            }
+                        }
+                        SubscribeInfo subscribeInfo = new SubscribeInfo(DateTime.Now, new BlockingCollection<List<IMessage>>(), sites, topic, offset, reconnect, filter, handler, tableName, actionName);
+                        subscribeInfo.setConnectState(ConnectState.REQUEST);
+                        queue = subscribeInfo.getQueue();
+                        if (subscribeInfos_.ContainsKey(topic))
+                        {
+                            throw new Exception("Subscription with topic " + topic + " exist. ");
+                        }
+                        else
+                        {
+                            subscribeInfos_.TryAdd(topic, subscribeInfo);
+                        }
+                        Console.WriteLine("Successfully subscribed table " + topic);
+                    }
+                    else
+                    {
+                        SubscribeInfo subscribeInfo = null;
+                        if(!subscribeInfos_.TryGetValue(topic, out subscribeInfo))
+                        {
+                            throw new Exception("Subscription with topic " + topic + " doesn't exist. ");
+                        }
+                        lock (subscribeInfo)
+                        {
+                            if(subscribeInfo.getConnectState() == ConnectState.RECEIVED_SCHEMA)
+                            {
+                                throw new Exception("Subscription with topic " + topic + " the connection has been created. ");
+                            }
+                            subscribeInfo.setConnectState(ConnectState.REQUEST);
+                        }
+                        queue = subscribeInfo.getQueue();
+                    }
+                }
+
             }
             finally
             {
                 dbConn.close();
             }
-            
-            BlockingCollection<List<IMessage>> queue = queueManager.addQueue(topic);
+
             return queue;
         }
 
@@ -269,45 +320,41 @@ namespace dolphindb.streaming
             return subscribeInternal(host, port, tableName, DEFAULT_ACTION_NAME, offset, false);
         }
 
-        protected void unsubscribeInternal(string host, int port, string tableName, string actionName)
+        protected virtual void unsubscribeInternal(string host, int port, string tableName, string actionName)
         {
             DBConnection dbConn = new DBConnection();
             dbConn.connect(host, port);
             try
             {
-                string localIP = listeningHost;
+                string localIP = listeningHost_;
                 if (localIP == null || localIP.Equals(String.Empty))
                     localIP = dbConn.LocalAddress; 
-                List<IEntity> @params = new List<IEntity>
+                lock (subscribeInfos_)
                 {
-                    new BasicString(localIP),
-                    new BasicInt(listeningPort),
+                    List<IEntity> @params = new List<IEntity>
+                    {
                     new BasicString(tableName),
                     new BasicString(actionName)
-                };
-                dbConn.run("stopPublishTable", @params);
-                string topic = null;
-                string fullTableName = host + ":" + port + ":" + tableName;
-                if (tableNameToTopic.Count > 0) { 
-                    lock (tableNameToTopic)
+                    };
+                    IEntity re = dbConn.run("getSubscriptionTopic", @params);
+                    string topic = ((BasicAnyVector)re).getEntity(0).getString();
+                    SubscribeInfo subscribeInfo;
+                    if (!subscribeInfos_.TryRemove(topic, out subscribeInfo))
+                        throw new Exception("Subscription with topic " + topic + " doesn't exist. ");
+                    lock (subscribeInfo)
                     {
-                        topic = tableNameToTopic[fullTableName];
+                        subscribeInfo.close();
+                        @params = new List<IEntity>
+                        {
+                            new BasicString(localIP),
+                            new BasicInt(listeningPort_),
+                            new BasicString(tableName),
+                            new BasicString(actionName)
+                        };
+                        dbConn.run("stopPublishTable", @params);
                     }
+                    Console.WriteLine("Successfully unsubscribed table " + topic);
                 }
-                if ( topicToSite.Count>0 ) { 
-                    lock (topicToSite)
-                    {
-                        Site site = topicToSite[topic];
-                        if (site != null)
-                            site.closed = true;
-                    }
-                }
-                Console.WriteLine("Successfully unsubscribed table " + fullTableName);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                throw ex;
             }
             finally
             {
@@ -319,6 +366,17 @@ namespace dolphindb.streaming
         protected void unsubscribeInternal(string host, int port, string tableName)
         {
             unsubscribeInternal(host, port, tableName, DEFAULT_ACTION_NAME);
+        }
+
+        protected void close()
+        {
+            isClose_ = true;
+            deamon_.close();
+        }
+
+        public bool isClose()
+        {
+            return isClose_;
         }
     }
 }

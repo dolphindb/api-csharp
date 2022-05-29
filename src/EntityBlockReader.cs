@@ -35,8 +35,10 @@ namespace dolphindb
             short flag = instream.readShort();
             int form = flag >> 8;
             int type = flag & 0xff;
-            if(type >= 128) type -= 128;
-            currentValue = factory.createEntity((DATA_FORM)form, (DATA_TYPE)type, instream);
+            bool extended = type >= 128;
+            if (type >= 128)
+                type -= 128;
+            currentValue = factory.createEntity((DATA_FORM)form, (DATA_TYPE)type, instream, extended);
             currentIndex++;
             return currentValue;
         }
@@ -49,9 +51,10 @@ namespace dolphindb
                  short flag = instream.readShort();
                  int form = flag >> 8;
                  int type = flag & 0xff;
-                 if (type >= 128)
-                     type -= 128;
-                 currentValue = factory.createEntity((DATA_FORM)form, (DATA_TYPE)type, instream);
+                bool extended = type >= 128;
+                if (type >= 128)
+                    type -= 128;
+                currentValue = factory.createEntity((DATA_FORM)form, (DATA_TYPE)type, instream, extended);
                  currentIndex++;
              }
         }
@@ -149,6 +152,11 @@ namespace dolphindb
 {
     return false;
 }
-}
+
+        public void writeCompressed(ExtendedDataOutput output)
+        {
+            throw new NotImplementedException();
+        }
+    }
 
 }

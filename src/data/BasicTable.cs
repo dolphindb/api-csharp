@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Text;
+using dolphindb.compression;
 
 namespace dolphindb.data
 {
@@ -44,16 +45,37 @@ namespace dolphindb.data
                 short flag = @in.readShort();
                 int form = flag >> 8;
                 int type = flag & 0xff;
+                bool extended = type >= 128;
+                if (type >= 128)
+                    type -= 128;
 
                 DATA_FORM df = (DATA_FORM)form;
                 DATA_TYPE dt = (DATA_TYPE)type;
+                VectorDecompressor decompressor = null;
+                SymbolBaseCollection collection = null;
                 if (df != DATA_FORM.DF_VECTOR)
                 {
                     throw new IOException("Invalid form for column [" + names_[i] + "] for table " + _tableName);
                 }
-                IVector vector = (IVector)factory.createEntity(df, dt, @in);
+                IVector vector;
+                if (dt == DATA_TYPE.DT_SYMBOL && extended)
+                {
+                    if (collection == null)
+                        collection = new SymbolBaseCollection();
+                    vector = new BasicSymbolVector(df, @in, collection);
+                }else if (dt == DATA_TYPE.DT_COMPRESS)
+                {
+                    if (decompressor == null)
+                        decompressor = new VectorDecompressor();
+                    vector = decompressor.Decompress(factory, @in, false, true);
+                }
+                else
+                {
+                    vector = (IVector)factory.createEntity(df, dt, @in, extended);
+                }
                 if (vector.rows() != rows && vector.rows() != 1)
                 {
+                    int tmp = vector.rows();
                     throw new IOException("The number of rows for column " + names_[i] + " is not consistent with other columns");
                 }
                 columns_.Add(vector);
@@ -281,6 +303,32 @@ namespace dolphindb.data
                 vector.write(@out);
             }
         }
+        
+        public void writeCompressed(ExtendedDataOutput output){
+
+        short flag = ((short)(DATA_FORM.DF_TABLE) << 8 | 8 & 0xff); //8: table type TODO: add table type
+        output.writeShort(flag);
+
+		int rows = this.rows();
+        int cols = this.columns();
+        output.writeInt(rows);
+		output.writeInt(cols);
+		output.writeString(""); //table name
+		for (int i = 0; i<cols; i++) {
+			output.writeString(this.getColumnName(i));
+        }
+
+		for (int i = 0; i<cols; i++) {
+			AbstractVector v = (AbstractVector)this.getColumn(i);
+            if (v.getDataType() == DATA_TYPE.DT_SYMBOL)
+                    v.write((ExtendedDataOutput)output);
+            else
+                v.writeCompressed((ExtendedDataOutput)output);
+            output.flush();
+		}
+
+}
+
         /// <summary>
         /// transfer data to datatable
         /// </summary>

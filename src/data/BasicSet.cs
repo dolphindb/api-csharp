@@ -24,6 +24,9 @@ namespace dolphindb.data
             short flag = @in.readShort();
             int form = flag >> 8;
             int type = flag & 0xff;
+            bool extended = type >= 128;
+            if (type >= 128)
+                type -= 128;
             if (form != (int)DATA_FORM.DF_VECTOR)
             {
                 throw new IOException("The form of set keys must be vector");
@@ -33,7 +36,7 @@ namespace dolphindb.data
                 throw new IOException("Invalid key type: " + type);
             }
 
-            IVector keys = (IVector)factory.createEntity(DATA_FORM.DF_VECTOR, types[type], @in);
+            IVector keys = (IVector)factory.createEntity(DATA_FORM.DF_VECTOR, types[type], @in, extended);
 
             int size = keys.rows();
 
@@ -155,6 +158,11 @@ namespace dolphindb.data
             return dt;
         }
         public object getObject()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void writeCompressed(ExtendedDataOutput output)
         {
             throw new NotImplementedException();
         }

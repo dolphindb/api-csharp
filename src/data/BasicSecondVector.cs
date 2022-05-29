@@ -60,10 +60,13 @@ namespace dolphindb.data
             {
                 setSecond(index, ((BasicSecond)value).getValue());
             }
+            else
+                throw new Exception("The value must be a second scalar. ");
         }
 
         public virtual void setSecond(int index, TimeSpan time)
         {
+            BasicSecond.checkTimeSpanToSecond(time);
             setInt(index, Utils.countSeconds(time));
         }
 
@@ -84,11 +87,12 @@ namespace dolphindb.data
             long v = 0;
             if (!long.TryParse(value, out v))
             {
-                 if (TimeSpan.TryParse(value, out ts))
-                 {
-                       base.set(index, new BasicLong(Utils.countSeconds(ts)));
-                       return;
-                 }
+                if (TimeSpan.TryParse(value, out ts))
+                {
+                    BasicSecond.checkTimeSpanToSecond(ts);
+                    base.set(index, new BasicLong(Utils.countSeconds(ts)));
+                    return;
+                }
             }
             base.set(index, value);
         }
@@ -97,6 +101,7 @@ namespace dolphindb.data
         {
             if (value is TimeSpan)
             {
+                BasicSecond.checkTimeSpanToSecond((TimeSpan)value);
                 base.add(Utils.countSeconds((TimeSpan)value));
                 return;
             }

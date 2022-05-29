@@ -86,7 +86,14 @@ namespace dolphindb.data
         {
             if (value != null && value.GetType() == Type.GetType("System.TimeSpan"))
             {
+				checkTimeSpanToSecond((TimeSpan)value);
                 base.setObject(Utils.countSeconds((TimeSpan)value));
+            }
+        }
+
+        public static void checkTimeSpanToSecond(TimeSpan value){
+            if(value.Days != 0){
+                throw new TimeoutException("To convert BasicSecond, TimeSpan's days must equal zero. ");
             }
         }
     }

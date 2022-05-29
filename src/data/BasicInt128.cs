@@ -18,6 +18,15 @@ namespace dolphindb.data
             value = @in.readLong2();
         }
 
+        public static BasicInt128 fromString(String num)
+        {
+            if (num.Length != 32)
+                throw new Exception("Invalid int128 string.");
+            long high = parseLongFromScale16(num.Substring(0, 16));
+            long low = parseLongFromScale16(num.Substring(16));
+            return new BasicInt128(high, low);
+        }
+
         public Long2 getLong2()
         {
             return value;
@@ -75,7 +84,7 @@ namespace dolphindb.data
 
         public override String getString()
         {
-            return String.Format("%016x%016x", value.high, value.low);
+            return String.Format("{0:x16}", value.high) + String.Format("{0:x16}", value.low);
         }
 
         public bool equals(Object o)
@@ -96,6 +105,53 @@ namespace dolphindb.data
         protected override void writeScalarToOutputStream(ExtendedDataOutput @out)
         {
             @out.writeLong2(value);
+        }
+
+        public Long2 getValue()
+        {
+            return value;
+        }
+
+        protected static long parseLongFromScale16(string str)
+        {
+            long ret = 0;
+            for(int i = 0; i < str.Length; ++i)
+            {
+                ret *= 16;
+                char data = str[i];
+                if(data >= '0' && data <= '9')
+                {
+                    ret += data - '0';
+                }else if(data >= 'a' && data <= 'f')
+                {
+                    ret += data - 'a' + 10;
+                }
+                else if (data >= 'A' && data <= 'F')
+                {
+                    ret += data - 'A' + 10;
+                }
+                else
+                {
+                    throw new Exception("Invalid character in hexadecimal string. ");
+                }
+            }
+            return ret;
+        }
+
+        public override bool Equals(object o)
+        {
+            if (!(o is BasicInt128) || o == null)
+            {
+                return false;
+            }
+            else
+            {
+                return getValue().equals(((BasicInt128)o).getValue());
+            }
+        }
+        public override int hashBucket(int buckets)
+        {
+            return value.hashBucket(buckets);
         }
     }
 }

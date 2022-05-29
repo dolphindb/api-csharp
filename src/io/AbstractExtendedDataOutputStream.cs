@@ -207,7 +207,32 @@ namespace dolphindb.io
         {
             int len = value.Length;
             writeInt(len);
-            writeString(value);
+            int i = 0;
+            int pos = 0;
+            if (buf == null)
+                buf = new byte[BUF_SIZE];
+            do
+            {
+                while (i < len && pos < buf.Length - 4)
+                {
+                    char c = value[i++];
+                    if (c >= '\u0001' && c <= '\u007f')
+                        buf[pos++] = (byte)c;
+                    else if (c == '\u0000' || (c >= '\u0080' && c <= '\u07ff'))
+                    {
+                        buf[pos++] = (byte)(0xc0 | (0x1f & (c >> 6)));
+                        buf[pos++] = (byte)(0x80 | (0x3f & c));
+                    }
+                    else
+                    {
+                        buf[pos++] = (byte)(0xe0 | (0x0f & (c >> 12)));
+                        buf[pos++] = (byte)(0x80 | (0x3f & (c >> 6)));
+                        buf[pos++] = (byte)(0x80 | (0x3f & c));
+                    }
+                }
+                base.Write(buf, 0, pos);
+                pos = 0;
+            } while (i < len);
         }
         //
 
@@ -474,5 +499,7 @@ namespace dolphindb.io
         }
 
         public abstract void writeLong2(Long2 v);
+
+        public abstract bool isLittleEndian();
     }
 }

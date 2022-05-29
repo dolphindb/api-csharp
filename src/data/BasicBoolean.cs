@@ -115,6 +115,15 @@ namespace dolphindb.data
         {
             this.value = Convert.ToByte(value);
         }
+
+        public byte getByte()
+        {
+            return value;
+        }
+        public override int hashBucket(int buckets)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

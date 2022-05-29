@@ -60,10 +60,13 @@ namespace dolphindb.data
             {
                 setNanoTime(index, ((BasicNanoTime)value).getValue());
             }
+            else
+                throw new Exception("The value must be a nanoTime scalar. ");
         }
 
         public virtual void setNanoTime(int index, TimeSpan time)
 		{
+            BasicNanoTime.checkTimeSpanToNanoTime(time);
 			setLong(index, Utils.countNanoseconds(time));
 		}
 
@@ -91,6 +94,7 @@ namespace dolphindb.data
                     {
                         if (TimeSpan.TryParse(tmp[0], out ts))
                         {
+                            BasicNanoTime.checkTimeSpanToNanoTime(ts);
                             base.set(index, new BasicLong(Utils.countNanoseconds(ts) + nano));
                             return;
                         }
@@ -105,6 +109,7 @@ namespace dolphindb.data
         {
             if (value is TimeSpan)
             {
+                BasicNanoTime.checkTimeSpanToNanoTime((TimeSpan)value);
                 base.add(Utils.countNanoseconds((TimeSpan)value));
                 return;
             }

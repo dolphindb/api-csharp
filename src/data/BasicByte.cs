@@ -25,12 +25,12 @@ namespace dolphindb.data
 
         public override bool isNull()
         {
-            return value == byte.MinValue;
+            return value == 128;
         }
 
         public override void setNull()
         {
-            value = byte.MinValue;
+            value = 128;
         }
 
         public override DATA_CATEGORY getDataCategory()
@@ -113,6 +113,19 @@ namespace dolphindb.data
         public override void setObject(object value)
         {
             this.value = Convert.ToByte(value);
+        }
+
+        public override int hashBucket(int buckets)
+        {
+            if (value >= 0)
+                return value % buckets;
+
+            else if (value == Byte.MinValue)
+                return -1;
+            else
+            {
+                return (int)((4294967296l + value) % buckets);
+            }
         }
     }
 

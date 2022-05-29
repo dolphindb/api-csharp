@@ -142,7 +142,7 @@ namespace dolphindb.route
             {
                 int key = keys[i];
                 if (key >= 0)
-                    chunkIndices[i].Add(i);
+                    chunkIndices[key % threadCount].Add(i);
             }
             List<IDBTask> tasks = new List<IDBTask>(threadCount);
             for(int i = 0; i < threadCount; ++i)

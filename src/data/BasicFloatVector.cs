@@ -70,6 +70,8 @@ namespace dolphindb.data
             {
                 setFloat(index, ((BasicFloat)value).getValue());
             }
+            else
+                throw new Exception("The value must be a float scalar. ");
         }
 
         public virtual void setFloat(int index, float value)
@@ -176,6 +178,65 @@ namespace dolphindb.data
             return end;
         }
 
+        protected override void writeVectorToBuffer(ByteBuffer buffer)
+        {
+            foreach (float val in values)
+            {
+                buffer.WriteFloat(val);
+            }
+        }
+
+        public override void deserialize(int start, int count, ExtendedDataInput @in)
+        {
+            if (start + count > values.Count)
+            {
+                values.AddRange(new float[start + count - values.Count]);
+            }
+            for (int i = 0; i < count; ++i)
+            {
+                values[start + i] = @in.readFloat();
+            }
+        }
+
+        public override void serialize(int start, int count, ExtendedDataOutput @out)
+        {
+            for (int i = 0; i < count; ++i)
+            {
+                @out.writeFloat(values[start + i]);
+            }
+        }
+
+        public override int getUnitLength()
+        {
+            return 4;
+        }
+
+        public override int serialize(int indexStart, int offect, int targetNumElement, out int numElement, out int partial, ByteBuffer @out)
+        {
+            targetNumElement = Math.Min((@out.remain() / getUnitLength()), targetNumElement);
+            for (int i = 0; i < targetNumElement; ++i)
+            {
+                @out.WriteFloat(values[indexStart + i]);
+            }
+            numElement = targetNumElement;
+            partial = 0;
+            return targetNumElement * 4;
+        }
+
+        public override void append(IScalar value)
+        {
+            values.Add(((BasicFloat)value).getValue());
+        }
+
+        public override void append(IVector value)
+        {
+            values.AddRange(((BasicFloatVector)value).getdataArray());
+        }
+
+        public List<float> getdataArray()
+        {
+            return values;
+        }
     }
 
 }

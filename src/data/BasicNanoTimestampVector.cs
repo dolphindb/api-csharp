@@ -61,6 +61,8 @@ namespace dolphindb.data
             {
                 setNanoTimestamp(index, ((BasicNanoTimestamp)value).getValue());
             }
+            else
+                throw new Exception("The value must be a nanoTimeStamp scalar. ");
         }
 
         public virtual void setNanoTimestamp(int index, DateTime dt)

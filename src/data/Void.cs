@@ -58,6 +58,11 @@ namespace dolphindb.data
         {
             return;
         }
+
+        public override int hashBucket(int buckets)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

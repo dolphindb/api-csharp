@@ -61,10 +61,13 @@ namespace dolphindb.data
             {
                 setMinute(index, ((BasicMinute)value).getValue());
             }
+            else
+                throw new Exception("The value must be a minute scalar. ");
         }
 
         public virtual void setMinute(int index, TimeSpan time)
         {
+            BasicMinute.checkTimeSpanToMinute(time);
             setInt(index, Utils.countMinutes(time));
         }
 

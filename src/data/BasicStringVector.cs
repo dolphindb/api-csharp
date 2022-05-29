@@ -131,7 +131,8 @@ namespace dolphindb.data
             {
                 values[index] = ((BasicString)value).getString();
             }
-            
+            else
+                throw new Exception("The value must be a string scalar. ");
         }
 
         public virtual void setString(int index, string value)
@@ -191,6 +192,48 @@ namespace dolphindb.data
             
         }
 
+        public  int serialize(byte[] buf, int bufSize, int start, int elementCount, out int offect)
+        {
+            int len = 0;
+            int total = values.Count;
+            int count = 0;
+            if (isBlob)
+            {
+                while(len < bufSize && count < elementCount && start + count < total)
+                {
+                    string str = values[start + count];
+                    int strLen = str.Length;
+                    if (strLen + sizeof(int) + 1 >= bufSize - len)
+                        break;
+                    byte[] lenTmp = BitConverter.GetBytes(strLen);
+                    byte[] strTmp = System.Text.Encoding.Default.GetBytes(str);
+                    Array.Copy(strTmp, 0, buf, len, sizeof(int));
+                    Array.Copy(strTmp, 0, buf, len + sizeof(int), strLen);
+                    len += strLen + sizeof(int) + 1;
+                    buf[len - 1] = 0;
+                    count++;
+                }
+            }
+            else
+            {
+                while (len < bufSize && count < elementCount && start + count < total)
+                {
+                    string str = values[start + count];
+                    int strLen = str.Length;
+                    if (strLen + 1 >= bufSize - len)
+                        break;
+                    byte[] strTmp = System.Text.Encoding.Default.GetBytes(str);
+                    Array.Copy(strTmp, 0, buf, len, strLen);
+                    len += strLen + 1;
+                    buf[len - 1] = 0;
+                    count++;
+                }
+            }
+            offect = start + count;
+            return len;
+
+        }
+
         public override object getList()
         {
             return values;
@@ -243,8 +286,77 @@ namespace dolphindb.data
             }
             return end;
         }
+        
+        protected override void writeVectorToBuffer(ByteBuffer buffer){
+		    foreach(String val in values){
+			    byte[] tmp = System.Text.Encoding.Default.GetBytes(val);
+                buffer.WriteBytes(tmp, 0, tmp.Length);
+			    buffer.WriteByte((byte)0);
+		    }
+        }
 
+        public override void deserialize(int start, int count, ExtendedDataInput @in)
+        {
+            throw new NotImplementedException();
+        }
 
+        public override void serialize(int start, int count, ExtendedDataOutput @out)
+        {
+            for (int i = 0; i < count; ++i)
+            {
+                @out.writeString(values[start + i]);
+            }
+        }
+
+        public override int getUnitLength()
+        {
+            return 1;
+        }
+        public override int serialize(int indexStart, int offect, int targetNumElement, out int numElement, out int partial, ByteBuffer @out)
+        {
+            int readByte = 0;
+            targetNumElement = Math.Min(targetNumElement, values.Count - indexStart);
+            numElement = 0;
+            for (int i = 0; i < targetNumElement; ++i, ++numElement)
+            {
+                byte[] data = System.Text.Encoding.Default.GetBytes(values[indexStart + i]);
+                if (isBlob)
+                {
+                    if (sizeof(int) + data.Length > @out.remain())
+                        break;
+                    @out.WriteInt(data.Length);
+                    @out.WriteBytes(data);
+                    readByte += sizeof(int) + data.Length;
+                }
+                else
+                {
+                    if (sizeof(byte) + data.Length > @out.remain())
+                        break;
+                    @out.WriteBytes(data);
+                    @out.WriteByte(0);
+                    readByte += sizeof(byte) + data.Length;
+                }
+            }
+            partial = 0;
+            if(numElement == 0)
+                throw new Exception("too large data. ");
+            return readByte;
+        }
+
+        public override void append(IScalar value)
+        {
+            values.Add(((BasicString)value).getValue());
+        }
+
+        public override void append(IVector value)
+        {
+            values.AddRange(((BasicStringVector)value).getdataArray());
+        }
+
+        public List<string> getdataArray()
+        {
+            return values;
+        }
     }
 
 }

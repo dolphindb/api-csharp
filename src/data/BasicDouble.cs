@@ -12,8 +12,8 @@ namespace dolphindb.data
 
     public class BasicDouble : AbstractScalar, IComparable<BasicDouble>
     {
-        private readonly string df1 = "0.######";
-        private readonly string df2 = "0.######E0";
+        private static readonly string df1 = "0.######";
+        private static readonly string df2 = "0.######E0";
         private double value;
 
         public BasicDouble(double value)
@@ -128,6 +128,17 @@ namespace dolphindb.data
         public override void setObject(object value)
         {
             this.value = Convert.ToDouble(value);
+        }
+
+
+        public override string ToString()
+        {
+            return getString();
+        }
+
+        public override int hashBucket(int buckets)
+        {
+            throw new NotImplementedException();
         }
     }
 

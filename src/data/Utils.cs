@@ -40,7 +40,15 @@ namespace dolphindb.data
 
         public static DateTime parseMonth(int value)
         {
-            return new DateTime(value / 12, value % 12 + 1, 1);
+            try
+            {
+                return new DateTime(value / 12, value % 12 + 1, 1);
+            }
+            catch (Exception e)
+            {
+                System.Console.Out.WriteLine("Failed to parseMonth " + value + " to DateTime. ");
+                throw e;
+            }
         }
 
         public static int countDays(DateTime date)
@@ -136,6 +144,25 @@ namespace dolphindb.data
             return new DateTime(date.Year, date.Month, date.Day, hour, minute, second);
         }
 
+        public static int countHours(DateTime dt)
+        {
+            return countHours(dt.Year, dt.Month, dt.Day, dt.Hour);
+        }
+
+        public static int countHours(int year, int month, int day, int hour)
+        {
+            int days = countDays(year, month, day);
+            return days * 24 + hour;
+        }
+
+        public static DateTime parseDateHour(int hours)
+        {
+            int days = hours / 24;
+            DateTime date = Utils.parseDate(days);
+            int hour = hours % 24;
+            return new DateTime(date.Year, date.Month, date.Day, hour, 0, 0);
+        }
+
         public static long countMilliseconds(DateTime dt)
         {
             int seconds = countSeconds(dt);
@@ -157,14 +184,12 @@ namespace dolphindb.data
 
         public static long countNanoseconds(DateTime dt)
         {
-            long seconds = countSeconds(dt);
-            return seconds * 1000000000 + dt.Millisecond * 1000000;
+            return (dt.Ticks - 621355968000000000) * 100;
         }
 
         public static long countNanoseconds(TimeSpan ts)
         {
-            long seconds = countSeconds(ts);
-            return seconds * 1000000000 + ts.Milliseconds * 1000000;
+            return ts.Ticks * 100;
         }
 
         /// <summary>
@@ -355,7 +380,7 @@ namespace dolphindb.data
 
 
         public static BasicTable fillSchema(DataTable dt, Dictionary<string, DATA_TYPE> schema)
-        {           
+        {
             BasicTable bt = new BasicTable(dt);
             foreach (KeyValuePair<string, DATA_TYPE> kvp in schema)
             {
@@ -836,13 +861,73 @@ namespace dolphindb.data
                 throw new Exception("The source data must be a temporal scalar/vector.");
             switch (newDateTimeType)
             {
-                
+
                 case DATA_TYPE.DT_MONTH:
                     return toMonth(source);
                 case DATA_TYPE.DT_DATE:
                     return toDate(source);
+                case DATA_TYPE.DT_DATEHOUR:
+                    return toDateHour(source);
                 default:
                     throw new Exception("The target date/time type supports MONTH/DATE only for time being.");
+            }
+        }
+
+        public static IEntity toDateHour(IEntity source)
+        {
+            if (source.isScalar())
+            {
+                long scaleFactor = 1;
+                switch (source.getDataType())
+                {
+                    case DATA_TYPE.DT_NANOTIMESTAMP:
+                        scaleFactor = 3600000000000l;
+                        return new BasicDateHour((int)divide(((BasicNanoTimestamp)source).getLong(), scaleFactor));
+                    case DATA_TYPE.DT_TIMESTAMP:
+                        scaleFactor = 3600000;
+                        return new BasicDateHour((int)divide(((BasicTimestamp)source).getLong(), scaleFactor));
+                    case DATA_TYPE.DT_DATETIME:
+                        scaleFactor = 3600;
+                        return new BasicDateHour(divide(((BasicDateTime)source).getInt(), (int)scaleFactor));
+                    default:
+                        throw new Exception("The data type of the source data must be NANOTIMESTAMP, TIMESTAMP, or DATETIME.");
+                }
+            }
+            else
+            {
+                long scaleFactor = 1;
+                int rows = source.rows();
+                int[] values = new int[rows];
+
+                switch (source.getDataType())
+                {
+                    case DATA_TYPE.DT_NANOTIMESTAMP:
+                        scaleFactor = 3600000000000l;
+                        BasicNanoTimestampVector ntsVec = (BasicNanoTimestampVector)source;
+                        for (int i = 0; i < rows; ++i)
+                        {
+                            values[i] = (int)divide(ntsVec.getLong(i), scaleFactor);
+                        }
+                        return new BasicDateHourVector(values);
+                    case DATA_TYPE.DT_TIMESTAMP:
+                        scaleFactor = 3600000;
+                        BasicTimestampVector tsVec = (BasicTimestampVector)source;
+                        for (int i = 0; i < rows; ++i)
+                        {
+                            values[i] = (int)divide(tsVec.getLong(i), scaleFactor);
+                        }
+                        return new BasicDateHourVector(values);
+                    case DATA_TYPE.DT_DATETIME:
+                        scaleFactor = 3600;
+                        BasicDateTimeVector dtVec = (BasicDateTimeVector)source;
+                        for (int i = 0; i < rows; ++i)
+                        {
+                            values[i] = divide(dtVec.getInt(i), (int)scaleFactor);
+                        }
+                        return new BasicDateHourVector(values);
+                    default:
+                        throw new Exception("The data type of the source data must be NANOTIMESTAMP, TIMESTAMP, or DATETIME.");
+                }
             }
         }
 
@@ -866,6 +951,10 @@ namespace dolphindb.data
                     case DATA_TYPE.DT_DATETIME:
                         scaleFactor = 86400;
                         days = divide(((BasicDateTime)source).getInt(), (int)scaleFactor);
+                        return new BasicMonth(countMonths(days));
+                    case DATA_TYPE.DT_DATEHOUR:
+                        scaleFactor = 24;
+                        days = divide(((BasicDateHour)source).getInt(), (int)scaleFactor);
                         return new BasicMonth(countMonths(days));
                     case DATA_TYPE.DT_DATE:
                         return new BasicMonth(countMonths(((BasicDate)source).getInt()));
@@ -904,6 +993,14 @@ namespace dolphindb.data
                             values[i] = countMonths(divide(dtVec.getInt(i), (int)scaleFactor));
                         }
                         return new BasicMonthVector(values);
+                    case DATA_TYPE.DT_DATEHOUR:
+                        scaleFactor = 24;
+                        BasicDateHourVector dhVec = (BasicDateHourVector)source;
+                        for (int i = 0; i < rows; ++i)
+                        {
+                            values[i] = countMonths(divide(dhVec.getInt(i), (int)scaleFactor));
+                        }
+                        return new BasicMonthVector(values);
                     case DATA_TYPE.DT_DATE:
                         BasicDateVector dVec = (BasicDateVector)source;
                         for (int i = 0; i < rows; ++i)
@@ -933,6 +1030,9 @@ namespace dolphindb.data
                     case DATA_TYPE.DT_DATETIME:
                         scaleFactor = 86400;
                         return new BasicDate(divide(((BasicDateTime)source).getInt(), (int)scaleFactor));
+                    case DATA_TYPE.DT_DATEHOUR:
+                        scaleFactor = 24;
+                        return new BasicDate(divide(((BasicDateHour)source).getInt(), (int)scaleFactor));
                     default:
                         throw new Exception("The data type of the source data must be NANOTIMESTAMP, TIMESTAMP, or DATETIME.");
                 }
@@ -969,6 +1069,14 @@ namespace dolphindb.data
                             values[i] = divide(dtVec.getInt(i), (int)scaleFactor);
                         }
                         return new BasicDateVector(values);
+                    case DATA_TYPE.DT_DATEHOUR:
+                        scaleFactor = 24;
+                        BasicDateHourVector dhVec = (BasicDateHourVector)source;
+                        for (int i = 0; i < rows; ++i)
+                        {
+                            values[i] = divide(dhVec.getInt(i), (int)scaleFactor);
+                        }
+                        return new BasicDateVector(values);
                     default:
                         throw new Exception("The data type of the source data must be NANOTIMESTAMP, TIMESTAMP, or DATETIME.");
                 }
@@ -977,6 +1085,8 @@ namespace dolphindb.data
 
         public static int divide(int x, int y)
         {
+            if(x == int.MinValue)
+                return int.MinValue;
             int tmp = x / y;
             if (x >= 0)
                 return tmp;
@@ -988,6 +1098,8 @@ namespace dolphindb.data
 
         public static long divide(long x, long y)
         {
+            if(x == long.MinValue)
+                return long.MinValue;
             long tmp = x / y;
             if (x >= 0)
                 return tmp;
@@ -1032,6 +1144,381 @@ namespace dolphindb.data
             return year * 12 + month - 1;
         }
 
-    }
+        public static string getDataTypeString(DATA_TYPE dt)
+        {
+            switch (dt)
+            {
+                case DATA_TYPE.DT_BOOL:
+                    return "BOOL";
+                    break;
+                case DATA_TYPE.DT_BYTE:
+                    return "BYTE";
+                    break;
+                case DATA_TYPE.DT_SHORT:
+                    return "SHORT";
+                    break;
+                case DATA_TYPE.DT_INT:
+                    return "INT";
+                    break;
+                case DATA_TYPE.DT_LONG:
+                    return "LONG";
+                    break;
+                case DATA_TYPE.DT_FLOAT:
+                    return "FLOAT";
+                    break;
+                case DATA_TYPE.DT_DOUBLE:
+                    return "DOUBLE";
+                    break;
+                case DATA_TYPE.DT_NANOTIME:
+                    return "NANOTIME";
+                    break;
+                case DATA_TYPE.DT_NANOTIMESTAMP:
+                    return "NANOTIMESTAMP";
+                    break;
+                case DATA_TYPE.DT_TIMESTAMP:
+                    return "TIMESTAMP";
+                    break;
+                case DATA_TYPE.DT_DATE:
+                    return "DATE";
+                    break;
+                case DATA_TYPE.DT_MONTH:
+                    return "MONTH";
+                    break;
+                case DATA_TYPE.DT_TIME:
+                    return "TIME";
+                    break;
+                case DATA_TYPE.DT_SECOND:
+                    return "SECONDE";
+                    break;
+                case DATA_TYPE.DT_MINUTE:
+                    return "MINUTE";
+                    break;
+                case DATA_TYPE.DT_DATETIME:
+                    return "DATETIME";
+                    break;
+                case DATA_TYPE.DT_INT128:
+                    return "INT128";
+                    break;
+                case DATA_TYPE.DT_IPADDR:
+                    return "IPADDR";
+                    break;
+                case DATA_TYPE.DT_UUID:
+                    return "UUID";
+                    break;
+                case DATA_TYPE.DT_STRING:
+                    return "STRING";
+                    break;
+                case DATA_TYPE.DT_SYMBOL:
+                    return "DT_SYMBOL";
+                    break;
+                default:
+                    return ((int)dt).ToString();
+            }
+        }
 
+        public static IEntity createObject(DATA_TYPE dt, Object value)
+        {
+            if(value == null){
+                return createNULLObject(dt);
+            }
+            else if (value is bool)
+            {
+                return createObject(dt, (bool)value);
+            }
+            else if (value is bool[])
+            {
+                return createObject(dt, (bool[])value);
+            }
+            else if (value is byte)
+            {
+                return createObject(dt, (byte)value);
+            }
+            else if (value is byte[])
+            {
+                return createObject(dt, (byte[])value);
+            }
+            else if (value is short)
+            {
+                return createObject(dt, (short)value);
+            }
+            else if (value is short[])
+            {
+                return createObject(dt, (short[])value);
+            }
+            else if (value is int)
+            {
+                return createObject(dt, (int)value);
+            }
+            else if (value is int[])
+            {
+                return createObject(dt, (int[])value);
+            }
+            else if(value is long)
+            {
+                return createObject(dt, (long)value);
+            }
+            else if (value is long[])
+            {
+                return createObject(dt, (long[])value);
+            }
+            else if (value is float)
+            {
+                return createObject(dt, (float)value);
+            }
+            else if (value is float[])
+            {
+                return createObject(dt, (float[])value);
+            }
+            else if (value is double)
+            {
+                return createObject(dt, (double)value);
+            }
+            else if (value is double[])
+            {
+                return createObject(dt, (double[])value);
+            }
+            else if (value is string)
+            {
+                return createObject(dt, (string)value);
+            }
+            else if (value is string[])
+            {
+                return createObject(dt, (string[])value);
+            }
+            else if (value is DateTime)
+            {
+                return createObject(dt, (DateTime)value);
+            }
+            else if (value is DateTime[])
+            {
+                return createObject(dt, (DateTime[])value);
+            }
+            else if (value is TimeSpan)
+            {
+                return createObject(dt, (TimeSpan)value);
+            }
+            else if (value is TimeSpan[])
+            {
+                return createObject(dt, (TimeSpan[])value);
+            }
+            else if(value is IEntity)
+            {
+                return (IEntity)value;
+            }
+            throw new Exception("Failed to insert data,  Cannot convert " + getDataTypeString(dt));
+        }
+
+        public static IEntity createObject(DATA_TYPE dt, bool value)
+        {
+
+            switch (dt)
+            {
+                case DATA_TYPE.DT_BOOL:
+                    return new BasicBoolean(value);
+                    break;
+                default: break;
+            }
+            throw new Exception("Failed to insert data. Cannot convert bool to" + getDataTypeString(dt));
+        }
+
+        public static IEntity createObject(DATA_TYPE dt, long value, string typeName)
+        {
+            switch (dt)
+            {
+                case DATA_TYPE.DT_LONG:
+                    return new BasicLong(value);
+                    break;
+                case DATA_TYPE.DT_INT:
+                    if (value >= int.MinValue && value <= int.MaxValue)
+                        return new BasicInt((int)value);
+                    else
+                        throw new Exception("Failed to insert data. " + typeName + " cannot be converted because it exceeds the range of " + getDataTypeString(dt));
+                    break;
+                case DATA_TYPE.DT_SHORT:
+                    if (value >= short.MinValue && value <= short.MaxValue)
+                        return new BasicShort((short)value);
+                    else
+                        throw new Exception("Failed to insert data. " + typeName + " cannot be converted because it exceeds the range of " + getDataTypeString(dt));
+                    break;
+                case DATA_TYPE.DT_BYTE:
+                    if (value >= byte.MinValue && value <= byte.MaxValue)
+                        return new BasicByte((byte)value);
+                    else
+                        throw new Exception("Failed to insert data. " + typeName + " cannot be converted because it exceeds the range of " + getDataTypeString(dt));
+                    break;
+                default:
+                    throw new Exception("Failed to insert data. Cannot convert " + typeName +" to " + getDataTypeString(dt));
+                    break;
+            }
+        }
+
+        public static IEntity createObject(DATA_TYPE dt, byte value)
+        {
+            switch (dt)
+            {
+                case DATA_TYPE.DT_BYTE:
+                    return new BasicByte(value);
+                    break;
+                default:
+                    return createObject(dt, (long)value, "byte");
+                    break;
+            }
+        }
+
+        public static IEntity createObject(DATA_TYPE dt, short value)
+        {
+            return createObject(dt, (long)value, "short");
+        }
+
+        public static IEntity createObject(DATA_TYPE dt, int value)
+        {
+            switch (dt)
+            {
+                case DATA_TYPE.DT_INT:
+                    return new BasicInt(value);
+                    break;
+                default:
+                    return createObject(dt, (long)value, "int");
+                    break;
+            }
+        }
+
+        public static IEntity createObject(DATA_TYPE dt, string value)
+        {
+            switch (dt)
+            {
+                case DATA_TYPE.DT_STRING:
+                case DATA_TYPE.DT_SYMBOL:
+                    return new BasicString(value);
+                    break;
+                case DATA_TYPE.DT_INT128:
+                    return BasicInt128.fromString(value);
+                    break;
+                case DATA_TYPE.DT_UUID:
+                    return BasicUuid.fromString(value);
+                    break;
+                case DATA_TYPE.DT_IPADDR:
+                    return BasicIPAddr.fromString(value);
+                    break;
+                case DATA_TYPE.DT_BLOB:
+                    return new BasicString(value, true);
+                default:
+                    throw new Exception("Failed to insert data. Cannot convert string to " + getDataTypeString(dt));
+                    break;
+            }
+        }
+
+        public static IEntity createObject(DATA_TYPE dt, long value)
+        {
+            return createObject(dt, value, "long");
+        }
+
+        public static IEntity createObject(DATA_TYPE dt, float value)
+        {
+            switch (dt)
+            {
+                case DATA_TYPE.DT_FLOAT:
+                    return new BasicFloat(value);
+                    break;
+                case DATA_TYPE.DT_DOUBLE:
+                    return new BasicDouble(value);
+                    break;
+                default:
+                    throw new Exception("Failed to insert data. Cannot convert float to " + getDataTypeString(dt));
+                    break;
+            }
+        }
+
+        public static IEntity createObject(DATA_TYPE dt, double value)
+        {
+            switch (dt)
+            {
+                case DATA_TYPE.DT_FLOAT:
+                    if(value <= float.MaxValue && value >= float.MinValue)
+                    return new BasicFloat((float)value);
+                    break;
+                case DATA_TYPE.DT_DOUBLE:
+                    return new BasicDouble(value);
+                    break;
+                default:
+                    throw new Exception("Failed to insert data. Cannot convert double to " + getDataTypeString(dt));
+                    break;
+            }
+            throw new Exception("Failed to insert data. Cannot convert double to " + getDataTypeString(dt));
+        }
+
+        public static IEntity createObject(DATA_TYPE dt, DateTime value)
+        {
+            switch (dt)
+            {
+                case DATA_TYPE.DT_NANOTIMESTAMP:
+                    return new BasicNanoTimestamp(value);
+                    break;
+                case DATA_TYPE.DT_TIMESTAMP:
+                    return new BasicTimestamp(value);
+                    break;
+                case DATA_TYPE.DT_DATE:
+                        return new BasicDate(value);
+                    break;
+                case DATA_TYPE.DT_MONTH:
+                        return new BasicMonth(value);
+                    break;
+                case DATA_TYPE.DT_DATETIME:
+                        return new BasicDateTime(value);
+                    break;
+                case DATA_TYPE.DT_DATEHOUR:
+                    return new BasicDateHour(value);
+                    break;
+                default:
+                    throw new Exception("Failed to insert data. Cannot convert DateTime to " + getDataTypeString(dt));
+                    break;
+            }
+            throw new Exception("Failed to insert data. Cannot convert DateTime to " + getDataTypeString(dt));
+        }
+
+        public static IEntity createObject(DATA_TYPE dt, TimeSpan value)
+        {
+            switch (dt)
+            {
+                case DATA_TYPE.DT_NANOTIME:
+                    return new BasicNanoTime(value);
+                    break;
+                case DATA_TYPE.DT_TIME:
+                        return new BasicTime(value);
+                    break;
+                case DATA_TYPE.DT_SECOND:
+                        return new BasicSecond(value);
+                    break;
+                case DATA_TYPE.DT_MINUTE:
+                        return new BasicMinute(value);
+                default:
+                    throw new Exception("Failed to insert data. Cannot convert TimeSpan to " + getDataTypeString(dt));
+                    break;
+            }
+            throw new Exception("Failed to insert data. Cannot convert TimeSpan to " + getDataTypeString(dt));
+        }
+
+        public static IEntity createObject<T>(DATA_TYPE dt, T[] value)
+        {
+            if (dt < DATA_TYPE.DT_BOOL_ARRAY)
+                throw new Exception(value.GetType().ToString() + "must convert to array vector");
+            int count = value.Length;
+            BasicEntityFactory factory = (BasicEntityFactory)BasicEntityFactory.instance();
+            IVector ret = factory.createVectorWithDefaultValue(dt - 64, count);
+            for(int i = 0; i < count; ++i)
+            {
+                IScalar t = (IScalar)createObject(dt - 64, value[i]);
+                ret.set(i, t);
+            }
+            return ret;
+        }
+
+        public static IEntity createNULLObject(DATA_TYPE dt)
+        {
+            BasicEntityFactory basicEntityFactory = (BasicEntityFactory)BasicEntityFactory.instance();
+            IScalar scalar = basicEntityFactory.createScalarWithDefaultValue(dt);
+            scalar.setNull();
+            return scalar;
+        }
+    }
 }

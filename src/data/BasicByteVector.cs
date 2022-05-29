@@ -212,6 +212,65 @@ namespace dolphindb.data
             return end;
         }
 
+        protected override void writeVectorToBuffer(ByteBuffer buffer)
+        {
+            foreach (byte val in values)
+            {
+                buffer.WriteByte(val);
+            }
+        }
+
+        public override void deserialize(int start, int count, ExtendedDataInput @in)
+        {
+            if (start + count > values.Count)
+            {
+                values.AddRange(new byte[start + count - values.Count]);
+            }
+            for (int i = 0; i < count; ++i)
+            {
+                values[start + i] = @in.readByte();
+            }
+        }
+
+        public override void serialize(int start, int count, ExtendedDataOutput @out)
+        {
+            for (int i = 0; i < count; ++i)
+            {
+                @out.writeByte(values[start + i]);
+            }
+        }
+
+        public override int getUnitLength()
+        {
+            return 1;
+        }
+
+        public override int serialize(int indexStart, int offect, int targetNumElement, out int numElement, out int partial, ByteBuffer @out)
+        {
+            targetNumElement = Math.Min((@out.remain() / getUnitLength()), targetNumElement);
+            for (int i = 0; i < targetNumElement; ++i)
+            {
+                @out.WriteByte(values[indexStart + i]);
+            }
+            numElement = targetNumElement;
+            partial = 0;
+            return targetNumElement;
+        }
+
+        public override void append(IScalar value)
+        {
+            values.Add(((BasicByte)value).getValue());
+        }
+
+        public override void append(IVector value)
+        {
+            values.AddRange(((BasicByteVector)value).getdataArray());
+        }
+
+        public List<byte> getdataArray()
+        {
+            return values;
+        }
     }
 
 }

@@ -11,6 +11,7 @@ namespace dolphindb.data
         DataTable toDataTable();
         Number getNumber();
         object getTemporal();
+        int hashBucket(int buckets);
     }
 
 }

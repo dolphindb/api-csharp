@@ -49,6 +49,9 @@ namespace dolphindb.data
                 flag = @in.readShort();
                 form = flag >> 8;
                 type = flag & 0xff;
+                bool extended = type >= 128;
+                if (type >= 128)
+                    type -= 128;
                 if (form != (int)DATA_FORM.DF_VECTOR)
                 {
                     throw new IOException("The form of matrix row labels must be vector");
@@ -57,7 +60,7 @@ namespace dolphindb.data
                 {
                     throw new IOException("Invalid data type for matrix row labels: " + type);
                 }
-                rowLabels = (IVector)factory.createEntity(DATA_FORM.DF_VECTOR, types[type], @in);
+                rowLabels = (IVector)factory.createEntity(DATA_FORM.DF_VECTOR, types[type], @in, extended);
             }
 
             if ((hasLabels & 2) == 2)
@@ -66,6 +69,9 @@ namespace dolphindb.data
                 flag = @in.readShort();
                 form = flag >> 8;
                 type = flag & 0xff;
+                bool extended = type >= 128;
+                if (type >= 128)
+                    type -= 128;
                 if (form != (int)DATA_FORM.DF_VECTOR)
                 {
                     throw new IOException("The form of matrix columns labels must be vector");
@@ -74,7 +80,7 @@ namespace dolphindb.data
                 {
                     throw new IOException("Invalid data type for matrix column labels: " + type);
                 }
-                columnLabels = (IVector)factory.createEntity(DATA_FORM.DF_VECTOR, types[type], @in);
+                columnLabels = (IVector)factory.createEntity(DATA_FORM.DF_VECTOR, types[type], @in, extended);
             }
 
             flag = @in.readShort();
@@ -343,6 +349,11 @@ namespace dolphindb.data
         }
 
         public object getObject()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void writeCompressed(ExtendedDataOutput output)
         {
             throw new NotImplementedException();
         }

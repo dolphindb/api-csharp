@@ -60,8 +60,6 @@ To run DolphinDB script in C#:
 conn.run("<SCRIPT>");
 ```
 
-Note that the maximum allowed length of the script is 65,535 bytes.
-
 If the script contains only one statement, such as an expression, DolphinDB returns the result of the statement. If the script contains more than one statement, the result of the last statement will be returned. If the script contains an error or there is a network problem, it throws an IOException.
 
 ### 4. Call DolphinDB functions
@@ -245,7 +243,7 @@ public void test_save_TableInsert(string[] strArray, int[] intArray, long[] tsAr
 }
 ```
 
-The example above uses partial application in DolphinDB to embed a table in `tableInsert{sharedTable}` as a function. For details about partial application, please refer to [Partial Application Documentation](https://www.dolphindb.com/help/PartialApplication.html).
+The example above uses partial application in DolphinDB to embed a table in `tableInsert{sharedTable}` as a function. For details about partial application, please refer to [Partial Application Documentation](https://www.dolphindb.com/help/Functionalprogramming/PartialApplication.html).
 
 ##### 7.1.3 Use function `tableInsert` to save a table object
 ```
@@ -344,7 +342,7 @@ C# API provides objects that correspond to DolphinDB data types. They are usuall
 The majority of DolphinDB data types can be constructed from corresponding C# data types. For examples, INT in DolphinDB from 'new BasicInt(4)', DOUBLE in DolphinDB from 'new BasicDouble(1.23)'. The following DolphinDB data types, however, need to be constructed in different ways: 
 - CHAR type: as the CHAR type in DolphinDB is stored as a byte, we can use the BasicByte type to construct CHAR in C# API, for example 'new BasicByte((byte)'c')'.
 - SYMBOL type: the SYMBOL type in DolphinDB is stored as INT to improve the efficiency of storage and query of strings. C# doesn't have this data type, so C# API does not provide BasicSymbol. SYMBOL type can be processed directly with BasicString. 
-- Temporal types: temporal data types are stored as INT or LONG in DolphinDB. DolphinDB provides 9 temporal data types: date, month, time, minute, second, datetime, timestamp, nanotime and nanotimestamp. For detailed description, please refer to [DolphinDB Temporal Type and Conversion] (https://www.dolphindb.com/help/TemporalTypeandConversion.html). Since C# also provides data types such as LocalDate, LocalTime, LocalDateTime and YearMonth, C# API provides conversion functions in the Utils class between all C# temporal types and INT or LONG.
+- Temporal types: temporal data types are stored as INT or LONG in DolphinDB. DolphinDB provides 9 temporal data types: date, month, time, minute, second, datetime, timestamp, nanotime and nanotimestamp. For detailed description, please refer to [DolphinDB Temporal Type and Conversion](https://www.dolphindb.com/help/DataManipulation/TemporalObjects/TemporalTypeandConversion.html). Since C# also provides data types such as LocalDate, LocalTime, LocalDateTime and YearMonth, C# API provides conversion functions in the Utils class between all C# temporal types and INT or LONG.
 
 The following script shows the correspondence between DolphinDB temporal types and C# native temporal types:
 

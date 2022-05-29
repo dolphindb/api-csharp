@@ -190,6 +190,12 @@ namespace dolphindb.io
             writeLong(v.high);
             writeLong(v.low);
         }
+
+        public override bool isLittleEndian()
+        {
+            return false;
+        }
+        
     }
 
 }

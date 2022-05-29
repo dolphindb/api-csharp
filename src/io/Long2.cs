@@ -87,6 +87,23 @@
             }
         }
 
+        public override bool Equals(object o)
+        {
+            if (!(o is Long2) || o == null)
+            {
+                return false;
+            }
+            else
+            {
+                if (this.low != ((Long2)o).low || this.high != ((Long2)o).high)
+                {
+                    return false;
+                }
+                else
+                    return true;
+            }
+        }
+
     }
 }
 

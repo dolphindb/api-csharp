@@ -12,7 +12,7 @@ namespace dolphindb.streaming
     public class ThreadPooledClient : AbstractClient
     {
         private Dictionary<string, QueueHandlerBinder> queueHandlers = new Dictionary<string, QueueHandlerBinder>();
-        private Thread thread;
+        private Thread thread_;
 
         private class HandlerRunner
         {
@@ -44,18 +44,21 @@ namespace dolphindb.streaming
         public ThreadPooledClient() : this(DEFAULT_PORT) { }
 
         public ThreadPooledClient(string subscribeHost, int subscribePort) : base(subscribeHost,subscribePort) {
-            Queue<IMessage> backlog = new Queue<IMessage>();
+            Dictionary<String, Queue<IMessage>> backlog = new Dictionary<string, Queue<IMessage>>();
 
             bool fillBacklog()
             {
+                backlog.Clear();
                 bool filled = false;
                 lock (queueHandlers)
                 {
-                    foreach (QueueHandlerBinder binder in queueHandlers.Values)
+                    foreach (KeyValuePair<string, QueueHandlerBinder> keyValue in queueHandlers)
                     {
-                        if (binder.Item1.TryTake(out List<IMessage> messages))
+                        if (keyValue.Value.Item1.TryTake(out List<IMessage> messages))
                         {
-                            messages.ForEach(backlog.Enqueue);
+                            Queue<IMessage> queue = new Queue<IMessage>();
+                            messages.ForEach(queue.Enqueue);
+                            backlog[keyValue.Key] = queue;
                             filled = true;
                         }
                     }
@@ -65,98 +68,84 @@ namespace dolphindb.streaming
 
             void run()
             {
-                while (true)
-                {
-                    while (backlog.Count > 0)
+                try {
+                    while (!this.isClose())
                     {
-                        IMessage msg = backlog.Dequeue();
-                        QueueHandlerBinder binder;
-                        lock (queueHandlers)
+                        foreach (KeyValuePair<String, Queue<IMessage>> keyValue in backlog)
                         {
-                            binder = queueHandlers[msg.getTopic()];
+                            Queue<IMessage> value = keyValue.Value;
+                            string topic = keyValue.Key;
+                            while (value.Count > 0)
+                            {
+                                IMessage msg = value.Dequeue();
+                                QueueHandlerBinder binder = null;
+                                lock (queueHandlers)
+                                {
+                                    if (queueHandlers.ContainsKey(topic))
+                                    {
+                                        binder = queueHandlers[topic];
+                                        HandlerRunner handlerRunner = new HandlerRunner(binder.Item2, msg);
+                                        ThreadPool.QueueUserWorkItem(new WaitCallback(handlerRunner.run));
+                                    }
+                                }
+                            }
                         }
-                        HandlerRunner handlerRunner = new HandlerRunner(binder.Item2, msg);
-                        ThreadPool.QueueUserWorkItem(new WaitCallback(handlerRunner.run));
+                        fillBacklog();
                     }
-                    fillBacklog();
                 }
+                catch (ThreadInterruptedException)
+                {
+                }
+                Console.WriteLine("ThreadPooledClient thread stopped.");
             }
 
-            thread = new Thread(new ThreadStart(run));
-            thread.Start();
+            thread_ = new Thread(new ThreadStart(run));
+            thread_.Start();
         }
 
-        public ThreadPooledClient(int subscribePort) : base(subscribePort)
+        public ThreadPooledClient(int subscribePort) : this(DEFAULT_HOST, subscribePort) { }
+        protected override bool doReconnect(SubscribeInfo subscribeInfo, Site site)
         {
-            Queue<IMessage> backlog = new Queue<IMessage>();
-
-            bool fillBacklog()
+            try
             {
-                bool filled = false;
-                lock (queueHandlers)
-                {
-                    foreach (QueueHandlerBinder binder in queueHandlers.Values)
-                    {
-                        if (binder.Item1.TryTake(out List<IMessage> messages))
-                        {
-                            messages.ForEach(backlog.Enqueue);
-                            filled = true;
-                        }
-                    }
-                }
-                return filled;
+                subscribe(site.host, site.port, subscribeInfo.getTableName(), subscribeInfo.getActionName(), subscribeInfo.getMessageHandler(), subscribeInfo.getMsgId() + 1, true, subscribeInfo.getFilter(), false);
+                Console.WriteLine("Successfully reconnected and subscribed " + site.host + ":" + site.port + ":" + subscribeInfo.getTableName());
+                return true;
             }
-
-            void run()
+            catch (Exception ex)
             {
-                while (true)
-                {
-                    while (backlog.Count > 0)
-                    {
-                        IMessage msg = backlog.Dequeue();
-                        QueueHandlerBinder binder;
-                        lock (queueHandlers)
-                        {
-                            binder = queueHandlers[msg.getTopic()];
-                        }
-                        HandlerRunner handlerRunner = new HandlerRunner(binder.Item2, msg);
-                        ThreadPool.QueueUserWorkItem(new WaitCallback(handlerRunner.run));
-                    }
-                    fillBacklog();
-                }
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine(ex.StackTrace);
             }
-
-            thread = new Thread(new ThreadStart(run));
-            thread.Start();
-        }
-
-        protected override void doReconnect(Site site)
-        {
-            if (thread.IsAlive)
-                thread.Interrupt();
-            while (true)
-            {
-                try
-                {
-                    Thread.Sleep(5000);
-                    subscribe(site.host, site.port, site.tableName, site.actionName, site.handler, site.msgId + 1, true, site.filter);
-                    Console.WriteLine("Successfully reconnected and subscribed " + site.host + ":" + site.port + ":" + site.tableName);
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Unable to subscribe table. Will try again after 5 seconds.");
-                    Console.WriteLine(ex.ToString());
-                }
-            }
+            return false;
         }
 
         public void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter)
         {
-            BlockingCollection<List<IMessage>> queue = subscribeInternal(host, port, tableName, actionName, handler, offset, reconnect, filter);
+            subscribe(host, port, tableName, actionName, handler, offset, reconnect, filter, true);
+        }
+
+        private void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, bool createSubInfo)
+        {
+            BlockingCollection<List<IMessage>> queue = subscribeInternal(host, port, tableName, actionName, handler, offset, reconnect, filter, createSubInfo);
             lock (queueHandlers)
             {
-                queueHandlers.Add(tableNameToTopic[host + ":" + port + ":" + tableName], new QueueHandlerBinder(queue, handler));
+                DBConnection dbConn = new DBConnection();
+                dbConn.connect(host, port);
+                List<IEntity> @params = new List<IEntity>
+                {
+                    new BasicString(tableName),
+                    new BasicString(actionName)
+                };
+                IEntity re = dbConn.run("getSubscriptionTopic", @params);
+                string topic = ((BasicAnyVector)re).getEntity(0).getString();
+                if (createSubInfo)
+                {
+                    lock (queueHandlers)
+                    {
+                        queueHandlers.Add(topic, new QueueHandlerBinder(queue, handler));
+                    }
+                }
             }
         }
 
@@ -203,6 +192,61 @@ namespace dolphindb.streaming
         public void unsubscribe(string host, int port, string tableName, string actionName)
         {
             unsubscribeInternal(host, port, tableName, actionName);
+        }
+
+        public void close()
+        {
+            base.close();
+            thread_.Interrupt();
+        }
+
+        protected override void unsubscribeInternal(string host, int port, string tableName, string actionName)
+        {
+            DBConnection dbConn = new DBConnection();
+            dbConn.connect(host, port);
+            try
+            {
+                lock (subscribeInfos_)
+                {
+                    string localIP = listeningHost_;
+                    if (localIP == null || localIP.Equals(String.Empty))
+                        localIP = dbConn.LocalAddress;
+                    List<IEntity> @params = new List<IEntity>
+                    {
+                    new BasicString(tableName),
+                    new BasicString(actionName)
+                    };
+                    IEntity re = dbConn.run("getSubscriptionTopic", @params);
+                    string topic = ((BasicAnyVector)re).getEntity(0).getString();
+                    SubscribeInfo subscribeInfo = null;
+                    if (!subscribeInfos_.TryRemove(topic, out subscribeInfo))
+                    {
+                        throw new Exception("The subscription " + topic + " doesn't exist. ");
+                    }
+                    lock (queueHandlers)
+                    {
+                        queueHandlers.Remove(topic);
+                    }
+                    @params = new List<IEntity>
+                    {
+                    new BasicString(localIP),
+                    new BasicInt(listeningPort_),
+                    new BasicString(tableName),
+                    new BasicString(actionName)
+                    };
+                    lock (subscribeInfo)
+                    {
+                        subscribeInfo.close();
+                        dbConn.run("stopPublishTable", @params);
+                    }
+                    Console.WriteLine("Successfully unsubscribed table " + topic);
+                }
+            }
+            finally
+            {
+                dbConn.close();
+            }
+            return;
         }
     }
 }
