@@ -39,6 +39,8 @@ namespace dolphindb.data
             }
 
             BasicEntityFactory factory = new BasicEntityFactory();
+            VectorDecompressor decompressor = null;
+            SymbolBaseCollection collection = null;
             //read columns
             for (int i = 0; i < cols; ++i)
             {
@@ -51,8 +53,6 @@ namespace dolphindb.data
 
                 DATA_FORM df = (DATA_FORM)form;
                 DATA_TYPE dt = (DATA_TYPE)type;
-                VectorDecompressor decompressor = null;
-                SymbolBaseCollection collection = null;
                 if (df != DATA_FORM.DF_VECTOR)
                 {
                     throw new IOException("Invalid form for column [" + names_[i] + "] for table " + _tableName);
