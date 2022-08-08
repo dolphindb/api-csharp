@@ -1,5 +1,6 @@
 ﻿using System;
 using dolphindb.io;
+using System.Text;
 
 namespace dolphindb.data
 {
@@ -7,11 +8,24 @@ namespace dolphindb.data
     public class BasicString : AbstractScalar, IComparable<BasicString>
     {
         private string value;
+        private byte[] blobValue;
         private bool isBlob;
 
         public BasicString(string value, bool isBlob = false)
         {
-            this.value = value;
+            if (isBlob)
+                blobValue = Encoding.UTF8.GetBytes(value);
+            else
+                this.value = value;
+            this.isBlob = isBlob;
+        }
+
+        public BasicString(byte[] value, bool isBlob = false)
+        {
+            if (isBlob)
+                blobValue = value;
+            else
+                this.value = Encoding.UTF8.GetString(value);
             this.isBlob = isBlob;
         }
 
@@ -23,32 +37,45 @@ namespace dolphindb.data
         public BasicString(ExtendedDataInput @in, bool blob)
         {
             if (blob)
-                value = @in.readBlob();
+                blobValue = @in.readBlob();
             else
                 value = @in.readString();
+            isBlob = blob;
         }
         //
 
 
         public string getValue()
         {
-            return value;
+            if (isBlob)
+                return Encoding.UTF8.GetString(blobValue);
+            else
+                return value;
         }
 
         protected void setValue(string value)
         {
-            this.value = value;
+            if(isBlob)
+                this.blobValue = Encoding.UTF8.GetBytes(value);
+            else
+                this.value = value;
         }
 
 
         public override bool isNull()
         {
-            return value.Length == 0;
+            if (isBlob)
+                return blobValue.Length == 0;
+            else
+                return value.Length == 0;
         }
 
         public override void setNull()
         {
-            value = "";
+            if (isBlob)
+                blobValue = new byte[0];
+            else
+                value = "";
         }
 
         public override DATA_CATEGORY getDataCategory()
@@ -82,25 +109,55 @@ namespace dolphindb.data
             }
             else
             {
-                return value.Equals(((BasicString)o).value);
+                if (isBlob != ((BasicString)o).isBlob)
+                    return false;
+                if (isBlob)
+                {
+                    byte[] oValue = ((BasicString)o).blobValue;
+                    if (blobValue.Length != oValue.Length)
+                        return false;
+                    else
+                    {
+                        for(int i = 0; i < blobValue.Length; ++i)
+                        {
+                            if (blobValue[i] != oValue[i])
+                                return false;
+                        }
+                    }
+                }
+                else
+                    return value.Equals(((BasicString)o).value);
             }
+            return true;
         }
 
         public override int GetHashCode()
         {
+            if (isBlob)
+            {
+                StringBuilder stringBuilder = new StringBuilder();
+                for(int i = 0; i < blobValue.Length; ++i)
+                {
+                    stringBuilder.Append((char)blobValue[i]);
+                }
+                return stringBuilder.ToString().GetHashCode();
+            }
             return value.GetHashCode();
         }
 
 
         protected override void writeScalarToOutputStream(ExtendedDataOutput @out)
         {
-            @out.writeString(value);
+            if (isBlob)
+                @out.writeBlob(blobValue);
+            else
+                @out.writeString(value);
         }
         //2021.01.19 cwj override?
         protected void writeScalarToOutputStream(ExtendedDataOutput @out,bool blob)
         {
             if (blob)
-                @out.writeBlob(value);
+                @out.writeBlob(blobValue);
             else
                 @out.writeString(value);
             
@@ -108,11 +165,16 @@ namespace dolphindb.data
 
         public virtual int CompareTo(BasicString o)
         {
-            return value.CompareTo(o.value);
+            if (isBlob)
+                return Encoding.UTF8.GetString(blobValue).CompareTo(o.value);
+            else
+                return value.CompareTo(o.value);
         }
 
         public override string getString()
         {
+            if (isBlob)
+                return Encoding.UTF8.GetString(blobValue);
             return value;
         }
 
@@ -123,18 +185,24 @@ namespace dolphindb.data
 
         public override void setObject(object value)
         {
-            this.value = Convert.ToString(value);
+            if (isBlob)
+            {
+                string temp = Convert.ToString(value);
+                blobValue = Encoding.UTF8.GetBytes(temp);
+            }
+            else
+                this.value = Convert.ToString(value);
         }
 
         public static int hashBucket(String str, int buckets)
         {
             int length = str.Length;
 
-            //check utf8 bytes
             int bytes = 0;
-            for (int i = 0; i < length; ++i)
+            char[] cc = str.ToCharArray();
+            for(int i = 0; i < length; i++)
             {
-                char c = str[i];
+                char c = cc[i];
                 if (c >= '\u0001' && c <= '\u007f')
                     ++bytes;
                 else if (c == '\u0000' || (c >= '\u0080' && c <= '\u07ff'))
@@ -143,45 +211,39 @@ namespace dolphindb.data
                     bytes += 3;
             }
 
-            //calculate murmur32 hash
             int h = bytes;
-            if (bytes == length)
+            if(bytes == length)
             {
                 int length4 = bytes / 4;
                 for (int i = 0; i < length4; i++)
                 {
                     int i4 = i * 4;
-                    int k = (str[i4] & 0xff) + ((str[i4+1] & 0xff) << 8)
-                            + ((str[i4+2] & 0xff) << 16) + ((str[i4+3] & 0xff) << 24);
+                    int k = (cc[i4] & 0xff) + ((cc[i4+1] & 0xff) << 8)
+                            + ((cc[i4+2] & 0xff) << 16) + ((cc[i4+3] & 0xff) << 24);
                     k *= 0x5bd1e995;
-                    k ^= k >> 24;
+                    k ^= Utils.UIntMoveRight(k, 24);
                     k *= 0x5bd1e995;
                     h *= 0x5bd1e995;
                     h ^= k;
                 }
-                // Handle the last few bytes of the input array
+
                 switch (bytes % 4)
                 {
                     case 3:
-                        h ^= (str[(bytes & ~3) + 2] & 0xff) << 16;
-                        h ^= (str[(bytes & ~3) + 1] & 0xff) << 8;
-                        h ^= str[bytes & ~3] & 0xff;
-                        h *= 0x5bd1e995;
+                        h ^= (cc[(bytes & ~3) + 2] & 0xff) << 16;
                         break;
                     case 2:
-                        h ^= (str[(bytes & ~3) + 1] & 0xff) << 8;
-                        h ^= str[bytes & ~3] & 0xff;
-                        h *= 0x5bd1e995;
+                        h ^= (cc[(bytes & ~3) + 1] & 0xff) << 8;
                         break;
                     case 1:
-                        h ^= str[bytes & ~3] & 0xff;
+                        h ^= cc[bytes & ~3] & 0xff;
                         h *= 0x5bd1e995;
                         break;
                 }
 
-                h ^= h >> 13;
+                h ^= Utils.UIntMoveRight(h, 13);
                 h *= 0x5bd1e995;
-                h ^= h >> 15;
+                h ^= Utils.UIntMoveRight(h, 15);
             }
             else
             {
@@ -189,7 +251,7 @@ namespace dolphindb.data
                 int cursor = 0;
                 for (int i = 0; i < length; ++i)
                 {
-                    char c = str[i];
+                    char c = cc[i];
                     if (c >= '\u0001' && c <= '\u007f')
                     {
                         k += c << (8 * cursor++);
@@ -200,7 +262,7 @@ namespace dolphindb.data
                         if (cursor == 4)
                         {
                             k *= 0x5bd1e995;
-                            k ^= k >> 24;
+                            k ^= Utils.UIntMoveRight(k, 24);
                             k *= 0x5bd1e995;
                             h *= 0x5bd1e995;
                             h ^= k;
@@ -215,7 +277,7 @@ namespace dolphindb.data
                         if (cursor == 4)
                         {
                             k *= 0x5bd1e995;
-                            k ^= k >> 24;
+                            k ^= Utils.UIntMoveRight(k, 24);
                             k *= 0x5bd1e995;
                             h *= 0x5bd1e995;
                             h ^= k;
@@ -226,7 +288,7 @@ namespace dolphindb.data
                         if (cursor == 4)
                         {
                             k *= 0x5bd1e995;
-                            k ^= k >> 24;
+                            k ^= Utils.UIntMoveRight(k, 24);
                             k *= 0x5bd1e995;
                             h *= 0x5bd1e995;
                             h ^= k;
@@ -238,7 +300,7 @@ namespace dolphindb.data
                     if (cursor == 4)
                     {
                         k *= 0x5bd1e995;
-                        k ^= k >> 24;
+                        k ^= Utils.UIntMoveRight(k, 24);
                         k *= 0x5bd1e995;
                         h *= 0x5bd1e995;
                         h ^= k;
@@ -252,9 +314,9 @@ namespace dolphindb.data
                     h *= 0x5bd1e995;
                 }
 
-                h ^= h >> 13;
+                h ^= Utils.UIntMoveRight(h, 13);
                 h *= 0x5bd1e995;
-                h ^= h >> 15;
+                h ^= Utils.UIntMoveRight(h, 15);
             }
             if (h >= 0)
                 return h % buckets;
@@ -264,9 +326,29 @@ namespace dolphindb.data
             }
         }
 
+            //return str.GetHashCode() % buckets;
+
         public override int hashBucket(int buckets)
         {
-            return hashBucket(this.value, buckets);
+            if (isBlob)
+            {
+                StringBuilder stringBuilder = new StringBuilder();
+                for (int i = 0; i < blobValue.Length; ++i)
+                {
+                    stringBuilder.Append((char)blobValue[i]);
+                }
+                return hashBucket(stringBuilder.ToString(), buckets);
+            }
+            else
+                return hashBucket(this.value, buckets);
+        }
+
+        public byte[] getBytes()
+        {
+            if (isBlob)
+                return blobValue;
+            else
+                throw new Exception("The value must be a string scalar. ");
         }
     }
 

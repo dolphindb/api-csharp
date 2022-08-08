@@ -288,5 +288,10 @@ public void setInt128(int index, long highValue, long lowValue)
     {
         return values;
     }
+
+    public override IEntity getEntity(int index)
+    {
+        return get(index);
+    }
 }
 

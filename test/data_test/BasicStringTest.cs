@@ -11,16 +11,19 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Collections;
 using System.Threading.Tasks;
+using System.Configuration;
+using dolphindb_config;
 
 namespace dolphindb_csharp_api_test.data_test
 {
     [TestClass]
     public class BasicStringTest
     {
-        private readonly string SERVER = "127.0.0.1";
-        private readonly int PORT = 8848;
-        private readonly string USER = "admin";
-        private readonly string PASSWORD = "123456";
+        private string SERVER = MyConfigReader.SERVER;
+        static private int PORT = MyConfigReader.PORT;
+        private readonly string USER = MyConfigReader.USER;
+        private readonly string PASSWORD = MyConfigReader.PASSWORD;
+
         [TestMethod]
         public void blob_scalar()
         {

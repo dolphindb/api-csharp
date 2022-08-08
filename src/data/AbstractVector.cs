@@ -306,5 +306,6 @@ namespace dolphindb.data
         public abstract void append(IScalar value);
 
         public abstract void append(IVector value);
+        public abstract IEntity getEntity(int index);
     }
 };

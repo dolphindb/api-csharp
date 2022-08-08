@@ -81,7 +81,8 @@ namespace dolphindb.streaming
         {
             try
             {
-                subscribe(site.host, site.port, subscribeInfo.getTableName(), subscribeInfo.getActionName(), subscribeInfo.getMessageHandler(), subscribeInfo.getMsgId() + 1, true, subscribeInfo.getFilter(), -1, 0, false);
+                subscribe(site.host, site.port, subscribeInfo.getTableName(), subscribeInfo.getActionName(), subscribeInfo.getMessageHandler(), 
+                    subscribeInfo.getMsgId() + 1, true, subscribeInfo.getFilter(), -1, 0, subscribeInfo.getDeseriaLizer(), subscribeInfo.getUser(), subscribeInfo.getPassword(), false);
                 Console.WriteLine("Successfully reconnected and subscribed " + site.host + ":" + site.port + ":" + subscribeInfo.getTableName());
                 return true;
             }
@@ -93,11 +94,13 @@ namespace dolphindb.streaming
             return false;
         }
 
-        public void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, int batchSize, float throttle = 0.01f)
-        {
-            subscribe(host, port, tableName, actionName, handler, offset, reconnect, filter, batchSize, throttle, true);
+        public void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, int batchSize, 
+            float throttle = 0.01f, StreamDeserializer deserializer = null, string user = "", string password = ""){
+            subscribe(host, port, tableName, actionName, handler, offset, reconnect, filter, batchSize, throttle, deserializer, user, password, true);
         }
-        private void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter,int batchSize, float throttle, bool createSubInfo)
+
+
+        private void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter,int batchSize, float throttle, StreamDeserializer deserializer, string user, string password, bool createSubInfo)
         {
             if (!(batchSize == -1 || batchSize > 0))
                 throw new Exception("Invalid batchSize value, should be -1 or positive integer.");
@@ -114,7 +117,7 @@ namespace dolphindb.streaming
                 };
                 IEntity re = dbConn.run("getSubscriptionTopic", @params);
                 string topic = ((BasicAnyVector)re).getEntity(0).getString();
-                BlockingCollection<List<IMessage>> queue = subscribeInternal(host, port, tableName, actionName, handler, offset, reconnect, filter, createSubInfo);
+                BlockingCollection<List<IMessage>> queue = subscribeInternal(host, port, tableName, actionName, handler, offset, reconnect, filter, deserializer, user, password, createSubInfo);
                 if (createSubInfo)
                 {
                     HandlerLooper handlerLooper = new HandlerLooper(queue, handler, batchSize, throttle, this);

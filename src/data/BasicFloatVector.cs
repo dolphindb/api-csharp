@@ -237,6 +237,11 @@ namespace dolphindb.data
         {
             return values;
         }
+
+        public override IEntity getEntity(int index)
+        {
+            return new BasicFloat(values[index]);
+        }
     }
 
 }

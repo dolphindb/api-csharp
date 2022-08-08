@@ -39,7 +39,7 @@ namespace dolphindb.io
         Long2 readLong2();
 
         //2021.01.19 cwj
-        string readBlob();
+        byte[] readBlob();
 
     }
 }

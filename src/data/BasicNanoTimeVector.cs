@@ -121,6 +121,10 @@ namespace dolphindb.data
             return new BasicNanoTimeVector(getSubArray(indices));
         }
 
+        public override IEntity getEntity(int index)
+        {
+            return new BasicNanoTime(values[index]);
+        }
     }
 
 }

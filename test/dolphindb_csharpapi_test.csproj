@@ -49,8 +49,11 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
@@ -61,6 +64,7 @@
     <Compile Include="DBConnection_test.cs" />
     <Compile Include="EntityBlockReader_test.cs" />
     <Compile Include="ha_test\ha_test.cs" />
+    <Compile Include="MyConfigReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="route_test\BatchTableWriter_test.cs" />
     <Compile Include="route_test\MultithreadTableWriter_test.cs" />
@@ -68,11 +72,13 @@
     <Compile Include="route_test\autoFitTableAppend_test.cs" />
     <Compile Include="Streaming_test.cs" />
     <Compile Include="ExclusiveDBConnectionPool_test.cs" />
+    <Compile Include="stream_test\PoolingClientTest.cs" />
     <Compile Include="stream_test\ThreadedClientTest.cs" />
     <Compile Include="stream_test\ThreadPoolClientTest.cs" />
     <Compile Include="Utils_test.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

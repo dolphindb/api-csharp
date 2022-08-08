@@ -9,7 +9,7 @@
         void writeString(string str);
 
         //2021.01.19 cwj
-        void writeBlob(string str);
+        void writeBlob(byte[] value);
         //
 
         void flush();

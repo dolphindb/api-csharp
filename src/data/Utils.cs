@@ -1520,5 +1520,16 @@ namespace dolphindb.data
             scalar.setNull();
             return scalar;
         }
+
+        public static int UIntMoveRight(int x, int y)
+        {
+            int mask = 0x7fffffff;
+            for (int i = 0; i < y; i++)
+            {
+                x >>= 1;
+                x &= mask;
+            }
+            return x;
+        }
     }
 }

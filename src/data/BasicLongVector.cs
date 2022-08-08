@@ -9,7 +9,7 @@ namespace dolphindb.data
 
     public class BasicLongVector : AbstractVector
     {
-        private List<long> values;
+        protected List<long> values;
 
         public BasicLongVector(int size) : this(DATA_FORM.DF_VECTOR, size)
         {
@@ -256,6 +256,11 @@ namespace dolphindb.data
         public List<long> getdataArray()
         {
             return values;
+        }
+
+        public override IEntity getEntity(int index)
+        {
+            return new BasicLong(values[index]);
         }
     }
 

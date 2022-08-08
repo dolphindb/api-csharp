@@ -5,17 +5,17 @@ using dolphindb;
 using dolphindb.data;
 using System.Collections;
 using System.Collections.Generic;
+using dolphindb_config;
 
 namespace dolphindb_csharp_api_test.compress_test
 {
     [TestClass]
     public class DBConnection_Compression
     {
-        //private readonly string SERVER = "127.0.0.1";
-        private readonly string SERVER = "192.168.1.37";
-        private readonly int PORT = 8848;
-        private readonly string USER = "admin";
-        private readonly string PASSWORD = "123456";
+        private string SERVER = MyConfigReader.SERVER;
+        static private int PORT = MyConfigReader.PORT;
+        private readonly string USER = MyConfigReader.USER;
+        private readonly string PASSWORD = MyConfigReader.PASSWORD;
 
         static void compareBasicTable(BasicTable table, BasicTable newTable)
         {

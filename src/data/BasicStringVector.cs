@@ -1,6 +1,7 @@
 ﻿using dolphindb.io;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace dolphindb.data
 {
@@ -8,6 +9,7 @@ namespace dolphindb.data
     public class BasicStringVector : AbstractVector
     {
         private List<string> values;
+        private List<byte[]> blobValues;
         private bool isSymbol;
         //2021.01.19 cwj
         private bool isBlob = false;
@@ -34,6 +36,15 @@ namespace dolphindb.data
         //2021.01.19 cwj
         public BasicStringVector(IList<string> list, bool blob) : base(DATA_FORM.DF_VECTOR)
         {
+            if (blob)
+            {
+                int rows = list.Count;
+                blobValues = new List<byte[]>();
+                for(int i = 0; i < list.Count; ++i)
+                {
+                    blobValues.Add(Encoding.UTF8.GetBytes(list[i]));
+                }
+            }
             if (list != null)
             {
                 values = (List<String>)list;
@@ -56,6 +67,13 @@ namespace dolphindb.data
             isSymbol = false;
         }
 
+        public BasicStringVector(byte[][] array) : base(DATA_FORM.DF_VECTOR)
+        {
+            blobValues = new List<byte[]>(array.Length);
+            blobValues.AddRange(array);
+            isBlob = true;
+        }
+
         protected internal BasicStringVector(DATA_FORM df, int size, bool isSymbol) : base(df)
         {
             values = new List<string>(size);
@@ -65,8 +83,16 @@ namespace dolphindb.data
         //2021.01.19 cwj
         protected internal BasicStringVector(DATA_FORM df, int size, bool isSymbol, bool blob) : base(df)
         {
-            values = new List<string>(size);
-            values.AddRange(new string[size]);
+            if (blob)
+            {
+                blobValues = new List<byte[]>();
+                blobValues.AddRange(new byte[size][]);
+            }
+            else
+            {
+                values = new List<string>(size);
+                values.AddRange(new string[size]);
+            }
             this.isSymbol = isSymbol;
             this.isBlob = blob;
         }
@@ -92,62 +118,93 @@ namespace dolphindb.data
             int rows = @in.readInt();
             int columns = @in.readInt();
             int size = rows * columns;
-            values = new List<string>(size);
-            values.AddRange(new string[size]);
-
-            if(!blob)
+            if (blob)
             {
+                blobValues = new List<byte[]>();
+                blobValues.AddRange(new byte[rows][]);
+                for(int i = 0; i < rows; ++i)
+                {
+                    blobValues[i] = @in.readBlob();
+                }
+            }
+            else
+            {
+                values = new List<string>(size);
+                values.AddRange(new string[size]);
                 for (int i = 0; i < size; ++i)
                 {
                     values[i] = @in.readString();
                 }
             }
-            else
-            {
-                for (int i = 0; i < size; ++i)
-                {
-                    values[i] = @in.readBlob();
-                }
-            }
-
-
-            
         }
         //
 
         public override IScalar get(int index)
         {
-            return new BasicString(values[index]);
+            if(isBlob)
+                return new BasicString(blobValues[index], true);
+            else
+                return new BasicString(values[index], false);
         }
 
         public virtual string getString(int index)
         {
-            return values[index];
+            if (isBlob)
+            {
+                return Encoding.UTF8.GetString(blobValues[index]);
+            }
+            else
+                return values[index];
         }
 
         public override void set(int index, IScalar value)
         {
-            if (value.getDataType() == DATA_TYPE.DT_STRING)
+            if (isBlob)
             {
-                values[index] = ((BasicString)value).getString();
+                if (value.getDataType() == DATA_TYPE.DT_BLOB)
+                {
+                    blobValues[index] = ((BasicString)value).getBytes();
+                }
+                else
+                    throw new Exception("The value must be a blob scalar. ");
             }
             else
-                throw new Exception("The value must be a string scalar. ");
+            {
+                if (value.getDataType() == DATA_TYPE.DT_STRING)
+                {
+                    values[index] = ((BasicString)value).getString();
+                }
+                else
+                    throw new Exception("The value must be a string scalar. ");
+            }
         }
 
         public virtual void setString(int index, string value)
         {
-            values[index] = value;
+            if (isBlob)
+            {
+                blobValues[index] = Encoding.UTF8.GetBytes(value);
+            }
+            else
+            {
+                values[index] = value;
+            }
         }
 
         public override bool isNull(int index)
         {
-            return string.ReferenceEquals(values[index], null) || values[index].Length == 0;
+            if (isBlob)
+                return blobValues[index].Length == 0;
+            else
+                return string.ReferenceEquals(values[index], null) || values[index].Length == 0;
         }
 
         public override void setNull(int index)
         {
-            values[index] = "";
+            if (isBlob)
+                blobValues[index] = new byte[0];
+            else
+                values[index] = "";
         }
 
         public override DATA_CATEGORY getDataCategory()
@@ -170,14 +227,17 @@ namespace dolphindb.data
 
         public override int rows()
         {
-            return values.Count;
+            if (isBlob)
+                return blobValues.Count;
+            else
+                return values.Count;
         }
 
         protected internal override void writeVectorToOutputStream(ExtendedDataOutput @out)
         {
             if (isBlob)
             {
-                foreach (string str in values)
+                foreach (byte[] str in blobValues)
                 {
                     @out.writeBlob(str);
                 }
@@ -195,22 +255,20 @@ namespace dolphindb.data
         public  int serialize(byte[] buf, int bufSize, int start, int elementCount, out int offect)
         {
             int len = 0;
-            int total = values.Count;
+            int total = blobValues.Count;
             int count = 0;
             if (isBlob)
             {
                 while(len < bufSize && count < elementCount && start + count < total)
                 {
-                    string str = values[start + count];
+                    byte[] str = blobValues[start + count];
                     int strLen = str.Length;
                     if (strLen + sizeof(int) + 1 >= bufSize - len)
                         break;
                     byte[] lenTmp = BitConverter.GetBytes(strLen);
-                    byte[] strTmp = System.Text.Encoding.Default.GetBytes(str);
-                    Array.Copy(strTmp, 0, buf, len, sizeof(int));
-                    Array.Copy(strTmp, 0, buf, len + sizeof(int), strLen);
-                    len += strLen + sizeof(int) + 1;
-                    buf[len - 1] = 0;
+                    Array.Copy(lenTmp, 0, buf, len, sizeof(int));
+                    Array.Copy(str, 0, buf, len + sizeof(int), strLen);
+                    len += strLen + sizeof(int);
                     count++;
                 }
             }
@@ -236,63 +294,143 @@ namespace dolphindb.data
 
         public override object getList()
         {
-            return values;
+            if (isBlob)
+                return blobValues;
+            else
+                return values;
         }
 
         public override void set(int index, string value)
         {
-            values[index] = value;
+            if (isBlob)
+                blobValues[index] = Encoding.UTF8.GetBytes(value);
+            else
+                values[index] = value;
         }
 
         public override void add(object value)
         {
-            values.Add(value.ToString());
+            if (isBlob)
+                blobValues.Add(Encoding.UTF8.GetBytes(value.ToString()));
+            else
+                values.Add(value.ToString());
         }
 
         public override void addRange(object list)
         {
             List<string> data = (List<string>)list;
-            values.AddRange(data);
+            if (isBlob)
+            {
+                for(int i = 0; i < data.Count; ++i)
+                {
+                    blobValues.Add(Encoding.UTF8.GetBytes(data[i]));
+                }
+            }
+            else
+                values.AddRange(data);
         }
 
         public override int hashBucket(int index, int buckets)
         {
-            return BasicString.hashBucket(values[index], buckets);
+            return get(index).hashBucket(buckets);
         }
 
         public override IVector getSubVector(int[] indices)
         {
             int length = indices.Length;
-            String[] sub = new String[length];
-            for (int i = 0; i < length; ++i)
-                sub[i] = values[indices[i]];
-            return new BasicStringVector(sub);
+            if (isBlob)
+            {
+                byte[][] sub = new byte[length][];
+                for(int i = 0; i < length; ++i)
+                {
+                    sub[i] = blobValues[indices[i]];
+                }
+                return new BasicStringVector(sub);                                                      
+            }
+            else {
+                String[] sub = new String[length];
+                for (int i = 0; i < length; ++i)
+                    sub[i] = values[indices[i]];
+                return new BasicStringVector(sub);
+            }
+        }
+
+        private static int compare(byte[] b1, byte[] b2)
+        {
+            int minLength = Math.Min(b1.Length, b2.Length);
+            for(int i = 0; i < minLength; ++i)
+            {
+                if (b1[i] < b2[i])
+                    return -1;
+                if (b1[i] > b2[i])
+                    return 1;
+            }
+            if (b1.Length > b2.Length)
+                return 1;
+            else if (b1.Length == b2.Length)
+                return 0;
+            else
+                return -1;
         }
 
         public override int asof(IScalar value)
         {
-            String target = value.getString();
-            int start = 0;
-            int end = values.Count - 1;
-            int mid;
-            while (start <= end)
+            if (isBlob)
             {
-                mid = (start + end) / 2;
-                
-                if (string.Compare(values[mid], target) <= 0)
-                    start = mid + 1;
-                else
-                    end = mid - 1;
+                if (value.getDataType() != DATA_TYPE.DT_BLOB)
+                    throw new Exception("value must be a blob scalar. ");
+                byte[] target = ((BasicString)value).getBytes();
+                int start = 0;
+                int end = blobValues.Count - 1;
+                int mid;
+                while (start <= end)
+                {
+                    mid = (start + end) / 2;
+
+                    if (compare(blobValues[mid], target) <= 0)
+                        start = mid + 1;
+                    else
+                        end = mid - 1;
+                }
+                return end;
             }
-            return end;
+            else
+            {
+                String target = value.getString();
+                int start = 0;
+                int end = values.Count - 1;
+                int mid;
+                while (start <= end)
+                {
+                    mid = (start + end) / 2;
+
+                    if (string.Compare(values[mid], target) <= 0)
+                        start = mid + 1;
+                    else
+                        end = mid - 1;
+                }
+                return end;
+            }
         }
         
         protected override void writeVectorToBuffer(ByteBuffer buffer){
-		    foreach(String val in values){
-			    byte[] tmp = System.Text.Encoding.Default.GetBytes(val);
-                buffer.WriteBytes(tmp, 0, tmp.Length);
-			    buffer.WriteByte((byte)0);
-		    }
+            if (isBlob)
+            {
+                foreach (byte[] val in blobValues)
+                {
+                    buffer.WriteInt(val.Length);
+                    buffer.WriteBytes(val);
+                }
+            }
+            else
+            {
+                foreach (String val in values)
+                {
+                    byte[] tmp = System.Text.Encoding.Default.GetBytes(val);
+                    buffer.WriteBytes(tmp, 0, tmp.Length);
+                    buffer.WriteByte((byte)0);
+                }
+            }
         }
 
         public override void deserialize(int start, int count, ExtendedDataInput @in)
@@ -302,10 +440,21 @@ namespace dolphindb.data
 
         public override void serialize(int start, int count, ExtendedDataOutput @out)
         {
-            for (int i = 0; i < count; ++i)
+            if (isBlob)
             {
-                @out.writeString(values[start + i]);
+                for (int i = 0; i < count; ++i)
+                {
+                    @out.writeBlob(blobValues[start + i]);
+                }
             }
+            else
+            {
+                for (int i = 0; i < count; ++i)
+                {
+                    @out.writeString(values[start + i]);
+                }
+            }
+
         }
 
         public override int getUnitLength()
@@ -315,13 +464,13 @@ namespace dolphindb.data
         public override int serialize(int indexStart, int offect, int targetNumElement, out int numElement, out int partial, ByteBuffer @out)
         {
             int readByte = 0;
-            targetNumElement = Math.Min(targetNumElement, values.Count - indexStart);
+            targetNumElement = Math.Min(targetNumElement, isBlob ? blobValues.Count - indexStart: values.Count - indexStart);
             numElement = 0;
             for (int i = 0; i < targetNumElement; ++i, ++numElement)
             {
-                byte[] data = System.Text.Encoding.Default.GetBytes(values[indexStart + i]);
                 if (isBlob)
                 {
+                    byte[] data = blobValues[i];
                     if (sizeof(int) + data.Length > @out.remain())
                         break;
                     @out.WriteInt(data.Length);
@@ -330,6 +479,7 @@ namespace dolphindb.data
                 }
                 else
                 {
+                    byte[] data = System.Text.Encoding.Default.GetBytes(values[indexStart + i]);
                     if (sizeof(byte) + data.Length > @out.remain())
                         break;
                     @out.WriteBytes(data);
@@ -345,17 +495,45 @@ namespace dolphindb.data
 
         public override void append(IScalar value)
         {
-            values.Add(((BasicString)value).getValue());
+            if (isBlob)
+                blobValues.Add(((BasicString)value).getBytes());
+            else
+                values.Add(((BasicString)value).getValue());
         }
 
         public override void append(IVector value)
         {
-            values.AddRange(((BasicStringVector)value).getdataArray());
+            if(isBlob)
+                blobValues.AddRange(((BasicStringVector)value).getDataByteArray());
+            else
+                values.AddRange(((BasicStringVector)value).getdataArray());
         }
 
         public List<string> getdataArray()
         {
             return values;
+        }
+
+        public List<byte[]> getDataByteArray()
+        {
+            return blobValues;
+        }
+
+        public byte[] getBytes(int index)
+        {
+            if (isBlob)
+            {
+                return blobValues[index];
+            }
+            else
+            {
+                throw new Exception("The value must be a string scalar. ");
+            }
+        }
+
+        public override IEntity getEntity(int index)
+        {
+            return get(index);
         }
     }
 

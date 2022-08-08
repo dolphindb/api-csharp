@@ -118,7 +118,10 @@ namespace dolphindb.data
             return new BasicDateHourVector(getSubArray(indices), false);
         }
 
-
+        public override IEntity getEntity(int index)
+        {
+            return new BasicDateHour(values[index]);
+        }
     }
 
 }

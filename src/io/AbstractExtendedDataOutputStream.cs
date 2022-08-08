@@ -11,7 +11,6 @@ namespace dolphindb.io
         public abstract void writeLongArray(long[] A, int startIdx, int len);
         public abstract void writeIntArray(int[] A, int startIdx, int len);
         public abstract void writeShortArray(short[] A, int startIdx, int len);
-        private const int UTF8_STRING_LIMIT = 65535;
         protected internal const int BUF_SIZE = 4096;
         protected internal byte[] buf;
         protected static readonly int longBufSize = BUF_SIZE / 8;
@@ -203,36 +202,10 @@ namespace dolphindb.io
         }
 
         //2021.01.19 cwj
-        public void writeBlob(string value)
+        public void writeBlob(byte[] value)
         {
-            int len = value.Length;
-            writeInt(len);
-            int i = 0;
-            int pos = 0;
-            if (buf == null)
-                buf = new byte[BUF_SIZE];
-            do
-            {
-                while (i < len && pos < buf.Length - 4)
-                {
-                    char c = value[i++];
-                    if (c >= '\u0001' && c <= '\u007f')
-                        buf[pos++] = (byte)c;
-                    else if (c == '\u0000' || (c >= '\u0080' && c <= '\u07ff'))
-                    {
-                        buf[pos++] = (byte)(0xc0 | (0x1f & (c >> 6)));
-                        buf[pos++] = (byte)(0x80 | (0x3f & c));
-                    }
-                    else
-                    {
-                        buf[pos++] = (byte)(0xe0 | (0x0f & (c >> 12)));
-                        buf[pos++] = (byte)(0x80 | (0x3f & (c >> 6)));
-                        buf[pos++] = (byte)(0x80 | (0x3f & c));
-                    }
-                }
-                base.Write(buf, 0, pos);
-                pos = 0;
-            } while (i < len);
+            base.Write(value.Length);
+            base.Write(value);
         }
         //
 
@@ -241,7 +214,7 @@ namespace dolphindb.io
             try
             {
                 int len = value.Length;
-                for (int i = start; i < len && sum <= 65535; ++i)
+                for (int i = start; i < len; ++i)
                 {
                     char c = value[i];
                     if (c >= '\u0001' && c <= '\u007f')
@@ -256,11 +229,6 @@ namespace dolphindb.io
                     {
                         sum += 3;
                     }
-                }
-
-                if (sum > UTF8_STRING_LIMIT)
-                {
-                    throw new FormatException();
                 }
                 return sum;
             }

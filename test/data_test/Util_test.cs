@@ -12,16 +12,19 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Collections;
 using System.Threading.Tasks;
+using dolphindb_config;
+
 
 namespace dolphindb_csharp_api_test.data_test
 {
     [TestClass]
     public class Util_test
     {
-        private readonly string SERVER = "127.0.0.1";
-        private readonly int PORT = 8848;
-        private readonly string USER = "admin";
-        private readonly string PASSWORD = "123456";
+        private string SERVER = MyConfigReader.SERVER;
+        static private int PORT = MyConfigReader.PORT;
+        private readonly string USER = MyConfigReader.USER;
+        private readonly string PASSWORD = MyConfigReader.PASSWORD;
+
         [TestMethod]
         public void test_fillSchema()
         {
@@ -49,7 +52,7 @@ namespace dolphindb_csharp_api_test.data_test
                 dr["卖方报价"] = 3333.33322145;
                 dr["时间戳"] = new DateTime(2021, 1, 26, 15, 1, 2);
                 dr["备注"] = "备注" + i.ToString();
-                dr["timespan"] = new TimeSpan(25, 15, 15, 14, 123);
+                dr["timespan"] = new TimeSpan(0, 15, 15, 14, 123);
                 dt.Rows.Add(dr);
             }
             Dictionary<string, DATA_TYPE> var1 = new Dictionary<string, DATA_TYPE>();

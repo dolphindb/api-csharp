@@ -328,7 +328,7 @@ namespace dolphindb.data
             public IVector createVector(ExtendedDataInput @in) { return new BasicStringVector(DATA_FORM.DF_VECTOR, @in,false,true ); }
             public IVector createPair(ExtendedDataInput @in) { return new BasicStringVector(DATA_FORM.DF_PAIR, @in,false, true); }
             public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicStringMatrix(@in); }
-            public IScalar createScalarWithDefaultValue() { return new BasicString(""); }
+            public IScalar createScalarWithDefaultValue() { return new BasicString("", true); }
             public IVector createVectorWithDefaultValue(int size) { return new BasicStringVector(DATA_FORM.DF_VECTOR, size, false, true); }
             public IVector createPairWithDefaultValue() { return new BasicStringVector(DATA_FORM.DF_PAIR, 2, false,true); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicStringMatrix(rows, columns); }

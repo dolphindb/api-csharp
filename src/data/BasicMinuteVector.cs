@@ -132,9 +132,11 @@ namespace dolphindb.data
         {
             return new BasicMinuteVector(getSubArray(indices));
         }
-
-
-
+        
+        public override IEntity getEntity(int index)
+        {
+            return new BasicMinute(values[index]);
+        }
     }
 
 }

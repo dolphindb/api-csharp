@@ -41,7 +41,7 @@ namespace dolphindb.streaming
             }
         }
 
-        public ThreadPooledClient() : this(DEFAULT_PORT) { }
+        public ThreadPooledClient() : this(DEFAULT_PORT) { } 
 
         public ThreadPooledClient(string subscribeHost, int subscribePort) : base(subscribeHost,subscribePort) {
             Dictionary<String, Queue<IMessage>> backlog = new Dictionary<string, Queue<IMessage>>();
@@ -108,7 +108,7 @@ namespace dolphindb.streaming
         {
             try
             {
-                subscribe(site.host, site.port, subscribeInfo.getTableName(), subscribeInfo.getActionName(), subscribeInfo.getMessageHandler(), subscribeInfo.getMsgId() + 1, true, subscribeInfo.getFilter(), false);
+                subscribe(site.host, site.port, subscribeInfo.getTableName(), subscribeInfo.getActionName(), subscribeInfo.getMessageHandler(), subscribeInfo.getMsgId() + 1, true, subscribeInfo.getFilter(), subscribeInfo.getDeseriaLizer(), subscribeInfo.getUser(), subscribeInfo.getPassword(), false);
                 Console.WriteLine("Successfully reconnected and subscribed " + site.host + ":" + site.port + ":" + subscribeInfo.getTableName());
                 return true;
             }
@@ -120,14 +120,14 @@ namespace dolphindb.streaming
             return false;
         }
 
-        public void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter)
-        {
-            subscribe(host, port, tableName, actionName, handler, offset, reconnect, filter, true);
+
+        public void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, StreamDeserializer deserializer = null, string user = "", string password = ""){
+            subscribe(host, port, tableName, actionName, handler, offset, reconnect, filter, deserializer, user, password, true);
         }
 
-        private void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, bool createSubInfo)
+        private void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, StreamDeserializer deserializer, string user, string password, bool createSubInfo)
         {
-            BlockingCollection<List<IMessage>> queue = subscribeInternal(host, port, tableName, actionName, handler, offset, reconnect, filter, createSubInfo);
+            BlockingCollection<List<IMessage>> queue = subscribeInternal(host, port, tableName, actionName, handler, offset, reconnect, filter, deserializer, user, password, createSubInfo);
             lock (queueHandlers)
             {
                 DBConnection dbConn = new DBConnection();

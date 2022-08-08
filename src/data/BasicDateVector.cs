@@ -100,7 +100,11 @@ namespace dolphindb.data
                     return;
                 }
             }
-            
+        }
+
+        public override IEntity getEntity(int index)
+        {
+            return new BasicDate(values[index]);
         }
     }
 

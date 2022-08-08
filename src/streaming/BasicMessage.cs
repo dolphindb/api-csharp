@@ -12,12 +12,14 @@ namespace dolphindb.streaming
         private long offset = 0;
         private string topic = "";
         private BasicAnyVector msg = null;
+        private string sym_;
 
-        public BasicMessage(long offset, string topic, BasicAnyVector msg)
+        public BasicMessage(long offset, string topic, BasicAnyVector msg, string sym = "")
         {
             this.offset = offset;
             this.topic = topic;
             this.msg = msg;
+            this.sym_ = sym;
         }
         
         public T getValue<T>(int colIndex)
@@ -38,6 +40,16 @@ namespace dolphindb.streaming
         public IEntity getEntity(int colIndex)
         {
             return msg.getEntity(colIndex);
+        }
+
+        public int size()
+        {
+            return msg.rows();
+        }
+
+        public string getSym()
+        {
+            return sym_;
         }
     }
 }

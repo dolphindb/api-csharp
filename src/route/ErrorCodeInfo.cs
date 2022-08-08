@@ -57,16 +57,16 @@ namespace dolphindb.route
             else
                 return "";
         }
-        void clearError()
+        public void clearError()
         {
             errorCode = "";
             errorInfo = "";
         }
-        bool hasError()
+        public bool hasError()
         {
             return errorCode != "";
         }
-        bool succeed()
+        public bool succeed()
         {
             return errorCode == "";
         }

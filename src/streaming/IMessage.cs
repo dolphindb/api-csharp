@@ -13,5 +13,7 @@ namespace dolphindb.streaming
         long getOffset();
         IEntity getEntity(int colIndex);
         T getValue<T>(int colIndex);
+        int size();
+        string getSym();
     }
 }

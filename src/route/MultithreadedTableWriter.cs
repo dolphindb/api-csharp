@@ -282,9 +282,9 @@ namespace dolphindb.route
             }
             private bool init()
             {
-                if (tableWriter_.tableName_ == "")
+                if (tableWriter_.dbName_ == "")
                 {
-                    scriptTableInsert_ = "tableInsert{\"" + tableWriter_.dbName_ + "\"}";
+                    scriptTableInsert_ = "tableInsert{\"" + tableWriter_.tableName_ + "\"}";
                 }
                 else
                 {
@@ -451,9 +451,9 @@ namespace dolphindb.route
                 throw new Exception(string.Format("Failed to connect to server {0}:{1}. ", hostName, port));
             }
             BasicDictionary schema;
-            if (tableName == "")
+            if (dbName == "")
             {
-                schema = (BasicDictionary)pConn.run("schema(" + dbName + ")");
+                schema = (BasicDictionary)pConn.run("schema(" + tableName + ")");
             }
             else
             {
@@ -468,7 +468,7 @@ namespace dolphindb.route
             else
             {
                 isPartionedTable_ = false;
-                if (tableName != "")
+                if (dbName != "")
                 {
                     if (threadCount > 1)
                     {//只有多线程的时候需要

@@ -9,7 +9,7 @@ namespace dolphindb.streaming
     public class TopicPoller
     {
         private BlockingCollection<List<IMessage>> queue;
-        private Queue<IMessage> cache = null;
+        private List<IMessage> cache = new List<IMessage>();
 
         public TopicPoller(BlockingCollection<List<IMessage>> queue)
         {
@@ -23,41 +23,81 @@ namespace dolphindb.streaming
 
         private void fillCache(long timeout)
         {
-            Debug.Assert(cache == null);
-            List<IMessage> list = null;
-            if (cache == null)
+            cache = new List<IMessage>();
+            List<IMessage> list = new List<IMessage>();
+            int count = queue.Count;
+            for (int i = 0; i < count; i++)
             {
                 if (timeout > 0)
                     queue.TryTake(out list, (int)timeout);
                 else
                     list = queue.Take();
-            }
-            if (list != null)
-            {
-                cache = new Queue<IMessage>(list);
+                cache.AddRange(list);
             }
         }
 
         public List<IMessage> poll(long timeout)
         {
-            if (cache == null)
+            if (cache.Count == 0)
             {
                 fillCache(timeout);
             }
             //List<IMessage> cachedMessages = cache;
-            Queue<IMessage> cachedMessages = cache;
-            cache = null;
-            return cachedMessages == null ? new List<IMessage>() : cachedMessages.ToList();
+            List<IMessage> cachedMessages = cache;
+            cache = new List<IMessage>();
+            return cachedMessages == null ? new List<IMessage>() : cachedMessages;
         }
         
+        public List<IMessage> poll(long timeout, int size)
+        {
+            if (size <= 0)
+                throw new Exception("Size must be greater than zero");
+            List<IMessage> messages = new List<IMessage>(cache);
+            cache.Clear();
+            DateTime now = System.DateTime.Now;
+            DateTime end = now.AddTicks(timeout * 10000);
+            while(messages.Count < size && System.DateTime.Now < end)
+            {
+                try
+                {
+                    long mileSeconds = (end.Ticks - System.DateTime.Now.Ticks) / 10000;
+                    List<IMessage> tmp = new List<IMessage>();
+                    queue.TryTake(out tmp, (int)mileSeconds);
+                    if(tmp != null)
+                    {
+                        messages.AddRange(tmp);
+                    }
+                }catch(Exception e)
+                {
+                    return messages;
+                }
+            }
+            return messages;
+        }
+
         public IMessage take()
         {
-            if (cache == null)
-                fillCache(-1);
-            //IMessage message = cache.First();
-            //cache.RemoveAt(0);
-            //return message;
-            return cache.Dequeue();
+            while (true)
+            {
+                if (cache.Count != 0)
+                {
+                    IMessage message = cache[0];
+                    cache.Remove(message);
+                    return message;
+                }
+                try
+                {
+                    List<IMessage> tmp = queue.Take();
+                    if (tmp != null)
+                    {
+                        cache.AddRange(tmp);
+                    }
+                }
+                catch (Exception e)
+                {
+                    return null;
+                }
+            }
         }
     }
 }

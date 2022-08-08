@@ -7,7 +7,7 @@ namespace dolphindb.data
 {
     public class BasicIntVector : AbstractVector
     {
-        private List<int> values;
+        protected List<int> values;
 
         public BasicIntVector(int size) : this(DATA_FORM.DF_VECTOR, size)
         {
@@ -273,6 +273,11 @@ namespace dolphindb.data
         public List<int> getdataArray()
         {
             return values;
+        }
+
+        public override IEntity getEntity(int index)
+        {
+            return new BasicInt(values[index]);
         }
     }
 }

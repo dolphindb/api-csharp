@@ -12,18 +12,18 @@ using System.Threading;
 using System.Collections;
 using System.Threading.Tasks;
 using dolphindb.data;
+using dolphindb_config;
 
 namespace dolphindb_csharp_api_test.data_test
 {
     [TestClass]
     public class BasicArrayVectorTest
     {
-        //private readonly string SERVER = "127.0.0.1";
-        //private readonly int PORT = 18848;
-        private readonly string SERVER = "192.168.1.37";
-        private readonly int PORT = 8848;
-        private readonly string USER = "admin";
-        private readonly string PASSWORD = "123456";
+        private string SERVER = MyConfigReader.SERVER;
+        static private int PORT = MyConfigReader.PORT;
+        private readonly string USER = MyConfigReader.USER;
+        private readonly string PASSWORD = MyConfigReader.PASSWORD;
+
 
         static void compareArrayVector(BasicArrayVector t1, BasicArrayVector t2)
         {
@@ -2062,6 +2062,31 @@ namespace dolphindb_csharp_api_test.data_test
             BasicArrayVector x = (BasicArrayVector)re.getColumn(2);
             conn.run("dropDatabase(dbName)");
 
+        }
+
+        [TestMethod]
+        public void read_error_data()
+        {
+
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT, "admin", "123456");
+            BasicTable data = (BasicTable)db.run("loadText('/home/wsun/Downloads/api_error_data.csv')");
+            //BasicTable data = (BasicTable)db.run("table(take('hc2210''hc22101', 100).symbol() as col1, take('hc2210''hc22101', 100).symbol() as col2)");
+            int cols = data.columns();
+            int rows = data.rows();
+            for (int i = 0; i < cols; ++i)
+            {
+                IVector vec = data.getColumn(i);
+                
+                if (vec.getDataType() == DATA_TYPE.DT_SYMBOL)
+                {
+                    for (int j = 0; j < rows; ++j)
+                    {
+                        string t = ((BasicSymbolVector)vec).getString(j);
+                    }
+                }
+            }
+            db.close();
         }
 
     }

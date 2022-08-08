@@ -193,6 +193,7 @@
     <Compile Include="streaming\MessageParser.cs" />
     <Compile Include="streaming\PollingClient.cs" />
     <Compile Include="streaming\QueueManager.cs" />
+    <Compile Include="streaming\StreamDeserializer.cs" />
     <Compile Include="streaming\ThreadedClient.cs" />
     <Compile Include="streaming\ThreadPooledClient.cs" />
     <Compile Include="streaming\TopicPoller.cs" />

@@ -8,17 +8,24 @@ using dolphindb;
 using dolphindb.route;
 using System.Collections;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using dolphindb_config;
 
 namespace dolphindb_csharp_api_test.route_test
 {
     [TestClass]
     public class PartitionedTableAppender_test
     {
+        private string SERVER = MyConfigReader.SERVER;
+        static private int PORT = MyConfigReader.PORT;
+        private readonly string USER = MyConfigReader.USER;
+        private readonly string PASSWORD = MyConfigReader.PASSWORD;
+
+
         [TestMethod]
         public void createPartitionedTableAppender()
         {
 
-            IDBConnectionPool pool = new ExclusiveDBConnectionPool("192.168.1.37", 8848, "admin", "123456", 5, true, true);
+            IDBConnectionPool pool = new ExclusiveDBConnectionPool(SERVER, PORT, USER, PASSWORD, 5, true, true);
             IDBTask conn = new BasicDBTask("dbPath = \"dfs://demohash\";if(existsDatabase(dbPath))    dropDatabase(dbPath); db = database(dbPath, HASH,[STRING, 2]);t= table(100:0,`id`valuie,[STRING,INT]);pt=db.createPartitionedTable(t,`pt,`id);");
             pool.execute(conn);
 

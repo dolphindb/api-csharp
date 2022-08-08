@@ -20,7 +20,7 @@ namespace dolphindb.streaming
         {
             try
             {
-                BlockingCollection<List<IMessage>> queue = subscribeInternal(site.host, site.port, subscribeInfo.getTableName(), subscribeInfo.getActionName(), null, subscribeInfo.getMsgId() + 1, true, subscribeInfo.getFilter(), false);
+                BlockingCollection<List<IMessage>> queue = subscribeInternal(site.host, site.port, subscribeInfo.getTableName(), subscribeInfo.getActionName(), null, subscribeInfo.getMsgId() + 1, true, subscribeInfo.getFilter(), subscribeInfo.getDeseriaLizer(), subscribeInfo.getUser(), subscribeInfo.getPassword(), false);
                 Console.WriteLine("Successfully reconnected and subscribed " + site.host + ":" + site.port + ":" + subscribeInfo.getTableName());
                 return true;
             }
@@ -31,11 +31,12 @@ namespace dolphindb.streaming
             return false;
         }
 
-        public TopicPoller subscribe(string host, int port, string tableName, string actionName, long offset, bool reconnect, IVector filter)
+        public TopicPoller subscribe(string host, int port, string tableName, string actionName, long offset, bool reconnect, IVector filter, StreamDeserializer deserializer = null, string user = "", string password = "")
         {
-            BlockingCollection<List<IMessage>> queue = subscribeInternal(host, port, tableName, actionName, null, offset, reconnect, filter);
+            BlockingCollection<List<IMessage>> queue = subscribeInternal(host, port, tableName, actionName, null, offset, reconnect, filter, deserializer, user, password, true);
             return new TopicPoller(queue);
         }
+
 
         public TopicPoller subscribe(string host, int port, string tableName, string actionName, long offset, bool reconnect)
         {

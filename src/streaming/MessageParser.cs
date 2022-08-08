@@ -8,7 +8,6 @@ using System.Text;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Concurrent;
 using System.Threading;
 
@@ -150,6 +149,8 @@ namespace dolphindb.streaming
                             if (rowSize == 1)
                             {
                                 BasicMessage rec = new BasicMessage(msgid, topic, dTable);
+                                if (subscribeInfo.getDeseriaLizer() != null)
+                                    rec = subscribeInfo.getDeseriaLizer().parse(rec);
                                 dispatcher_.dispatch(rec);
                             }
                             else if (rowSize > 1)
@@ -166,6 +167,8 @@ namespace dolphindb.streaming
                                         row.setEntity(j, entity);
                                     }
                                     BasicMessage rec = new BasicMessage(msgid, topic, row);
+                                    if (subscribeInfo.getDeseriaLizer() != null)
+                                        rec = subscribeInfo.getDeseriaLizer().parse(rec);
                                     messages.Add(rec);
                                 }
                                 dispatcher_.batchDispatch(messages);
@@ -185,6 +188,7 @@ namespace dolphindb.streaming
             catch (Exception e)
             {
                 System.Console.Out.WriteLine(e.StackTrace);
+                System.Console.Out.WriteLine(e.Message);
                 foreach (string topic in successTopics)
                 {
                     SubscribeInfo subscribeInfo = null;

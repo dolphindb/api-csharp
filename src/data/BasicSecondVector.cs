@@ -111,6 +111,11 @@ namespace dolphindb.data
         {
             return new BasicSecondVector(getSubArray(indices));
         }
+
+        public override IEntity getEntity(int index)
+        {
+            return new BasicSecond(values[index]);
+        }
     }
 
 }

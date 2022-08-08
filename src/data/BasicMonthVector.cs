@@ -127,7 +127,11 @@ namespace dolphindb.data
         {
             return new BasicMonthVector(getSubArray(indices));
         }
-
+        
+        public override IEntity getEntity(int index)
+        {
+            return new BasicMonth(values[index]);
+        }
     }
 
 }

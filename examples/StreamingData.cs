@@ -112,6 +112,11 @@ public class StreamingData
             double price = ((BasicDouble)msg.getEntity(4)).getValue();
             Console.WriteLine("price:" + price + " \n");
         }
+
+        void MessageHandler.batchHandler(List<IMessage> msgs)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public void ThreadedClient()

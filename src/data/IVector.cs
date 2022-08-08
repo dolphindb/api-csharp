@@ -9,6 +9,7 @@ namespace dolphindb.data
         bool isNull(int index);
         void setNull(int index);
         IScalar get(int index);
+        IEntity getEntity(int index);
         void set(int index, IScalar value);
         Type getElementClass();
         DataTable toDataTable();

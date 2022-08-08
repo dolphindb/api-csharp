@@ -74,10 +74,10 @@ namespace dolphindb.streaming
         private ConcurrentBag<Tuple<Thread, Socket>> parserThreads = new ConcurrentBag<Tuple<Thread, Socket>>();
         
 
-        public Deamon(string host, int port, MessageDispatcher dispatcher) {
+        public Deamon(int port, MessageDispatcher dispatcher) {
             listeningPort_ = port;
             this.dispatcher_ = dispatcher;
-            IPAddress localAddr = IPAddress.Parse(host);
+            IPAddress localAddr = IPAddress.Parse("0.0.0.0");
             ssocket_ = new TcpListener(localAddr, listeningPort_);
             ssocket_.Start();
             ReconnectDetector reDetector = new ReconnectDetector(dispatcher);
@@ -110,8 +110,7 @@ namespace dolphindb.streaming
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
-                Console.Write(ex.StackTrace);
+                Console.WriteLine(ex.Message);
             }
             finally
             {
@@ -123,8 +122,7 @@ namespace dolphindb.streaming
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex.ToString());
-                        Console.Write(ex.StackTrace);
+                        Console.WriteLine(ex.Message);
                     }
                 }
             }

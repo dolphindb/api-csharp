@@ -226,6 +226,11 @@ namespace dolphindb.data
         {
             return values;
         }
+
+        public override IEntity getEntity(int index)
+        {
+            return new BasicBoolean(values[index]);
+        }
     }
 
 }

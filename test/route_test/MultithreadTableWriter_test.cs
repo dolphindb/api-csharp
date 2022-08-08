@@ -12,20 +12,22 @@ using System.Threading;
 using System.Collections;
 using System.Threading.Tasks;
 using dolphindb.route;
+using dolphindb_config;
 
 namespace dolphindb_csharp_api_test.route_test
 {
     [TestClass]
     public class MultithreadedTableWriter_test
     {
-        private readonly string SERVER = "192.168.1.37";
-        private readonly int PORT = 8848;
-        private readonly string USER = "admin";
-        private readonly string PASSWORD = "123456";
-        public static string NODE1_HOST = "192.168.1.37";
-        public static int NODE1_PORT = 18103;
-        public static string[] HASTREAM_GROUP = new string[] { "192.168.1.37:18103", "192.168.1.37:18104", "192.168.1.37:18105" };
-        public static int HASTREAM_GROUPID = 11;
+        private string SERVER = MyConfigReader.SERVER;
+        static private int PORT = MyConfigReader.PORT;
+        private readonly string USER = MyConfigReader.USER;
+        private readonly string PASSWORD = MyConfigReader.PASSWORD;
+        private string NODE1_HOST = MyConfigReader.NODE1_HOST;
+        private readonly int NODE1_PORT = MyConfigReader.NODE1_PORT;
+        public static string[] HASTREAM_GROUP = MyConfigReader.HASTREAM_GROUP;
+        private readonly int HASTREAM_GROUPID = MyConfigReader.HASTREAM_GROUPID;
+
 
         static void compareBasicTable(BasicTable table, BasicTable newTable)
         {
@@ -96,7 +98,7 @@ namespace dolphindb_csharp_api_test.route_test
             Exception exception = null;
             try
             {
-                MultithreadedTableWriter mtw = new MultithreadedTableWriter("not_exist", PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter("not_exist", PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             }catch(Exception ex)
             {
                 exception = ex;
@@ -117,7 +119,7 @@ namespace dolphindb_csharp_api_test.route_test
             Exception exception = null;
             try
             {
-                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT+100, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT+100, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             }
             catch (Exception ex)
             {
@@ -139,7 +141,7 @@ namespace dolphindb_csharp_api_test.route_test
             Exception exception = null;
             try
             {
-                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, "user1", PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, "user1", PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             }
             catch (Exception ex)
             {
@@ -162,7 +164,7 @@ namespace dolphindb_csharp_api_test.route_test
             Exception exception = null;
             try
             {
-                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, "654321", "table1", "", false, false, null, 10000, 1, 1);
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, "654321", "", "table1", false, false, null, 10000, 1, 1);
             }
             catch (Exception ex)
             {
@@ -263,7 +265,7 @@ namespace dolphindb_csharp_api_test.route_test
             Exception exception = null;
             try
             {
-                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, -1, 1, 1);
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, -1, 1, 1);
             }
             catch (Exception ex)
             {
@@ -286,7 +288,7 @@ namespace dolphindb_csharp_api_test.route_test
             Exception exception = null;
             try
             {
-                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 0, 1, 1);
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 0, 1, 1);
             }
             catch (Exception ex)
             {
@@ -307,7 +309,7 @@ namespace dolphindb_csharp_api_test.route_test
             script += "share table(100:0, [`col0], [BOOL]) as table1";
             conn.run(script);
             Exception exception = null;
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 1, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 1, 1, 1);
             mtw.waitForThreadCompletion();
             conn.run("undef(`table1, SHARED)");
             conn.close();
@@ -324,7 +326,7 @@ namespace dolphindb_csharp_api_test.route_test
             Exception exception = null;
             try
             {
-                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, -1, 1);
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, -1, 1);
             }
             catch (Exception ex)
             {
@@ -347,7 +349,7 @@ namespace dolphindb_csharp_api_test.route_test
             Exception exception = null;
             try
             {
-                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, -2);
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, -2);
             }
             catch (Exception ex)
             {
@@ -370,7 +372,7 @@ namespace dolphindb_csharp_api_test.route_test
             Exception exception = null;
             try
             {
-                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 0);
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 0);
             }
             catch (Exception ex)
             {
@@ -393,7 +395,7 @@ namespace dolphindb_csharp_api_test.route_test
             Exception exception = null;
             try
             {
-                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 100000, 1, 10);
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 100000, 1, 10);
             }
             catch (Exception ex)
             {
@@ -439,7 +441,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(3000000:0, [`id, `sym, `str, `price, `val], [INT, SYMBOL, STRING, DOUBLE, INT]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 100000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 100000, 1, 1);
             int i = 0;
             List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1) });
             ErrorCodeInfo pErrorInfo = mtw.insert(x);
@@ -464,7 +466,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [BOOL]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
                 if (i % 2 == 0)
@@ -511,7 +513,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [CHAR]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicByte((byte)(i % 99)) });
@@ -534,7 +536,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [SHORT]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -558,7 +560,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [INT]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -582,7 +584,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [LONG]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -606,7 +608,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [DATE]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -630,7 +632,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [MONTH]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 20; i < 100; i++)
             {
 
@@ -654,7 +656,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [TIME]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -678,7 +680,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [MINUTE]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -702,7 +704,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [SECOND]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -726,7 +728,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [DATETIME]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -750,7 +752,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [TIMESTAMP]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -774,7 +776,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [NANOTIME]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -800,7 +802,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [NANOTIMESTAMP]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -826,7 +828,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [DOUBLE]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -850,7 +852,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [FLOAT]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -874,7 +876,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [STRING]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicString("AA" + (i % 99).ToString()) });
@@ -897,7 +899,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [SYMBOL]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicString("AA" + (i % 99).ToString()) });
@@ -920,7 +922,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [UUID]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
                 if (i % 2 == 0)
@@ -951,7 +953,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [IPADDR]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
                 if (i % 2 == 0)
@@ -982,7 +984,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [INT128]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
                 if (i % 2 == 0)
@@ -1013,7 +1015,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1, `col2, `col3, `col4, `col5, `col6, `col7, `col8, `col9, `col10, `col11, `col12, `col13, `col14, `col15, `col16, `col17, `col18], [INT[], BOOL[], SHORT[], CHAR[], LONG[], DATE[], MONTH[], TIME[], MINUTE[], SECOND[], DATETIME[], TIMESTAMP[], NANOTIME[], NANOTIMESTAMP[], DOUBLE[], FLOAT[], UUID[], INT128[], IPADDR[]]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 1000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 1000, 1, 1);
             conn.run("v1 = array(ANY, 0, 1000000);v2 = array(ANY, 0, 1000000);v3 = array(ANY, 0, 1000000);v4 = array(ANY, 0, 1000000);v5 = array(ANY, 0, 1000000);v6 = array(ANY, 0, 1000000);v7 = array(ANY, 0, 1000000);v8 = array(ANY, 0, 1000000);v9 = array(ANY, 0, 1000000);v10 = array(ANY, 0, 1000000);v11 = array(ANY, 0, 1000000);v12 = array(ANY, 0, 1000000);v13 = array(ANY, 0, 1000000);v14 = array(ANY, 0, 1000000);v15 = array(ANY, 0, 1000000);v16 = array(ANY, 0, 1000000);v17 = array(ANY, 0, 1000000);v18 = array(ANY, 0, 1000000);v19 = array(ANY, 0, 1000000);");
             for (int i = 0; i < 10000; i++)
             {
@@ -1055,7 +1057,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [BOOL]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
                 if (i % 2 == 0)
@@ -1084,7 +1086,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1, `col2, `col3], [CHAR, INT, SHORT, LONG]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -1107,7 +1109,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1, `col2, `col3], [CHAR, INT, SHORT, LONG]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -1130,7 +1132,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1, `col2, `col3], [CHAR, INT, SHORT, LONG]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -1153,7 +1155,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1, `col2, `col3], [CHAR, INT, SHORT, LONG]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -1176,7 +1178,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1], [FLOAT, DOUBLE]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -1199,7 +1201,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1], [FLOAT, DOUBLE]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -1222,7 +1224,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1, `col2, `col3, `col4], [STRING, SYMBOL, UUID, IPADDR, INT128]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             string[] v1 = new string[] { "5d212a78-cc48-e3b1-4235-b4d91473ee85", "5d212a78-cc48-e3b1-4235-b4d91473ee86", "5d212a78-cc48-e3b1-4235-b4d91473ee87", "5d212a78-cc48-e3b1-4235-b4d91473ee88", "00000000-0000-0000-0000-000000000000" };
             string[] v2 = new string[] { "192.168.1.13", "192.168.1.14", "d0db:d6d:d253:8222:d525:31b6:62d4:c774", "d0db:d6d:d253:8222:d525:31b6:62d4:c774", "0.0.0.0" };
             string[] v3 = new string[] { "e1671797c52e15f763380b45e841ec32", "e1671797c52e15f763380b45e841ec33", "e1671797c52e15f763380b45e841ec34", "e1671797c52e15f763380b45e841ec35", "00000000000000000000000000000000" };
@@ -1248,7 +1250,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1, `col2, `col3, `col4, `col5], [DATE, MONTH, DATETIME, TIMESTAMP, NANOTIMESTAMP, DATEHOUR]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -1271,7 +1273,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1, `col2, `col3, `col4, `col5], [DATE, MONTH, DATETIME, TIMESTAMP, NANOTIMESTAMP, DATEHOUR]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -1294,7 +1296,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1, `col2, `col3, `col4, `col5], [DATE, MONTH, DATETIME, TIMESTAMP, NANOTIMESTAMP, DATEHOUR]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -1317,7 +1319,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1, `col2, `col3], [MINUTE, SECOND, TIME, NANOTIME]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -1340,7 +1342,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1, `col2, `col3], [MINUTE, SECOND, TIME, NANOTIME]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -1363,7 +1365,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1, `col2, `col3], [MINUTE, SECOND, TIME, NANOTIME]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -1386,7 +1388,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1, `col2, `col3], [MINUTE, SECOND, TIME, NANOTIME]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             ErrorCodeInfo pErrorInfo = mtw.insert(new TimeSpan(1, 12, 15, 59), new TimeSpan(1, 12, 15, 59), new TimeSpan(1, 12, 15, 59), new TimeSpan(1, 12, 15, 59));
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
@@ -1406,7 +1408,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1, `col2, `col3], [MINUTE, SECOND, TIME, NANOTIME]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
 
@@ -1429,7 +1431,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1, `col2, `col3], [MINUTE, SECOND, TIME, NANOTIME]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             ErrorCodeInfo pErrorInfo = mtw.insert(new TimeSpan(1, 12, 15, 25, 23), new TimeSpan(1, 12, 15, 25, 23), new TimeSpan(1, 12, 15, 25, 23), new TimeSpan(1, 12, 15, 25, 23));
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
@@ -1449,7 +1451,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0], [BOOL[]]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
                 if (i % 2 == 0) {
@@ -1479,7 +1481,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, [`col0, `col1, `col2, `col3], [CHAR[], INT[], SHORT[], LONG[]]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
                 if (i % 2 == 0) {
@@ -1526,7 +1528,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(3000000:0, [`id, `sym, `str, `price, `val], [INT, SYMBOL, STRING, DOUBLE, INT]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 30, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 30, 1);
             for (int i = 0; i < 30000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
@@ -1570,7 +1572,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(3000000:0, [`id, `sym, `str, `price, `val], [INT, SYMBOL, STRING, DOUBLE, INT]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 100000, 5, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 100000, 5, 1);
             for (int i = 0; i < 30000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
@@ -1614,7 +1616,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, \"col\"+string(1..22), [INT, BOOL, CHAR, SHORT, INT, LONG, DATE, MONTH, TIME, MINUTE, SECOND, DATETIME, TIMESTAMP, NANOTIME, NANOTIMESTAMP, FLOAT, DOUBLE, SYMBOL, STRING, UUID, INT128, IPADDR]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
                 ErrorCodeInfo pErrorInfo = mtw.insert(i, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null);
@@ -1637,7 +1639,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(100:0, \"col\"+string(1..20), [INT, BOOL[], CHAR[], SHORT[], INT[], LONG[], DATE[], MONTH[], TIME[], MINUTE[], SECOND[], DATETIME[], TIMESTAMP[], NANOTIME[], NANOTIMESTAMP[], FLOAT[], DOUBLE[], UUID[], INT128[], IPADDR[]]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 10000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             bool[] col1v = new bool[] { };
             byte[] col2v = new byte[] { };
             short[] col3v = new short[] { };
@@ -1684,7 +1686,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(3000000:0, [`id, `sym, `str, `price, `val], [INT, SYMBOL, STRING, DOUBLE, INT]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 100000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 100000, 1, 1);
             for (int i = 0; i < 3000000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
@@ -1728,7 +1730,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(3000000:0, [`id, `sym, `str, `price, `val], [INT, SYMBOL, STRING, DOUBLE, INT]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 100000, 1, 5, "id");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 100000, 1, 5, "id");
             for (int i = 0; i < 3000000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
@@ -1772,7 +1774,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share streamTable(3000000:0, [`id, `sym, `str, `price, `val], [INT, SYMBOL, STRING, DOUBLE, INT]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 100000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 100000, 1, 1);
             for (int i = 0; i < 3000000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
@@ -1816,7 +1818,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share streamTable(3000000:0, [`id, `sym, `str, `price, `val], [INT, SYMBOL, STRING, DOUBLE, INT]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 100000, 1, 5, "id");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 100000, 1, 5, "id");
             for (int i = 0; i < 3000000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
@@ -1860,7 +1862,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share keyedTable(`id, 3000000:0, [`id, `sym, `str, `price, `val], [INT, SYMBOL, STRING, DOUBLE, INT]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 100000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 100000, 1, 1);
             for (int i = 0; i < 3000000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
@@ -1904,7 +1906,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(3000000:0, [`id, `sym, `str, `price, `val], [INT, SYMBOL, STRING, DOUBLE, INT]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 100000, 10, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 100000, 10, 1);
             for (int i = 0; i < 30000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
@@ -1943,7 +1945,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(3000000:0, [`id, `sym, `str, `price, `val], [INT, SYMBOL, STRING, DOUBLE, INT]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 100000, 10, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 100000, 10, 1);
             for (int i = 0; i < 30000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
@@ -1972,7 +1974,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(3000000:0, [`id, `sym, `str, `price, `val], [INT, SYMBOL, STRING, DOUBLE, INT]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", false, false, null, 100000, 5, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 100000, 5, 1);
             for (int i = 0; i < 30000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
@@ -2058,7 +2060,7 @@ namespace dolphindb_csharp_api_test.route_test
             String script = "";
             script += "share table(3000000:0, [`id, `sym, `str, `price, `val], [INT, SYMBOL, STRING, DOUBLE, INT]) as table1";
             conn.run(script);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "table1", "", true, false, null, 100000, 1, 1);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", true, false, null, 100000, 1, 1);
             for (int i = 0; i < 30000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
@@ -3713,7 +3715,7 @@ namespace dolphindb_csharp_api_test.route_test
                 Console.WriteLine(ex.ToString());
             }
             conn1.run(String.Format("haStreamTable({0}, table(1000000:0, [`id, `sym, `str, `price, `val], [INT, SYMBOL, STRING, DOUBLE, INT]), \"haSt1\", 5000000)", HASTREAM_GROUPID));
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(StreamLeaderHost, StreamLeaderPort, USER, PASSWORD, "haSt1", "", false, true, HASTREAM_GROUP, 1000000, 1, 3, "id");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(StreamLeaderHost, StreamLeaderPort, USER, PASSWORD, "", "haSt1", false, true, HASTREAM_GROUP, 1000000, 1, 3, "id");
             for (int i = 0; i < 3000000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
@@ -3776,7 +3778,7 @@ namespace dolphindb_csharp_api_test.route_test
                 Console.WriteLine(ex.ToString());
             }
             conn1.run(String.Format("haStreamTable({0}, table(1000000:0, [`id, `sym, `str, `price, `val], [INT, SYMBOL, STRING, DOUBLE, INT]), \"haSt1\", 5000000)", HASTREAM_GROUPID));
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(StreamFollowerHost, StreamFollowerPort, USER, PASSWORD, "haSt1", "", false, true, HASTREAM_GROUP, 1000000, 1, 3, "id");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(StreamFollowerHost, StreamFollowerPort, USER, PASSWORD, "", "haSt1", false, true, HASTREAM_GROUP, 1000000, 1, 3, "id");
             for (int i = 0; i < 3000000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });

@@ -65,8 +65,17 @@ xeBqwbgg5VAp5wZyjQIDAQAB
 ";
             string key = RSAUtils.GetKey(pub_Key_File);
             string re = RSAUtils.RSA("admin", key);
-            Assert.AreEqual("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDy2GIpXsgdPX1uf4dXv97Ny1DyVKP/NlQIiOUCLKQKZmC32I06iU/mrKYTvxPzfaiae8YN02fFMFhiSoNgApI4BK8Q0n5poVd2gywaS+EmD+A+t7DXC+Y4uylTshG80uNhvJlvy1LShkx4MjiVGjMAcBXELLKad8HU9UV2KzjLWwIDAQAB", RSAUtils.GetKey(pub_Key_File));
+            Assert.AreEqual("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDDl3JJzcEHnVhnbSWvjXAGpy7MDfkyw8+cxtBzrE7rdLvMvOSuLXnAAya/BAhB7hx2nIAonSaSwjLxqIVo8n97y7h/l94eMzaAiTb4is2lew/fZmJeKLEdjvn/IaWDQgCq5TDn4cgLp4kQMtbAsddjoEWqxeBqwbgg5VAp5wZyjQIDAQAB", RSAUtils.GetKey(pub_Key_File));
             //byte[] obj = Convert.FromBase64String(RSAUtils.GetKey(pub_Key_File));
+        }
+
+        [TestMethod]
+        public void Test_Util_parseDate1()
+        {
+            DBConnection conn = new DBConnection();
+            //bool flag = conn.connect("192.168.100.15",11040);
+            bool flag = conn.connect("﻿192.168.1.167", 18921, "admin", "123456", "", false, null);
+            int a = 1;
         }
     }
 }

@@ -234,5 +234,10 @@ namespace dolphindb.data
         {
             return values;
         }
+
+        public override IEntity getEntity(int index)
+        {
+            return new BasicDouble(values[index]);
+        }
     }
 }

@@ -148,6 +148,10 @@ namespace dolphindb.data
             return new BasicNanoTimestampVector(getSubArray(indices));
         }
 
+        public override IEntity getEntity(int index)
+        {
+            return new BasicNanoTimestamp(values[index]);
+        }
     }
 
 }

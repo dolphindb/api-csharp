@@ -51,11 +51,6 @@ namespace dolphindb.data
 
         }
 
-        public virtual IEntity getEntity(int index)
-        {
-            return values[index];
-        }
-
         public override IScalar get(int index)
         {
             if (values[index].isScalar())
@@ -199,6 +194,11 @@ namespace dolphindb.data
         public override void append(IVector value)
         {
             throw new NotImplementedException();
+        }
+
+        public override IEntity getEntity(int index)
+        {
+            return values[index];
         }
     }
 

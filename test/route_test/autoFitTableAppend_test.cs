@@ -10,6 +10,7 @@ using System.Collections;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Data;
 using System.Threading;
+using dolphindb_config;
 
 
 namespace dolphindb_csharp_api_test.route_test
@@ -17,16 +18,17 @@ namespace dolphindb_csharp_api_test.route_test
     [TestClass]
     public class autoFittableAppend_test
     {
-        private readonly string SERVER = "192.168.1.37";
-        private readonly int PORT = 8848;
-        private readonly string USER = "admin";
-        private readonly string PASSWORD = "123456";
+        private string SERVER = MyConfigReader.SERVER;
+        static private int PORT = MyConfigReader.PORT;
+        private readonly string USER = MyConfigReader.USER;
+        private readonly string PASSWORD = MyConfigReader.PASSWORD;
 
         [TestMethod]
         public void append_test()
         {
+        
             DBConnection conn = new DBConnection(false);
-            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn.connect(SERVER, PORT, USER,PASSWORD);
             conn.run("dbPath = \"dfs://demohash\";if(existsDatabase(dbPath))    dropDatabase(dbPath); db = database(dbPath, HASH,[STRING, 2]);t= table(100:0,`股票代码`股票日期`买方报价`卖方报价`时间戳`备注`timespan,[STRING,MONTH,DOUBLE,DOUBLE,DATE,STRING,TIME]);pt=db.createPartitionedTable(t,`pt,`股票代码);");
             autoFitTableAppender aft = new autoFitTableAppender("dfs://demohash", "pt", false, conn);
 

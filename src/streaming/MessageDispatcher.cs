@@ -34,9 +34,12 @@ namespace dolphindb.streaming
         private MessageHandler messageHandler_;
         private string tableName_;
         private string actionName_;
+        private StreamDeserializer deserializer_;
+        private string user_;
+        private string password_;
 
         public SubscribeInfo(DateTime activate, BlockingCollection<List<IMessage>> queue, Site[] sites, string topic, long msgId, bool reconnect, IVector filter, 
-            MessageHandler messageHandler, string tableName, string actionName)
+            MessageHandler messageHandler, string tableName, string actionName, StreamDeserializer deserializer, string user, string password)
         {
             lastActivateTime_ = activate;
             this.queue_ = queue;
@@ -49,6 +52,9 @@ namespace dolphindb.streaming
             this.messageHandler_ = messageHandler;
             this.tableName_ = tableName;
             this.actionName_ = actionName;
+            deserializer_ = deserializer;
+            user_ = user;
+            password_ = password;
         }
 
         public string getTopic()
@@ -124,6 +130,20 @@ namespace dolphindb.streaming
         public bool isClose()
         {
             return closed_;
+        }
+
+        public StreamDeserializer getDeseriaLizer()
+        {
+            return deserializer_;
+        }
+        public string getUser()
+        {
+            return user_;
+        }
+        
+        public string getPassword()
+        {
+            return password_;
         }
     }
 

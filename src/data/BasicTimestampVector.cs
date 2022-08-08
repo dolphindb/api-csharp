@@ -122,6 +122,10 @@ namespace dolphindb.data
             return new BasicTimestampVector(getSubArray(indices));
         }
 
+        public override IEntity getEntity(int index)
+        {
+            return new BasicTimestamp(values[index]);
+        }
     }
 
 }

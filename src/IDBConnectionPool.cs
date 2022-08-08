@@ -4,6 +4,7 @@
 //  Author : zhikun.luo
 //-------------------------------------------------------------------------------------------
 
+using dolphindb.data;
 using System.Collections.Generic;
 namespace dolphindb
 {
@@ -13,5 +14,10 @@ namespace dolphindb
         void execute(IDBTask task);
         int getConnectionCount();
         void shutdown();
+        void waitForThreadCompletion();
+
+        IEntity run(string function, IList<IEntity> arguments);
+
+        IEntity run(string script);
     }
 }

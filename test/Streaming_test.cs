@@ -7,20 +7,20 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using dolphindb_config;
 
 namespace dolphindb_csharp_api_test
 {
     [TestClass]
     public class Streaming_test
     {
-        private readonly string SUB_HOST = "localhost";
-        private readonly int SUB_PORT = 18802;
-        //private static readonly string REMOTE_HOST = "115.239.209.228";
-        //private static readonly int REMOTE_PORT = 20700;
-        private readonly string REMOTE_HOST = "localhost";
-        private readonly int REMOTE_PORT = 8848;
+        private string REMOTE_HOST = MyConfigReader.SERVER;
+        private readonly int REMOTE_PORT = MyConfigReader.PORT;
+        private string SUB_HOST = MyConfigReader.LOCALHOST;
+        private readonly int SUB_PORT = MyConfigReader.LOCALPORT;
         private readonly string REMOTE_TABLE_NAME = "huobi_MarketBBO";
         private readonly int TIMEOUT = 1000;
+
 
         public Streaming_test() { }
         [TestMethod]
@@ -153,7 +153,7 @@ namespace dolphindb_csharp_api_test
         [TestMethod]
         public void testThreadUnSubscribe()
         {
-            ThreadedClient client = new ThreadedClient(SUB_PORT);
+            ThreadedClient client = new ThreadedClient(12333);
             try
             {
                 client.subscribe(REMOTE_HOST, REMOTE_PORT, REMOTE_TABLE_NAME, new SampleMessageHandler(), 0);
@@ -198,6 +198,7 @@ namespace dolphindb_csharp_api_test
                 Assert.Fail(e.Message);
             }
         }
+
         [TestMethod]
         public void testPollingThreadUnSubscribe()
         {

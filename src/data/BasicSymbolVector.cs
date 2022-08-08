@@ -253,5 +253,10 @@ namespace dolphindb.data
         {
             throw new NotImplementedException();
         }
+
+        public override IEntity getEntity(int index)
+        {
+            return get(index);
+        }
     }
 }

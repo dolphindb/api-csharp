@@ -20,22 +20,25 @@ namespace dolphindb
         private List<IEntity> args;
         private DBConnection conn;
         private WaitHandle waitHandle = new AutoResetEvent(false);
+        private Semaphore semaphore = new Semaphore(1,1);
 
-        public WaitHandle WaitFor()
+        public void waitFor()
         {
-            return waitHandle;
+            semaphore.WaitOne();
         }
-        public void Finish()
+        public void finish()
         {
-            ((AutoResetEvent)waitHandle).Set();
+            semaphore.Release();
         }
         public BasicDBTask(string script, List<IEntity> args)
         {
+            semaphore.WaitOne();
             this.script = script;
             this.args = args;
         }
         public BasicDBTask(string script)
         {
+            semaphore.WaitOne();
             this.script = script;
         }
         public IEntity call()
@@ -73,6 +76,18 @@ namespace dolphindb
         public bool isSuccessful()
         {
             return successful;
+        }
+
+        public bool isFinished()
+        {
+            if(successful || errMsg != null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

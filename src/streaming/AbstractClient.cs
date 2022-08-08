@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Collections.Concurrent;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace dolphindb.streaming
 {
@@ -132,7 +131,7 @@ namespace dolphindb.streaming
         {
             listeningHost_ = subscribeHost;
             listeningPort_ = subscribePort;
-            deamon_ = new Deamon(subscribeHost, subscribePort, this);
+            deamon_ = new Deamon(subscribePort, this);
             pThread_ = new Thread(new ThreadStart(deamon_.run));
             deamon_.setThread(pThread_);
             pThread_.Start();
@@ -186,7 +185,7 @@ namespace dolphindb.streaming
             {
                 try
                 {
-                    BlockingCollection<List<IMessage>> queue = getQueue(value.Key);
+                    BlockingCollection<List<IMessage>> queue = getQueue(value.Key); 
                     if (queue != null)
                         queue.Add(value.Value);
                 }
@@ -205,17 +204,29 @@ namespace dolphindb.streaming
 
         protected BlockingCollection<List<IMessage>> subscribeInternal(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter)
         {
-            return subscribeInternal(host, port, tableName, actionName, handler, offset, reconnect, filter, true);
+            return subscribeInternal(host, port, tableName, actionName, handler, offset, reconnect, filter, null, "", "", true);
         }
 
-        protected BlockingCollection<List<IMessage>> subscribeInternal(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, bool createSubInfo)
+
+        protected BlockingCollection<List<IMessage>> subscribeInternal(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, 
+        StreamDeserializer deserializer, string user, string password, bool createSubInfo)
         {
             string topic = "";
             IEntity re;
             BlockingCollection<List<IMessage>> queue;
 
             DBConnection dbConn = new DBConnection();
-            dbConn.connect(host, port);
+            if(user != "" && password != "")
+                dbConn.connect(host, port, user, password);
+            else
+                dbConn.connect(host, port);
+            if (deserializer != null && !deserializer.isInited())
+                deserializer.init(dbConn);
+            if (deserializer != null)
+            {
+                BasicDictionary schema = (BasicDictionary)dbConn.run(tableName + ".schema()");
+                deserializer.checkSchema(schema);
+            }
             try
             {
                 string localIP = listeningHost_;
@@ -269,7 +280,7 @@ namespace dolphindb.streaming
                                 HATopicToTrueTopic_[topic] = topic;
                             }
                         }
-                        SubscribeInfo subscribeInfo = new SubscribeInfo(DateTime.Now, new BlockingCollection<List<IMessage>>(), sites, topic, offset, reconnect, filter, handler, tableName, actionName);
+                        SubscribeInfo subscribeInfo = new SubscribeInfo(DateTime.Now, new BlockingCollection<List<IMessage>>(), sites, topic, offset, reconnect, filter, handler, tableName, actionName, deserializer, user, password);
                         subscribeInfo.setConnectState(ConnectState.REQUEST);
                         queue = subscribeInfo.getQueue();
                         if (subscribeInfos_.ContainsKey(topic))
@@ -368,7 +379,7 @@ namespace dolphindb.streaming
             unsubscribeInternal(host, port, tableName, DEFAULT_ACTION_NAME);
         }
 
-        protected void close()
+        public void close()
         {
             isClose_ = true;
             deamon_.close();

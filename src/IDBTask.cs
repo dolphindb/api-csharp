@@ -14,5 +14,6 @@ namespace dolphindb
         IEntity getResults();
         string getErrorMsg();
         bool isSuccessful();
+        bool isFinished();
     }
 }

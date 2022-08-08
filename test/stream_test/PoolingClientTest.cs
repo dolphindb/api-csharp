@@ -12,7 +12,7 @@ using dolphindb_config;
 namespace dolphindb_csharp_api_test.stream_test
 {
     [TestClass]
-    public class ThreadedClientTest
+    public class PoolingClientTest
     {
 
         public static DBConnection streamConn;
@@ -350,6 +350,7 @@ namespace dolphindb_csharp_api_test.stream_test
                 return msg2;
             }
         };
+        /*
 
         [TestMethod]
         public void Test_ThreadedClient_subscribe_host_localhost()
@@ -361,20 +362,17 @@ namespace dolphindb_csharp_api_test.stream_test
             script += "try{undef(`trades, SHARED)}catch(ex){}";
             conn.run(script);
             Exception exception = null;
-            ThreadedClient client = null;
             try
             {
-                //allow to use localhost 
-                 client = new ThreadedClient("localhost", LOCALPORT);
+                //Not allow to use localhost 
+                ThreadedClient client = new ThreadedClient("localhost", LOCALPORT);
             }
             catch (Exception ex)
             {
                 exception = ex;
             }
-            Assert.IsNull(exception);
-            client.close();
+            Assert.IsNotNull(exception);
             conn.close();
-
         }
 
         [TestMethod]
@@ -792,14 +790,6 @@ namespace dolphindb_csharp_api_test.stream_test
             streamConn.connect(SERVER, PORT, "admin", "123456");
             String script1 = "";
             script1 += "share streamTable(1000:0,  `permno`date`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, DATE, STRING, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]) as pub;setStreamTableFilterColumn(pub, `ticker)";
-            try
-            {
-                conn.run("dropStreamTable(`pub)");
-            }
-            catch (Exception e)
-            {
-                Console.Out.WriteLine(e.Message);
-            }
             conn.run(script1);
             String script2 = "";
             script2 += "share streamTable(1000:0,  `permno`date`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, DATE, STRING, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]) as sub1";
@@ -843,14 +833,6 @@ namespace dolphindb_csharp_api_test.stream_test
             streamConn.connect(SERVER, PORT, "admin", "123456");
             String script1 = "";
             script1 += "share streamTable(1000:0,  `permno`date`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, DATE, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]) as pub;setStreamTableFilterColumn(pub, `date)";
-            try
-            {
-                conn.run("dropStreamTable(`pub)");
-            }
-            catch (Exception e)
-            {
-                Console.Out.WriteLine(e.Message);
-            }
             conn.run(script1);
             String script2 = "";
             script2 += "share streamTable(1000:0,  `permno`date`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, DATE, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]) as sub1";
@@ -1154,7 +1136,7 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.run("setStreamTableFilterColumn(pub, `ticker)");
             PrepareStreamTable1(conn, "sub1");
             Handler1 handler1 = new Handler1();
-            ThreadedClient client = new ThreadedClient(LOCALHOST, 18223);
+            ThreadedClient client = new ThreadedClient(LOCALHOST, LOCALPORT);
             //usage: subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, IVector filter,int batchSize=-1)
             BasicSymbolVector filter = new BasicSymbolVector(new string[] { "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10" });
             client.subscribe(SERVER, PORT, "pub", "action1", handler1, 0, filter, -1);
@@ -1298,10 +1280,178 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.run("undef(`sub1, SHARED)");
             conn.close();
             streamConn.close();
-        }
+        }*/
         
         [TestMethod]
-        public void Test_ThreaedClient_subscribe_streamDeserilizer_schema()
+        public void Test_PollingClient_subscribe_user_notExist()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "admin", "123456");
+            streamConn = new DBConnection();
+            streamConn.connect(SERVER, PORT, "admin", "123456");
+            Handler1 handler = new Handler1();
+            String script = "";
+            script += "try{undef(`trades, SHARED)}catch(ex){}";
+            conn.run(script);
+            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
+            Exception exception = null;
+            Handler1 handler1 = new Handler1();
+            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+            try
+            {
+                //subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, StreamDeserializer deserializer = null, string user = "", string password = "")
+
+                //subscribe(string host, int port, string tableName, string actionName, long offset, bool reconnect, IVector filter, StreamDeserializer deserializer = null, string user = "", string password = "")
+                client.subscribe(SERVER, PORT, "pub", "sub1", 0, false, filter, null, "a1234", "a1234");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                exception = ex;
+            }
+            Assert.IsNotNull(exception);
+            client.close();
+            conn.close();
+        }
+
+        [TestMethod]
+        public void Test_PollingClient_subscribe_user_password_notTrue()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "admin", "123456");
+            streamConn = new DBConnection();
+            streamConn.connect(SERVER, PORT, "admin", "123456");
+            Handler1 handler = new Handler1();
+            String script = "";
+            script += "try{undef(`trades, SHARED)}catch(ex){}";
+            conn.run(script);
+            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
+            Exception exception = null;
+            Handler1 handler1 = new Handler1();
+            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+            try
+            {
+                //usage: subscribe(string SERVER, int port, string tableName, MessageHandler handler, long offset,int batchSize=-1)
+                client.subscribe(SERVER, PORT, "pub", "sub1", 0, false, filter, null, "admin", "123455");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                exception = ex;
+            }
+            Assert.IsNotNull(exception);
+            client.close();
+            conn.close();
+
+        }
+
+        [TestMethod]
+        public void Test_PollingClient_subscribe_admin()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "admin", "123456");
+            streamConn = new DBConnection();
+            streamConn.connect(SERVER, PORT, "admin", "123456");
+            PrepareStreamTable1(conn, "pub");
+            conn.run("setStreamTableFilterColumn(pub, `permno)");
+            PrepareStreamTable1(conn, "sub1");
+            Handler1 handler1 = new Handler1();
+            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+            String script = "";
+            script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..1000), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub.append!(tmp); ";
+            conn.run(script);
+            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
+            TopicPoller pool = client.subscribe(SERVER, PORT, "pub", "sub1", 0, true, filter, null, "admin", "123456");
+            Thread.Sleep(500);
+            List<IMessage> messages = pool.poll(TIMEOUT);
+            Thread.Sleep(500);
+            int messageCount = messages.Count;
+            BasicInt expectedNum = (BasicInt)conn.run("exec count(*) from pub where permno in 1..10");
+            Assert.AreEqual(expectedNum.getInt(), messageCount);
+            client.unsubscribe(SERVER, PORT, "pub", "sub1");
+            client.close();
+            //conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`sub1, SHARED)");
+            conn.close();
+            streamConn.close();
+        }
+
+        [TestMethod]
+        public void Test_PollingClient_subscribe_otherUser()
+        {
+            DBConnection conn1 = new DBConnection();
+            conn1.connect(SERVER, PORT, "admin", "123456");
+            PrepareUser1(conn1);
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "testuser1", "123456");
+            streamConn = new DBConnection();
+            streamConn.connect(SERVER, PORT, "admin", "123456");
+            PrepareStreamTable1(conn, "pub2");
+            conn.run("setStreamTableFilterColumn(pub2, `permno)");
+            PrepareStreamTable1(conn, "sub1");
+            Handler1 handler1 = new Handler1();
+            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+            String script = "";
+            script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..1000), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub2.append!(tmp); ";
+            conn.run(script);
+            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
+            TopicPoller pool = client.subscribe(SERVER, PORT, "pub2", "sub1", 0, true, filter, null, "testuser1", "123456");
+            Thread.Sleep(500);
+            List<IMessage> messages = pool.poll(TIMEOUT);
+            Thread.Sleep(500);
+            int messageCount = messages.Count;
+            BasicInt expectedNum = (BasicInt)conn.run("exec count(*) from pub2 where permno in 1..10");
+            Assert.AreEqual(expectedNum.getInt(), messageCount);
+            client.unsubscribe(SERVER, PORT, "pub2", "sub1");
+            client.close();
+            String script1 = "def test_user(){deleteUser(\"testuser1\")}\n rpc(getControllerAlias(), test_user)";
+            conn1.run(script1);
+            //conn.run("undef(`pub, SHARED)");
+            conn1.run("undef(`sub1, SHARED)");
+            conn.close();
+            conn1.close();
+            streamConn.close();
+        }
+
+        //[TestMethod]
+        //public void Test_ThreaedClient_subscribe_user_not_grant()
+        //{
+        //    DBConnection conn1 = new DBConnection();
+        //    conn1.connect(SERVER, PORT, "admin", "123456");
+        //    PrepareUser2(conn1);
+        //    DBConnection conn = new DBConnection();
+        //    conn.connect(SERVER, PORT, "uesr123", "123456");
+        //    streamConn = new DBConnection();
+        //    streamConn.connect(SERVER, PORT, "admin", "123456");
+        //    PrepareStreamTable1(conn, "pub");
+        //    conn.run("setStreamTableFilterColumn(pub, `permno)");
+        //    PrepareStreamTable1(conn, "sub1");
+        //    Handler1 handler1 = new Handler1();
+        //    ThreadedClient client = new ThreadedClient(LOCALHOST, LOCALPORT);
+        //    Exception exception = null;
+        //    //usage: subscribe(string SERVER, int port, string tableName, MessageHandler handler, long offset, IVector filter,int batchSize=-1)
+        //    BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });     
+        //    try
+        //    {
+        //        //usage: subscribe(string SERVER, int port, string tableName, MessageHandler handler, long offset,int batchSize=-1)
+        //        client.subscribe(SERVER, PORT, "pub", "sub1", handler1, 0, false, filter, -1, 0.01f, null, "testuser2", "123456");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString());
+        //        exception = ex;
+        //    }
+        //    Assert.IsNotNull(exception);
+        //    client.unsubscribe(SERVER, PORT, "pub", "sub1");
+        //    conn.run("undef(`pub, SHARED)");
+        //    conn.run("undef(`sub1, SHARED)");
+        //    client.close();
+        //    conn.close();
+        //    streamConn.close();
+        //}
+
+        [TestMethod]
+        public void Test_PollingClient_subscribe_streamDeserilizer_schema()
         {
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
@@ -1346,43 +1496,39 @@ namespace dolphindb_csharp_api_test.stream_test
             schemas["msg1"] = outSharedTables1Schema;
             schemas["msg2"] = outSharedTables2Schema;
             StreamDeserializer streamFilter = new StreamDeserializer(schemas);
-
-
-            Handler6 handler = new Handler6(streamFilter);
-            ThreadedClient client = new ThreadedClient(LOCALHOST, 18227);
-            client.subscribe(SERVER, PORT, "outTables", "mutiSchema", handler, 0, true);
-
+            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "outTables", "mutiSchema", 0, true, null, streamFilter);
             Thread.Sleep(5000);
-            List<BasicMessage> msg1 = handler.getMsg1();
-            List<BasicMessage> msg2 = handler.getMsg2();
-            Assert.AreEqual(table1.rows(), msg1.Count);
-            Assert.AreEqual(table2.rows(), msg2.Count);
-            for (int i = 0; i < table1.columns(); ++i)
+            List<IMessage> messages = poller.poll(TIMEOUT);
+            List<BasicMessage> msg1 = new List<BasicMessage>();
+            List<BasicMessage> msg2 = new List<BasicMessage>();
+            int msg1count = 0;
+            int msg2count = 0;
+            foreach (IMessage message in messages)
             {
-                IVector tableCol = table1.getColumn(i);
-                for (int j = 0; j < 10000; ++j)
+
+                if ((((BasicMessage)message).getSym() == "msg1"))
                 {
-                    Assert.AreEqual(tableCol.get(j), msg1[j].getEntity(i));
+                    msg1count++;
+                }
+                else if ((((BasicMessage)message).getSym() == "msg2"))
+                {
+                    msg2count++;
                 }
             }
-            for (int i = 0; i < table2.columns(); ++i)
-            {
-                IVector tableCol = table2.getColumn(i);
-                for (int j = 0; j < 10000; ++j)
-                {
-                    Assert.AreEqual(tableCol.get(j), msg2[j].getEntity(i));
-                }
-            }
+            Assert.AreEqual(table1.rows(), msg1count);
+            Assert.AreEqual(table2.rows(), msg2count);
+            int messageCount = messages.Count;
+            Assert.AreEqual(table1.rows() + table2.rows(), messageCount);
             client.unsubscribe(SERVER, PORT, "outTables", "mutiSchema");
             client.close();
             conn.run("undef(`outTables, SHARED)");
             conn.close();
             streamConn.close();
-
         }
 
         [TestMethod]
-        public void Test_ThreaedClient_subscribe_streamDeserilizer_colType()
+        public void Test_PollingClient_subscribe_streamDeserilizer_colType()
         {
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
@@ -1426,32 +1572,30 @@ namespace dolphindb_csharp_api_test.stream_test
             List<DATA_TYPE> table2ColTypes = new List<DATA_TYPE> { DATA_TYPE.DT_DATETIME, DATA_TYPE.DT_TIMESTAMP, DATA_TYPE.DT_SYMBOL, DATA_TYPE.DT_DOUBLE };
             colTypes["msg2"] = table2ColTypes;
             StreamDeserializer streamFilter = new StreamDeserializer(colTypes);
-
-            Handler6 handler = new Handler6(streamFilter);
-            ThreadedClient client = new ThreadedClient(LOCALHOST, 18225);
-            client.subscribe(SERVER, PORT, "outTables", "mutiSchema", handler, 0, true);
-
+            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "outTables", "mutiSchema", 0, true, null, streamFilter);
             Thread.Sleep(5000);
-            List<BasicMessage> msg1 = handler.getMsg1();
-            List<BasicMessage> msg2 = handler.getMsg2();
-            Assert.AreEqual(table1.rows(), msg1.Count);
-            Assert.AreEqual(table2.rows(), msg2.Count);
-            for (int i = 0; i < table1.columns(); ++i)
+            List<IMessage> messages = poller.poll(TIMEOUT);
+            List<BasicMessage> msg1 = new List<BasicMessage>();
+            List<BasicMessage> msg2 = new List<BasicMessage>();
+            int msg1count = 0;
+            int msg2count = 0;
+            foreach (IMessage message in messages)
             {
-                IVector tableCol = table1.getColumn(i);
-                for (int j = 0; j < 10000; ++j)
+
+                if ((((BasicMessage)message).getSym() == "msg1"))
                 {
-                    Assert.AreEqual(tableCol.get(j), msg1[j].getEntity(i));
+                    msg1count++;
+                }
+                else if ((((BasicMessage)message).getSym() == "msg2"))
+                {
+                    msg2count++;
                 }
             }
-            for (int i = 0; i < table2.columns(); ++i)
-            {
-                IVector tableCol = table2.getColumn(i);
-                for (int j = 0; j < 10000; ++j)
-                {
-                    Assert.AreEqual(tableCol.get(j), msg2[j].getEntity(i));
-                }
-            }
+            Assert.AreEqual(table1.rows(), msg1count);
+            Assert.AreEqual(table2.rows(), msg2count);
+            int messageCount = messages.Count;
+            Assert.AreEqual(table1.rows() + table2.rows(), messageCount);
             client.unsubscribe(SERVER, PORT, "outTables", "mutiSchema");
             client.close();
             conn.run("undef(`outTables, SHARED)");
@@ -1459,9 +1603,8 @@ namespace dolphindb_csharp_api_test.stream_test
             streamConn.close();
         }
 
-        
         [TestMethod]
-        public void Test_ThreaedClient_subscribe_streamDeserilizer_tablename()
+        public void Test_PollingClient_subscribe_streamDeserilizer_tablename()
         {
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
@@ -1505,42 +1648,39 @@ namespace dolphindb_csharp_api_test.stream_test
             tables["msg1"] = new Tuple<string, string>("", "table1");
             tables["msg2"] = new Tuple<string, string>("", "table2");
             StreamDeserializer streamFilter = new StreamDeserializer(tables, conn);
-
-
-            Handler6 handler = new Handler6(streamFilter);
-            ThreadedClient client = new ThreadedClient(LOCALHOST, LOCALPORT);
-            client.subscribe(SERVER, PORT, "outTables", "mutiSchema", handler, 0, true);
-
+            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "outTables", "mutiSchema", 0, true, null, streamFilter);
             Thread.Sleep(5000);
-            List<BasicMessage> msg1 = handler.getMsg1();
-            List<BasicMessage> msg2 = handler.getMsg2();
-            Assert.AreEqual(table1.rows(), msg1.Count);
-            Assert.AreEqual(table2.rows(), msg2.Count);
-            for (int i = 0; i < table1.columns(); ++i)
+            List<IMessage> messages = poller.poll(TIMEOUT);
+            List<BasicMessage> msg1 = new List<BasicMessage>();
+            List<BasicMessage> msg2 = new List<BasicMessage>();
+            int msg1count = 0;
+            int msg2count = 0;
+            foreach (IMessage message in messages)
             {
-                IVector tableCol = table1.getColumn(i);
-                for (int j = 0; j < 10000; ++j)
+
+                if ((((BasicMessage)message).getSym() == "msg1"))
                 {
-                    Assert.AreEqual(tableCol.get(j), msg1[j].getEntity(i));
+                    msg1count++;
+                }
+                else if ((((BasicMessage)message).getSym() == "msg2"))
+                {
+                    msg2count++;
                 }
             }
-            for (int i = 0; i < table2.columns(); ++i)
-            {
-                IVector tableCol = table2.getColumn(i);
-                for (int j = 0; j < 10000; ++j)
-                {
-                    Assert.AreEqual(tableCol.get(j), msg2[j].getEntity(i));
-                }
-            }
+            Assert.AreEqual(table1.rows(), msg1count);
+            Assert.AreEqual(table2.rows(), msg2count);
+            int messageCount = messages.Count;
+            Assert.AreEqual(table1.rows() + table2.rows(), messageCount);
             client.unsubscribe(SERVER, PORT, "outTables", "mutiSchema");
             client.close();
             conn.run("undef(`outTables, SHARED)");
             conn.close();
             streamConn.close();
         }
-        
+
         [TestMethod]
-        public void Test_ThreaedClient_subscribe_streamDeserilizer()
+        public void Test_PollingClient_subscribe_streamDeserilizer()
         {
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
@@ -1587,30 +1727,31 @@ namespace dolphindb_csharp_api_test.stream_test
             StreamDeserializer streamFilter = new StreamDeserializer(filter);
 
             Handler7 handler = new Handler7();
-            ThreadedClient client = new ThreadedClient(LOCALHOST, 18224);
-            client.subscribe(SERVER, PORT, "outTables", "mutiSchema", handler, 0, true, null, -1, (float)0.01, streamFilter);
-            
-            List<BasicMessage> msg1 = handler.getMsg1();
-            List<BasicMessage> msg2 = handler.getMsg2();
-            Thread.Sleep(10000);
-            Assert.AreEqual(table1.rows(), msg1.Count);
-            Assert.AreEqual(table2.rows(), msg2.Count);
-            for (int i = 0; i < table1.columns(); ++i)
+            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
+            //TopicPoller poller = client.subscribe(SERVER, PORT, "outTables", "mutiSchema", 0, true, null);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "outTables", "mutiSchema", 0, true, null, streamFilter);
+            Thread.Sleep(5000);
+            List<IMessage> messages = poller.poll(TIMEOUT);
+            List<BasicMessage> msg1 = new List<BasicMessage>();
+            List<BasicMessage> msg2 = new List<BasicMessage>();
+            int msg1count = 0;
+            int msg2count = 0;
+            foreach (IMessage message in messages)
             {
-                IVector tableCol = table1.getColumn(i);
-                for (int j = 0; j < 100000; ++j)
+                
+                if((((BasicMessage)message).getSym() == "msg1"))
                 {
-                    Assert.AreEqual(tableCol.get(j), msg1[j].getEntity(i));
+                    msg1count++;
+                }
+                else if ((((BasicMessage)message).getSym() == "msg2"))
+                {
+                    msg2count++;
                 }
             }
-            for (int i = 0; i < table2.columns(); ++i)
-            {
-                IVector tableCol = table2.getColumn(i);
-                for (int j = 0; j < 10000; ++j)
-                {
-                    Assert.AreEqual(tableCol.get(j), msg2[j].getEntity(i));
-                }
-            }
+            Assert.AreEqual(table1.rows(), msg1count);
+            Assert.AreEqual(table2.rows(), msg2count);
+            int messageCount = messages.Count;
+            Assert.AreEqual(table1.rows()+ table2.rows(), messageCount);
             client.unsubscribe(SERVER, PORT, "outTables", "mutiSchema");
             client.close();
             conn.run("undef(`outTables, SHARED)");
@@ -1619,7 +1760,7 @@ namespace dolphindb_csharp_api_test.stream_test
         }
 
         [TestMethod]
-        public void Test_ThreaedClient_subscribe_streamDeserilizer_memorytable()
+        public void Test_PollingClient_subscribe_streamDeserilizer_memorytable()
         {
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
@@ -1634,13 +1775,8 @@ namespace dolphindb_csharp_api_test.stream_test
             {
                 Console.Out.WriteLine(e.Message);
             }
-
-            //String script = "st1 = streamTable(100:0, `timestampv`sym`blob`price1,[TIMESTAMP,SYMBOL,BLOB,DOUBLE])\n" +
-            //       "enableTableShareAndPersistence(table=st1, tableName=`outTables, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
-            //conn.run(script);
-
             string replayScript = "n = 100000;t1 = table(100:0, `timestampv`sym`blob`price2, [TIMESTAMP, SYMBOL, BLOB, DOUBLE]);" +
-                "share t1 as table1"; 
+                "share t1 as table1";
             conn.run(replayScript);
 
             BasicTable table1 = (BasicTable)conn.run("table1");
@@ -1651,10 +1787,10 @@ namespace dolphindb_csharp_api_test.stream_test
             StreamDeserializer streamFilter = new StreamDeserializer(filter);
 
             Handler7 handler = new Handler7();
-            ThreadedClient client = new ThreadedClient(LOCALHOST, 18226);
+            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
             try
             {
-                client.subscribe(SERVER, PORT, "table1", "mutiSchema", handler, 0, true, null, -1, (float)0.01, streamFilter);
+                client.subscribe(SERVER, PORT, "table1", "mutiSchema", 0, true, null, streamFilter);
             }
             catch (Exception ex)
             {
@@ -1670,7 +1806,7 @@ namespace dolphindb_csharp_api_test.stream_test
         }
 
         [TestMethod]
-        public void Test_ThreaedClient_subscribe_streamDeserilizer_streamTable_colTypeFalse2()
+        public void Test_PollingClient_subscribe_streamDeserilizer_streamTable_colTypeFalse2()
         {
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
@@ -1706,11 +1842,11 @@ namespace dolphindb_csharp_api_test.stream_test
             StreamDeserializer streamFilter = new StreamDeserializer(filter);
 
             Handler7 handler = new Handler7();
-            ThreadedClient client = new ThreadedClient(LOCALHOST, LOCALPORT);
+            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
             try
             {
-                
-                client.subscribe(SERVER, PORT, "st1", "mutiSchema", handler, 0, true, null, -1, (float)0.01, streamFilter);
+
+                client.subscribe(SERVER, PORT, "st1", "mutiSchema", 0, true, null, streamFilter);
             }
             catch (Exception ex)
             {
@@ -1728,7 +1864,7 @@ namespace dolphindb_csharp_api_test.stream_test
         }
 
         [TestMethod]
-        public void Test_ThreaedClient_subscribe_streamDeserilizer_streamTable_colTypeFalse3()
+        public void Test_PollingClient_subscribe_streamDeserilizer_streamTable_colTypeFalse3()
         {
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
@@ -1766,11 +1902,11 @@ namespace dolphindb_csharp_api_test.stream_test
             StreamDeserializer streamFilter = new StreamDeserializer(filter);
 
             Handler7 handler = new Handler7();
-            ThreadedClient client = new ThreadedClient(LOCALHOST, LOCALPORT);
+            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
             try
             {
 
-                client.subscribe(SERVER, PORT, "st1", "mutiSchema", handler, 0, true, null, -1, (float)0.01, streamFilter);
+                client.subscribe(SERVER, PORT, "st1", "mutiSchema", 0, true, null, streamFilter);
             }
             catch (Exception ex)
             {
@@ -1785,427 +1921,6 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.close();
             streamConn.close();
         }
-
-        //subscribe haStreamTable
-        [TestMethod]
-        public void Test_ThreaedClient_subscribe_haStreamTable_on_leader()
-        {
-            DBConnection conn = new DBConnection();
-            conn.connect(SERVER, PORT, "admin", "123456");
-            BasicString StreamLeaderTmp = (BasicString)conn.run(String.Format("getStreamingLeader({0})", HASTREAM_GROUPID));
-            String StreamLeader = StreamLeaderTmp.getString();
-            BasicString StreamLeaderHostTmp = (BasicString)conn.run(String.Format("(exec host from rpc(getControllerAlias(), getClusterPerf) where name=\"{0}\")[0]", StreamLeader));
-            String StreamLeaderHost = StreamLeaderHostTmp.getString();
-            BasicInt StreamLeaderPortTmp = (BasicInt)conn.run(String.Format("(exec port from rpc(getControllerAlias(), getClusterPerf) where name=\"{0}\")[0]", StreamLeader));
-            int StreamLeaderPort = StreamLeaderPortTmp.getInt();
-            Console.WriteLine(StreamLeaderHost);
-            Console.WriteLine(StreamLeaderPort.ToString());
-            DBConnection conn1 = new DBConnection();
-            conn1.connect(StreamLeaderHost, StreamLeaderPort, "admin", "123456");
-            try
-            {
-                conn1.run("dropStreamTable(`haSt1)");
-            }
-            catch (Exception e)
-            {
-                Console.Out.WriteLine(e.Message);
-            }
-            conn1.run(String.Format("haStreamTable({0}, table(1000000:0, `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]), \"haSt1\", 100000)", HASTREAM_GROUPID));
-            PrepareStreamTable1(conn1, "sub1");
-            streamConn = new DBConnection();
-            streamConn.connect(StreamLeaderHost, StreamLeaderPort, "admin", "123456");
-            Handler1 handler1 = new Handler1();
-            ThreadedClient client = new ThreadedClient(LOCALHOST, 18222);
-            client.subscribe(StreamLeaderHost, StreamLeaderPort, "haSt1", handler1, 0, -1);
-            String script = "";
-            script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..100), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);haSt1.append!(tmp); ";
-            conn1.run(script);
-            for (int i = 0; i < 10; i++)
-            {
-                BasicInt tmpNum = (BasicInt)conn1.run("exec count(*) from sub1");
-                if (tmpNum.getInt().Equals(1000))
-                {
-                    break;
-                }
-                Thread.Sleep(1000);
-            }
-            BasicBoolean re = (BasicBoolean)conn1.run("each(eqObj, haSt1.values(), sub1.values()).all()");
-            Assert.AreEqual(re.getValue(), true);
-            client.unsubscribe(StreamLeaderHost, StreamLeaderPort, "haSt1");
-            conn1.run("dropStreamTable(\"haSt1\")");
-            client.close();
-            conn.close();
-            conn1.close();
-            streamConn.close();
-        }
-
-        [TestMethod]
-        public void Test_DBConnection_connect_follower_append_haStreamTable()
-        {
-            DBConnection conn = new DBConnection();
-            conn.connect(SERVER, PORT, "admin", "123456");
-            string script0 = "leader = getStreamingLeader(3);";
-            script0 += "groupSitesStr = (exec sites from getStreamingRaftGroups() where id ==3)[0];";
-            script0 += "groupSites = split(groupSitesStr, \",\");";
-            script0 += "followerInfo = exec top 1 *  from rpc(getControllerAlias(), getClusterPerf) where site in groupSites and name!=leader;";
-            conn.run(script0);
-            BasicString StreamFollowerHostTmp = (BasicString)conn.run("(exec host from followerInfo)[0]");
-            String StreamFollowerHost = StreamFollowerHostTmp.getString();
-            BasicInt StreamFollowerPortTmp = (BasicInt)conn.run("(exec port from followerInfo)[0]");
-            int StreamFollowerPort = StreamFollowerPortTmp.getInt();
-
-            Console.WriteLine(StreamFollowerHost);
-            Console.WriteLine(StreamFollowerPort.ToString());
-            DBConnection conn1 = new DBConnection();
-            conn1.connect(StreamFollowerHost, StreamFollowerPort, "admin", "123456", "", true, HASTREAM_GROUP);
-            try
-            {
-                conn1.run("dropStreamTable(`haSt1)");
-            }
-            catch (Exception e)
-            {
-                Console.Out.WriteLine(e.Message);
-            }
-            conn1.run(String.Format("haStreamTable({0}, table(1000000:0, `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]), \"haSt1\", 100000)", HASTREAM_GROUPID));
-            PrepareStreamTable1(conn1, "sub1");
-            streamConn = new DBConnection();
-            streamConn.connect(StreamFollowerHost, StreamFollowerPort, "admin", "123456");
-            String script = "";
-            script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..100), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);haSt1.append!(tmp); ";
-            conn1.run(script);
-            BasicLong total = (BasicLong)conn1.run("getPersistenceMeta(haSt1).totalSize");
-            Assert.AreEqual(total.getValue(), 1000);
-            conn1.run("dropStreamTable('haSt1')");
-            conn1.close();
-            conn.close();
-            streamConn.close();
-        }
-
-        [TestMethod]
-        public void Test_ThreaedClient_subscribe_haStreamTable_on_follower()
-        {
-            DBConnection conn = new DBConnection();
-            conn.connect(SERVER, PORT, "admin", "123456");
-            BasicString StreamLeaderTmp = (BasicString)conn.run(String.Format("getStreamingLeader({0})", HASTREAM_GROUPID));
-            String StreamLeader = StreamLeaderTmp.getString();
-            BasicString StreamFollowerHostTmp = (BasicString)conn.run(String.Format("(exec host from rpc(getControllerAlias(), getClusterPerf) where name!=\"{0}\")[0]", StreamLeader));
-            String StreamFollowerHost = StreamFollowerHostTmp.getString();
-            BasicInt StreamFollowerPortTmp = (BasicInt)conn.run(String.Format("(exec port from rpc(getControllerAlias(), getClusterPerf) where name!=\"{0}\")[0]", StreamLeader));
-            int StreamFollowerPort = StreamFollowerPortTmp.getInt();
-            Console.WriteLine(StreamFollowerHost);
-            Console.WriteLine(StreamFollowerPort.ToString());
-            DBConnection conn1 = new DBConnection();
-            conn1.connect(StreamFollowerHost, StreamFollowerPort, "admin", "123456", "", true, HASTREAM_GROUP);
-            try
-            {
-                conn1.run("dropStreamTable(`haSt1)");
-            }
-            catch (Exception e)
-            {
-                Console.Out.WriteLine(e.Message);
-            }
-            conn1.run(String.Format("haStreamTable({0}, table(1000000:0, `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]), \"haSt1\", 100000)", HASTREAM_GROUPID));
-            DBConnection conn2 = new DBConnection();
-            conn2.connect(StreamFollowerHost, StreamFollowerPort, "admin", "123456");
-            PrepareStreamTable1(conn2, "sub1");
-            streamConn = new DBConnection();
-            streamConn.connect(StreamFollowerHost, StreamFollowerPort, "admin", "123456");
-            Handler1 handler1 = new Handler1();
-            ThreadedClient client = new ThreadedClient(LOCALHOST, LOCALPORT);
-            client.subscribe(StreamFollowerHost, StreamFollowerPort, "haSt1", handler1, 0, -1);
-            String script = "";
-            script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..100), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);haSt1.append!(tmp); ";
-            conn1.run(script);
-            for (int i = 0; i < 10; i++)
-            {
-                BasicInt tmpNum = (BasicInt)conn2.run("exec count(*) from sub1");
-                if (tmpNum.getInt().Equals(1000))
-                {
-                    break;
-                }
-                Thread.Sleep(1000);
-            }
-            BasicBoolean re = (BasicBoolean)conn2.run("each(eqObj, haSt1.values(), sub1.values()).all()");
-            Assert.AreEqual(re.getValue(), true);
-            client.unsubscribe(StreamFollowerHost, StreamFollowerPort, "haSt1");
-            conn1.run("dropStreamTable(\"haSt1\")");
-            conn2.run("undef(`sub1, SHARED)");
-            client.close();
-            conn.close();
-            conn1.close();
-            conn2.close();
-            streamConn.close();
-        }
-
-        //manual testing
-        /*
-        [TestMethod]
-        public void Test_ThreaedClient_subscribe_reconnect_true()
-        {
-            //prerequisites: specify configure parameter startup in cluster.cfg, be like:
-            //share(streamTable(1000000:0, `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]),"pub"
-             //share(streamTable(1000000:0, `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]),"sub1"
-             //go
-             //enableTablePersistence(pub, true, true, 1000000)
-             //enableTablePersistence(sub1, true, true, 1000000)
-             //
-            DBConnection conn = new DBConnection();
-            conn.connect(SERVER, PORT, "admin", "123456");
-            conn.run("try{dropStreamTable(\"pub\")}catch(ex){}");
-            BasicString nodeAliasTmp = (BasicString)conn.run("getNodeAlias()");
-            String nodeAlias = nodeAliasTmp.getString();
-            BasicString ControllerHostTmp = (BasicString)conn.run("rpc(getControllerAlias(), getNodeHost)");
-            String ControllerHost = ControllerHostTmp.getString();
-            BasicInt ControllerPortTmp = (BasicInt)conn.run("rpc(getControllerAlias(), getNodePort)");
-            int ControllerPort = ControllerPortTmp.getInt();
-            DBConnection conn1 = new DBConnection();
-            conn1.connect(ControllerHost, ControllerPort, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
-            conn.run("enableTablePersistence(pub, true, true, 1000000)");
-            PrepareStreamTable1(conn, "sub1");
-            conn.run("enableTablePersistence(sub1, true, true, 1000000)");
-            Handler1 handler1 = new Handler1();
-            ThreadedClient client = new ThreadedClient(LOCALHOST, LOCALPORT);
-            //usage: subscribe(string host, int port, string tableName, MessageHandler handler, long offset, bool reconnect,int batchSize=-1)
-            client.subscribe(SERVER, PORT, "pub", handler1, -1, true, -1);
-            WriteStreamTable1(conn, "pub", 1000);
-            Thread.Sleep(5000);
-            conn.close();
-            for (int j = 0; j < 10; j++)
-            {
-                try
-                {
-                    conn1.run(String.Format("stopDataNode(\"{0}\")", nodeAlias));
-                }catch(Exception ex)
-                {
-                    Console.WriteLine(ex.StackTrace);
-                }
-                Thread.Sleep(5000);
-                conn1.run(String.Format("startDataNode(\"{0}\")", nodeAlias));
-                Thread.Sleep(5000);
-                DBConnection conn2 = new DBConnection();
-                conn2.connect(SERVER, PORT, "admin", "123456");
-                //PrepareStreamTable1(conn2, "pub");
-                WriteStreamTable1(conn2, "pub", 1000);
-                for (int i = 0; i < 10; i++)
-                {
-                    BasicInt tmpNum = (BasicInt)conn2.run("exec count(*) from sub1");
-                    if (tmpNum.getInt().Equals(1000*(j+1)))
-                    {
-                        break;
-                    }
-                    Thread.Sleep(1000);
-                }
-                BasicInt num2 = (BasicInt)conn2.run("exec count(*) from sub1");
-                Assert.AreEqual(1000 * (j + 1), num2.getInt());
-                
-            }
-            client.unsubscribe(SERVER, PORT, "pub");
-            client.close();
-            DBConnection conn3 = new DBConnection();
-            conn3.connect(SERVER, PORT, "admin", "123456");
-            conn3.run("undef(`pub, SHARED)");
-            conn3.run("undef(`sub1, SHARED)");
-            conn.close();
-        }
-        
-
-        [TestMethod]
-        public void Test_ThreaedClient_subscribe_haStreamTable_reconnect_true()
-        {
-            DBConnection conn = new DBConnection();
-            conn.connect(SERVER, PORT, "admin", "123456");
-            BasicString StreamLeaderTmp = (BasicString)conn.run(String.Format("getStreamingLeader({0})", HASTREAM_GROUPID));
-            String StreamLeader = StreamLeaderTmp.getString();
-            BasicString StreamLeaderHostTmp = (BasicString)conn.run(String.Format("(exec host from rpc(getControllerAlias(), getClusterPerf) where name=\"{0}\")[0]", StreamLeader));
-            String StreamLeaderHost = StreamLeaderHostTmp.getString();
-            BasicInt StreamLeaderPortTmp = (BasicInt)conn.run(String.Format("(exec port from rpc(getControllerAlias(), getClusterPerf) where name=\"{0}\")[0]", StreamLeader));
-            int StreamLeaderPort = StreamLeaderPortTmp.getInt();
-            Handler4 handler4 = new Handler4();
-            ThreadedClient client = new ThreadedClient(LOCALHOST, LOCALPORT);
-            client.subscribe(StreamLeaderHost, StreamLeaderPort, "haPub1", handler4, -1, true, -1);
-            for (int i = 0; i < 30; i++)
-            {
-                Console.WriteLine(SUB_FLAG);
-                Thread.Sleep(2000);
-            }
-        }
-        */
-
-        [TestMethod]
-        public void Test_ThreaedClient_subscribe_user_notExist()
-        {
-            DBConnection conn = new DBConnection();
-            conn.connect(SERVER, PORT, "admin", "123456");
-            streamConn = new DBConnection();
-            streamConn.connect(SERVER, PORT, "admin", "123456");
-            Handler1 handler = new Handler1();
-            String script = "";
-            script += "try{undef(`trades, SHARED)}catch(ex){}";
-            conn.run(script);
-            ThreadedClient client = new ThreadedClient(LOCALHOST, LOCALPORT);
-            Exception exception = null;
-            Handler1 handler1 = new Handler1();
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            try
-            {
-                //usage: subscribe(string SERVER, int port, string tableName, MessageHandler handler, long offset,int batchSize=-1)
-                client.subscribe(SERVER, PORT, "pub", "sub1", handler1, 0, false, filter, -1, 0.01f, null, "a1234", "a1234");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                exception = ex;
-            }
-            Assert.IsNotNull(exception);
-            client.close();
-            conn.close();
-        }
-
-        [TestMethod]
-        public void Test_ThreaedClient_subscribe_user_password_notTrue()
-        {
-            DBConnection conn = new DBConnection();
-            conn.connect(SERVER, PORT, "admin", "123456");
-            streamConn = new DBConnection();
-            streamConn.connect(SERVER, PORT, "admin", "123456");
-            Handler1 handler = new Handler1();
-            String script = "";
-            script += "try{undef(`trades, SHARED)}catch(ex){}";
-            conn.run(script);
-            ThreadedClient client = new ThreadedClient(LOCALHOST, LOCALPORT);
-            Exception exception = null;
-            Handler1 handler1 = new Handler1();
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            try
-            {
-                //usage: subscribe(string SERVER, int port, string tableName, MessageHandler handler, long offset,int batchSize=-1)
-                client.subscribe(SERVER, PORT, "pub", "sub1", handler1, 0, false, filter, -1, 0.01f, null, "admin", "123455");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                exception = ex;
-            }
-            Assert.IsNotNull(exception);
-            client.close();
-            conn.close();
-
-        }
-
-        [TestMethod]
-        public void Test_ThreaedClient_subscribe_user_password()
-        {
-            DBConnection conn = new DBConnection();
-            conn.connect(SERVER, PORT, "admin", "123456");
-            PrepareUser1(conn);
-            PrepareUser3(conn);
-            DBConnection conn1 = new DBConnection();
-            conn1.connect(SERVER, PORT, "testuser1", "123456");
-            DBConnection conn2 = new DBConnection();
-            conn2.connect(SERVER, PORT, "testuser3", "123456");
-            streamConn = new DBConnection();
-            streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
-            conn.run("setStreamTableFilterColumn(pub, `permno)");
-            PrepareStreamTable1(conn, "sub1");
-            Handler1 handler1 = new Handler1();
-            ThreadedClient client = new ThreadedClient(LOCALHOST, LOCALPORT);
-            Exception exception = null;
-            //usage: subscribe(string SERVER, int port, string tableName, MessageHandler handler, long offset, IVector filter,int batchSize=-1)
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            // client.subscribe(SERVER, PORT, "pub", handler1, 0, filter, -1);
-            client.subscribe(SERVER, PORT, "pub", "sub1", handler1, 0, false, filter, -1, 0.01f, null, "admin", "123456");
-            //usage: subscribe(string SERVER, int port, string tableName, MessageHandler handler, long offset,int batchSize=-1)
-
-            String script = "";
-            script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..1000), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub.append!(tmp); ";
-            conn.run(script);
-            BasicInt expectedNum = (BasicInt)conn.run("exec count(*) from pub where permno in 1..10");
-            for (int i = 0; i < 10; i++)
-            {
-                BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
-                if (tmpNum.getInt().Equals(expectedNum.getInt()))
-                {
-                    break;
-                }
-                Thread.Sleep(1000);
-            }
-            BasicInt num2 = (BasicInt)conn.run("exec count(*) from sub1");
-            try
-            {
-                BasicInt num3 = (BasicInt)conn1.run("exec count(*) from sub1");
-                Assert.AreEqual(expectedNum.getInt(), num3.getInt());
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                exception = ex;
-            }
-            try
-            {
-                BasicInt num4 = (BasicInt)conn2.run("exec count(*) from sub1");
-                Assert.AreEqual(expectedNum.getInt(), num4.getInt());
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                exception = ex;
-            }
-            //Assert.IsNotNull(exception);
-            Assert.AreEqual(expectedNum.getInt(), num2.getInt());
-            BasicBoolean re = (BasicBoolean)conn.run("each(eqObj, (select * from pub where permno in 1..10).values(), sub1.values()).all()");
-            Assert.AreEqual(re.getValue(), true);
-            client.unsubscribe(SERVER, PORT, "pub", "sub1");
-            client.close();
-            String script1 = "def test_user(){deleteUser(\"testuser1\")}\n rpc(getControllerAlias(), test_user)";
-            String script2 = "def test_user(){deleteUser(\"testuser3\")}\n rpc(getControllerAlias(), test_user)";
-            conn.run(script1);
-            conn.run(script2);
-            conn.run("undef(`pub, SHARED)");
-            conn.run("undef(`sub1, SHARED)");
-            conn.close();
-            conn1.close();
-            conn2.close();
-            streamConn.close();
-        }
-        
-        //[TestMethod]
-        //public void Test_ThreaedClient_subscribe_user_not_grant()
-        //{
-        //    DBConnection conn1 = new DBConnection();
-        //    conn1.connect(SERVER, PORT, "admin", "123456");
-        //    PrepareUser2(conn1);
-        //    DBConnection conn = new DBConnection();
-        //    conn.connect(SERVER, PORT, "uesr123", "123456");
-        //    streamConn = new DBConnection();
-        //    streamConn.connect(SERVER, PORT, "admin", "123456");
-        //    PrepareStreamTable1(conn, "pub");
-        //    conn.run("setStreamTableFilterColumn(pub, `permno)");
-        //    PrepareStreamTable1(conn, "sub1");
-        //    Handler1 handler1 = new Handler1();
-        //    ThreadedClient client = new ThreadedClient(LOCALHOST, LOCALPORT);
-        //    Exception exception = null;
-        //    //usage: subscribe(string SERVER, int port, string tableName, MessageHandler handler, long offset, IVector filter,int batchSize=-1)
-        //    BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });     
-        //    try
-        //    {
-        //        //usage: subscribe(string SERVER, int port, string tableName, MessageHandler handler, long offset,int batchSize=-1)
-        //        client.subscribe(SERVER, PORT, "pub", "sub1", handler1, 0, false, filter, -1, 0.01f, null, "testuser2", "123456");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine(ex.ToString());
-        //        exception = ex;
-        //    }
-        //    Assert.IsNotNull(exception);
-        //    client.unsubscribe(SERVER, PORT, "pub", "sub1");
-        //    conn.run("undef(`pub, SHARED)");
-        //    conn.run("undef(`sub1, SHARED)");
-        //    client.close();
-        //    conn.close();
-        //    streamConn.close();
-        //}
 
     }
 }

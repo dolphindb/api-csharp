@@ -165,30 +165,18 @@ namespace dolphindb.io
         }
 
         //2021.01.19 cwj
-        public String readBlob()
+        public byte[] readBlob()
         {
             int len = readInt();
             int offset = 0;
             int actualSize = 0;
-            if (buf_ == null || len > buf_.Length)
+            byte[] buf = new byte[len];
+            while (offset < len)
             {
-                byte[] buf = new byte[len];
-                while (offset < len)
-                {
-                    actualSize = base.Read(buf, offset, len - offset);
-                    offset += actualSize;
-                }
-                return Encoding.UTF8.GetString(buf, 0, len);
+                actualSize = base.Read(buf, offset, len - offset);
+                offset += actualSize;
             }
-            else
-            {
-                while (offset < len)
-                {
-                    actualSize =  base.Read(buf_, offset, len - offset);
-                    offset += actualSize;
-                }
-                return Encoding.UTF8.GetString(buf_, 0, len);
-            }
+            return buf;
         }
 
         public abstract bool isLittleEndian();
