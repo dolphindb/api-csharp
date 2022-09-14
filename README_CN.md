@@ -313,10 +313,9 @@ public void testVoid(){
 
 使用C# API的一个重要场景是，用户从其他数据库系统或是第三方WebAPI中取到数据，将数据进行清洗后存入DolphinDB数据库中，本节将介绍通过C# API将取到的数据上传并保存到DolphinDB的数据表中。
 
-DolphinDB数据表按存储方式分为三种:
+DolphinDB数据表按存储方式分为两种:
 
 - 内存表: 数据仅保存在内存中，存取速度最快，但是节点关闭后数据就不存在了。
-- 本地磁盘表：数据保存在本地磁盘上。可以从磁盘加载到内存。
 - 分布式表：数据分布在不同的节点，通过DolphinDB的分布式计算引擎，逻辑上仍然可以像本地表一样做统一查询。
 
 #### 7.1 将数据保存到DolphinDB内存表
@@ -445,7 +444,7 @@ BasicTable table1 = createTable();
 appender.append(table1);            
 ```
 
-
+<!--不推荐使用磁盘表了，删除
 #### 7.3 保存数据到本地磁盘表
 
 通常本地磁盘表用于学习环境或者单机静态数据集测试，它不支持事务，不持支并发读写，不保证运行中的数据一致性，所以不建议在生产环境中使用。
@@ -467,7 +466,8 @@ public void test_save_table(string dbPath, string tableName, BasicTable table1)
       conn.run(String.Format("tableInsert{{loadTable('{0}','{1}')}}", dbPath,tableName), args);
 }
 ```
-#### 7.4 读取和使用数据表
+-->
+#### 7.3 读取和使用数据表
 
 在C# API中，数据表保存为BasicTable对象。由于BasicTable是列式存储，所以若要在C# API中读取行数据需要先取出需要的列，再取出行。
 
@@ -489,7 +489,7 @@ public void test_loop_basicTable(BasicTable table1)
 }
 ```
 
-#### 7.5 MultithreadedTableWriter
+#### 7.4 MultithreadedTableWriter
 
 DolphinDB C# API 提供 `MultithreadedTableWriter` 类对象支持多线程的并发写入。目前，`MultithreadedTableWriter` 支持批量写入数据到内存表、分区表和维度表。
 
