@@ -9,7 +9,7 @@ C# API遵循面向接口编程的原则。C# API使用接口类IEntity来表示D
 拓展的接口类|命名规则|例子
 ---|---|---
 scalar|Basic\<DataType\>|BasicInt, BasicDouble, BasicDate, etc.
-vector，matrix|Basic\<DataType\>\<DataForm\>|BasicIntVector, BasicDoubleMatrix, BasicAnyVector, BasicArrayVector, etc.
+vector，matrix|Basic\<DataType\>\<DataForm\>|BasicIntVector, BasicDoubleMatrix, BasicAnyVector, etc.
 set， dictionary和table|Basic\<DataForm\>|BasicSet, BasicDictionary, BasicTable.
 chart||BasicChart
 
@@ -313,10 +313,9 @@ public void testVoid(){
 
 使用C# API的一个重要场景是，用户从其他数据库系统或是第三方WebAPI中取到数据，将数据进行清洗后存入DolphinDB数据库中，本节将介绍通过C# API将取到的数据上传并保存到DolphinDB的数据表中。
 
-DolphinDB数据表按存储方式分为三种:
+DolphinDB数据表按存储方式分为两种:
 
 - 内存表: 数据仅保存在内存中，存取速度最快，但是节点关闭后数据就不存在了。
-- 本地磁盘表：数据保存在本地磁盘上。可以从磁盘加载到内存。
 - 分布式表：数据分布在不同的节点，通过DolphinDB的分布式计算引擎，逻辑上仍然可以像本地表一样做统一查询。
 
 #### 7.1 将数据保存到DolphinDB内存表
@@ -445,7 +444,7 @@ BasicTable table1 = createTable();
 appender.append(table1);            
 ```
 
-
+<!--不推荐使用磁盘表，删除
 #### 7.3 保存数据到本地磁盘表
 
 通常本地磁盘表用于学习环境或者单机静态数据集测试，它不支持事务，不持支并发读写，不保证运行中的数据一致性，所以不建议在生产环境中使用。
@@ -467,7 +466,8 @@ public void test_save_table(string dbPath, string tableName, BasicTable table1)
       conn.run(String.Format("tableInsert{{loadTable('{0}','{1}')}}", dbPath,tableName), args);
 }
 ```
-#### 7.4 读取和使用数据表
+-->
+#### 7.3 读取和使用数据表
 
 在C# API中，数据表保存为BasicTable对象。由于BasicTable是列式存储，所以若要在C# API中读取行数据需要先取出需要的列，再取出行。
 
@@ -489,7 +489,7 @@ public void test_loop_basicTable(BasicTable table1)
 }
 ```
 
-#### 7.5 MultithreadedTableWriter
+#### 7.4 MultithreadedTableWriter
 
 DolphinDB C# API 提供 `MultithreadedTableWriter` 类对象支持多线程的并发写入。目前，`MultithreadedTableWriter` 支持批量写入数据到内存表、分区表和维度表。
 
@@ -797,32 +797,6 @@ long timestamp = Utils.countMilliseconds(dt);
 - Utils.countMilliseconds：计算给定时间到1970.01.01T00:00:00之间的毫秒数差，返回long
 
 需要注意，由于C#的DateTime和TimeSpan在精度上达不到纳秒级别，所以如果在对纳秒精度的时间数据进行操作并且需要保留纳秒精度时，可以通过 NanoTimestamp.getInternalValue()来获取内部保存的long值，不要通过DateTime和TimeSpan转换，否则会造成精度损失。
-
-数组向量（array vector）是 DolphinDB 一种特殊的数据形式。与常规的向量不同，它的每个元素是一个数组，具有相同的数据类型，但长度可以不同。目前支持的数据类型为 Logical, Integral（不包括 INT128, COMPRESS 类型）, Floating, Temporal。
-
-```cs
-//构造一个类型为int 类型的数组向量。
-BasicArrayVector result = new BasicArrayVector(DATA_TYPE.DT_INT_ARRAY);
-
-int[] data1 = new int[] { 1, 2 };
-int[] data2 = new int[] { 3, 4, 5 };
-//添加第1个元素
-result.append(new BasicIntVector(data1));
-//添加第2个元素
-result.append(new BasicIntVector(data2));
-
-//获取arrayvector中的第1个元素
-IVector dataVector1 = result.getSubVector(0);
-System.Console.Out.WriteLine(dataVector1.getString());
-//获取arrayvector中的第2个元素
-IVector dataVector2 = result.getSubVector(1);
-System.Console.Out.WriteLine(dataVector2.getString());
-```
-结果为:
-```cs
-[1,2]
-[3,4,5]
-```
 
 ### 9. C#流数据 API
 
