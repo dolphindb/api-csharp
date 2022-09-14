@@ -1,5 +1,11 @@
 # DolphinDB C# API
 
+<p align='center'>
+    <img src='./images/ddb.svg' alt='DolphinDB' width='256'>
+</p>
+
+## English | [中文](./README_CN.md)
+
 ### 1. C# API Introduction
 
 
