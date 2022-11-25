@@ -27,7 +27,7 @@ DBConnection类提供如下主要方法：
 |run(functionName,args)|调用DolphinDB服务器上的函数|
 |upload(variableObjectMap)|将本地数据对象上传到DolphinDB服务器|
 |isBusy()|判断当前会话是否正忙|
-|close()|关闭当前会话|
+|close()|关闭当前会话。若当前会话不再使用，会自动被释放，但存在释放延时，可以调用 `close()` 立即关闭会话。否则可能出现因连接数过多，导致其它会话无法连接服务器的问题。|
 
 ### 2. 建立DolphinDB连接
 
@@ -77,7 +77,7 @@ ExclusiveDBConnectionPool可以复用多个DBConnection。可以直接使用Excl
 |execute(IDBTask task)|执行任务|
 |execute(List<IDBTask> tasks)|执行批量任务|
 |getConnectionCount()|获取连接数|
-|shutdown|关闭连接池|
+|shutdown|关闭连接池。请注意，若当前 ExclusiveDBConnectionPool 线程池不再使用，会自动被释放，但存在释放延时，可以通过调用 `shutdown()` 等待线程任务执行结束后立即释放连接。|
 
 BasicDBTask包装了需要执行的脚本和参数。
 
