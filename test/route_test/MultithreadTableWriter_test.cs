@@ -13,21 +13,61 @@ using System.Collections;
 using System.Threading.Tasks;
 using dolphindb.route;
 using dolphindb_config;
+using dolphindb_csharpapi_net_core.src;
 
 namespace dolphindb_csharp_api_test.route_test
 {
+    public class CallbackHandler : dolphindb.route.Callback
+    {
+        private BasicStringVector id1 = new BasicStringVector(0);
+        private BasicBooleanVector success1 = new BasicBooleanVector(0);
+        public void writeCompletion(ITable callbackTable)
+        {
+            BasicStringVector idV;
+            BasicBooleanVector successV;
+            lock (callbackTable)
+            {
+                 idV = (BasicStringVector)callbackTable.getColumn(0);
+                 successV = (BasicBooleanVector)callbackTable.getColumn(1);
+            }
+            lock (id1)
+            {
+                id1.append(idV);
+            }
+            lock (success1)
+            {
+                success1.append(successV);
+            }
+            for (int i = 0; i < successV.rows(); i++)
+            {
+                Console.Out.WriteLine(idV.getString(i) + " " + successV.getBoolean(i));
+            }
+        }
+        public BasicStringVector getId()
+        {
+            return id1;
+        }
+        public BasicBooleanVector getIsSuccess()
+        {
+            return success1;
+        }
+    }
     [TestClass]
     public class MultithreadedTableWriter_test
     {
         private string SERVER = MyConfigReader.SERVER;
         static private int PORT = MyConfigReader.PORT;
+        static private int PORTCON = MyConfigReader.PORTCON;
+        static private int PORTDATE2 = MyConfigReader.PORTDATE2;
+        static private int PORTDATE3 = MyConfigReader.PORTDATE3;
+        static private int PORTDATE4 = MyConfigReader.PORTDATE4;
         private readonly string USER = MyConfigReader.USER;
         private readonly string PASSWORD = MyConfigReader.PASSWORD;
         private string NODE1_HOST = MyConfigReader.NODE1_HOST;
         private readonly int NODE1_PORT = MyConfigReader.NODE1_PORT;
         public static string[] HASTREAM_GROUP = MyConfigReader.HASTREAM_GROUP;
         private readonly int HASTREAM_GROUPID = MyConfigReader.HASTREAM_GROUPID;
-
+        static private string[] HASTREAM_GROUP1 = MyConfigReader.HASTREAM_GROUP1;
 
         static void compareBasicTable(BasicTable table, BasicTable newTable)
         {
@@ -45,7 +85,7 @@ namespace dolphindb_csharp_api_test.route_test
                         int failCase = 0;
                         AbstractScalar e1 = (AbstractScalar)table.getColumn(i).get(j);
                         AbstractScalar e2 = (AbstractScalar)newTable.getColumn(i).get(j);
-                        if (e1.Equals(e2) == false)
+                        if (e1.getString().Equals(e2.getString()) == false)
                         {
                             Console.WriteLine("Column " + i + ", row " + j + " expected: " + e1.getString() + " actual: " + e2.getString());
                             failCase++;
@@ -57,7 +97,6 @@ namespace dolphindb_csharp_api_test.route_test
             }
 
         }
-
         static void compareBasicTable16(BasicTable table, BasicTable newTable)
         {
             Assert.AreEqual(table.rows(), newTable.rows());
@@ -99,7 +138,8 @@ namespace dolphindb_csharp_api_test.route_test
             try
             {
                 MultithreadedTableWriter mtw = new MultithreadedTableWriter("not_exist", PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 exception = ex;
             }
@@ -119,7 +159,7 @@ namespace dolphindb_csharp_api_test.route_test
             Exception exception = null;
             try
             {
-                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT+100, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT + 100, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             }
             catch (Exception ex)
             {
@@ -244,7 +284,8 @@ namespace dolphindb_csharp_api_test.route_test
             try
             {
                 MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, "user1", "123456", "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 10000, 1, 1);
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 exception = ex;
             }
@@ -480,7 +521,7 @@ namespace dolphindb_csharp_api_test.route_test
                     ErrorCodeInfo pErrorInfo = mtw.insert(x);
                 }
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -1006,6 +1047,237 @@ namespace dolphindb_csharp_api_test.route_test
             conn.run("undef(`table1, SHARED)");
             conn.close();
         }
+        //[TestMethod]
+        //public void Test_MultithreadedTableWriter_BasicDecimal64()
+        //{
+        //    DBConnection conn = new DBConnection();
+        //    conn.connect(SERVER, PORT, USER, PASSWORD);
+        //    String script = "";
+        //    script += "share table(100:0, `col0`col1`col2`col3, [DECIMAL64(0),DECIMAL64(2),DECIMAL64(6),DECIMAL64(7)]) as table1";
+        //    conn.run(script);
+        //    MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
+        //    for (int i = 0; i < 1000000; i++)
+        //    {
+        //        List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicDecimal64(i%99, 0), new BasicDecimal64(i%99, 2),new BasicDecimal64(i%99, 7), new BasicDecimal64(i%99, 8) });
+        //        ErrorCodeInfo pErrorInfo = mtw.insert(x);
+        //    }
+        //    MultithreadedTableWriter.Status status = mtw.getStatus();
+        //    mtw.waitForThreadCompletion();
+        //    BasicTable re = (BasicTable)conn.run("table1");
+        //    BasicTable expected = (BasicTable)conn.run("table(decimal64(0..999999%99,0) as col0, decimal64(0..999999%99,2) as col1, decimal64(0..999999%99,6) as col2, decimal64(0..999999%99,7) as col3)");
+        //    //compareBasicTable(re, expected);
+        //    for (int i = 0; i < re.columns(); i++)
+        //    {
+        //        for (int j = 0; j < re.rows(); j++)
+        //        {
+        //            Assert.AreEqual(re.getColumn(i).get(j).getObject(), expected.getColumn(i).get(j).getObject());
+
+        //        }
+        //    }
+        //    Assert.AreEqual(re.getColumn(0).get(0).getObject(), expected.getColumn(0).get(0).getObject());
+        //    conn.run("undef(`table1, SHARED)");
+        //    conn.close();
+        //}
+        //[TestMethod]
+        //public void Test_MultithreadedTableWriter_BasicDecimal32()
+        //{
+        //    DBConnection conn = new DBConnection();
+        //    conn.connect(SERVER, PORT, USER, PASSWORD);
+        //    String script = "";
+        //    script += "share table(100:0, `col0`col1`col2`col3, [DECIMAL32(0),DECIMAL32(2),DECIMAL32(3),DECIMAL32(4)]) as table1";
+        //    conn.run(script);
+        //    MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
+        //    for (int i = 0; i < 1000000; i++)
+        //    {
+        //        List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicDecimal64(i%99, 0), new BasicDecimal64(i%99, 2), new BasicDecimal64(i%99, 6), new BasicDecimal64(i%99, 7) });
+        //        ErrorCodeInfo pErrorInfo = mtw.insert(x);
+        //    }
+        //    MultithreadedTableWriter.Status status = mtw.getStatus();
+        //    mtw.waitForThreadCompletion();
+        //    BasicTable re = (BasicTable)conn.run("table1");
+        //    BasicTable expected = (BasicTable)conn.run("table(decimal32(0..999999%99,0) as col0, decimal32(0..999999%99,2) as col1, decimal32(0..999999%99,3) as col2, decimal32(0..999999%99,4) as col3)");
+        //    // compareBasicTable(re, expected);
+        //    for (int i = 0; i < re.columns(); i++)
+        //    {
+        //        for (int j = 0; j < re.rows(); j++)
+        //        {
+        //            Assert.AreEqual(re.getColumn(i).get(j).getObject(), expected.getColumn(i).get(j).getObject());
+
+        //        }
+        //    }
+        //    conn.run("undef(`table1, SHARED)");
+        //    conn.close();
+        //}
+        //[TestMethod]
+        //public void Test_MultithreadedTableWriter_BasicDecimal_dateType_change()
+        //{
+        //    DBConnection conn = new DBConnection();
+        //    conn.connect(SERVER, PORT, USER, PASSWORD);
+        //    String script = "";
+        //    script += "share table(100:0, `col0`col1`col2`col3`col4`col5`col6`col7`col8, [DECIMAL64(0),DECIMAL64(0),DECIMAL64(2),DECIMAL64(4),DECIMAL32(0),DECIMAL32(0),DECIMAL32(2),DECIMAL32(4),INT]) as table1";
+        //    conn.run(script);
+        //    MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
+        //    ErrorCodeInfo pErrorInfo = mtw.insert((int)1.011, (long)1.011,(float)1.011,(double)1.011, (int)1.011, (long)1.011, (float)1.011, (double)1.011, (int)1.011);
+        //    MultithreadedTableWriter.Status status = mtw.getStatus();
+        //    mtw.waitForThreadCompletion();
+        //    Console.Out.WriteLine(status.ToString());
+        //    BasicTable re = (BasicTable)conn.run("t1=select * from table1;\n t1");
+        //    Assert.AreEqual("1", re.getColumn(0).get(0).getString());
+        //    Assert.AreEqual("1", re.getColumn(1).get(0).getString());
+        //    Assert.AreEqual("1.01", re.getColumn(2).get(0).getString());
+        //    Assert.AreEqual("1.0110", re.getColumn(3).get(0).getString());
+        //    Assert.AreEqual("1", re.getColumn(4).get(0).getString());
+        //    Assert.AreEqual("1", re.getColumn(5).get(0).getString());
+        //    Assert.AreEqual("1.01", re.getColumn(6).get(0).getString());
+        //    Assert.AreEqual("1.0110", re.getColumn(7).get(0).getString());
+        //    Assert.AreEqual(1, re.getColumn(8).get(0).getObject());
+
+        //    conn.run("undef(`table1, SHARED)");
+        //    conn.close();
+        //}
+
+        //[TestMethod]
+        //public void Test_MultithreadedTableWriter_BasicDecimal64_compression_LZ4()
+        //{
+        //    DBConnection conn = new DBConnection();
+        //    conn.connect(SERVER, PORT, USER, PASSWORD);
+        //    String script = "";
+        //    script += "share table(100:0, `col0`col1`col2`col3, [DECIMAL64(0),DECIMAL64(2),DECIMAL64(6),DECIMAL64(7)]) as table1";
+        //    conn.run(script);
+        //    int[] compressMethods = new int[4];
+        //    for (int i = 0; i < 4; i++)
+        //    {
+        //        compressMethods[i] = Vector_Fields.COMPRESS_LZ4;
+        //    }
+        //    MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1,"", compressMethods);
+        //    for (int i = 0; i < 1000000; i++)
+        //    {
+        //        List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicDecimal64(i%99, 0), new BasicDecimal64(i%99, 2), new BasicDecimal64(i%99, 6), new BasicDecimal64(i%99, 7) });
+        //        ErrorCodeInfo pErrorInfo = mtw.insert(x);
+        //    }
+        //    MultithreadedTableWriter.Status status = mtw.getStatus();
+        //    mtw.waitForThreadCompletion();
+        //    BasicTable re = (BasicTable)conn.run("table1");
+        //    BasicTable expected = (BasicTable)conn.run("table(decimal64(0..999999%99,0) as col0, decimal64(0..999999%99,2) as col1, decimal64(0..999999%99,6) as col2, decimal64(0..999999%99,7) as col3)");
+        //    // compareBasicTable(re, expected);
+        //    for (int i = 0; i < re.columns(); i++)
+        //    {
+        //        for (int j = 0; j < re.rows(); j++)
+        //        {
+        //            Assert.AreEqual(re.getColumn(i).get(j).getObject().ToString(), expected.getColumn(i).get(j).getObject().ToString());
+
+        //        }
+        //    }
+        //    Assert.AreEqual(re.getColumn(0).get(0).getObject(), expected.getColumn(0).get(0).getObject());
+        //    conn.run("undef(`table1, SHARED)");
+        //    conn.close();
+        //}
+        ////[TestMethod]not support
+        //public void Test_MultithreadedTableWriter_BasicDecimal64_compression_delta()
+        //{
+        //    DBConnection conn = new DBConnection();
+        //    conn.connect(SERVER, PORT, USER, PASSWORD);
+        //    String script = "";
+        //    script += "share table(100:0, `col0`col1`col2`col3, [DECIMAL64(0),DECIMAL64(2),DECIMAL64(6),DECIMAL64(7)]) as table1";
+        //    conn.run(script);
+        //    int[] compressMethods = new int[4];
+        //    for (int i = 0; i < 4; i++)
+        //    {
+        //        compressMethods[i] = Vector_Fields.COMPRESS_DELTA;
+        //    }
+        //    MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1, "", compressMethods);
+        //    for (int i = 0; i < 1000000; i++)
+        //    {
+        //        List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicDecimal64(i%99, 0), new BasicDecimal64(i%99, 2), new BasicDecimal64(i%99, 6), new BasicDecimal64(i%99, 7) });
+        //        ErrorCodeInfo pErrorInfo = mtw.insert(x);
+        //    }
+        //    MultithreadedTableWriter.Status status = mtw.getStatus();
+        //    mtw.waitForThreadCompletion();
+        //    BasicTable re = (BasicTable)conn.run("table1");
+        //    BasicTable expected = (BasicTable)conn.run("table(decimal64(0..999999%99,0) as col0, decimal64(0..999999%99,2) as col1, decimal64(0..999999%99,6) as col2, decimal64(0..999999%99,7) as col3)");
+        //    // compareBasicTable(re, expected);
+        //    for (int i = 0; i < re.columns(); i++)
+        //    {
+        //        for (int j = 0; j < re.rows(); j++)
+        //        {
+        //            Assert.AreEqual(re.getColumn(i).get(j).getObject(), expected.getColumn(i).get(j).getObject());
+
+        //        }
+        //    }
+        //    Assert.AreEqual(re.getColumn(0).get(0).getObject(), expected.getColumn(0).get(0).getObject());
+        //    conn.run("undef(`table1, SHARED)");
+        //    conn.close();
+        //}
+        //[TestMethod]
+        //public void Test_MultithreadedTableWriter_BasicDecimal32_compression_compression_LZ4()
+        //{
+        //    DBConnection conn = new DBConnection();
+        //    conn.connect(SERVER, PORT, USER, PASSWORD);
+        //    String script = "";
+        //    script += "share table(100:0, `col0`col1`col2`col3, [DECIMAL32(0),DECIMAL32(2),DECIMAL32(3),DECIMAL32(4)]) as table1";
+        //    conn.run(script);
+        //    int[] compressMethods = new int[4];
+        //    for (int i = 0; i < 4; i++)
+        //    {
+        //        compressMethods[i] = Vector_Fields.COMPRESS_LZ4;
+        //    }
+        //    MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1, "", compressMethods);
+        //    for (int i = 0; i < 1000000; i++)
+        //    {
+        //        List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicDecimal64(i % 99, 0), new BasicDecimal64(i % 99, 2), new BasicDecimal64(i % 99, 6), new BasicDecimal64(i % 99, 7) });
+        //        ErrorCodeInfo pErrorInfo = mtw.insert(x);
+        //    }
+        //    MultithreadedTableWriter.Status status = mtw.getStatus();
+        //    mtw.waitForThreadCompletion();
+        //    BasicTable re = (BasicTable)conn.run("table1");
+        //    BasicTable expected = (BasicTable)conn.run("table(decimal32(0..999999%99,0) as col0, decimal32(0..999999%99,2) as col1, decimal32(0..999999%99,6) as col2, decimal32(0..999999%99,7) as col3)");
+        //    // compareBasicTable(re, expected);
+        //    for (int i = 0; i < re.columns(); i++)
+        //    {
+        //        for (int j = 0; j < re.rows(); j++)
+        //        {
+        //            Assert.AreEqual(re.getColumn(i).get(j).getObject(), expected.getColumn(i).get(j).getObject());
+
+        //        }
+        //    }
+        //    conn.run("undef(`table1, SHARED)");
+        //    conn.close();
+        //}
+        ////[TestMethod]not support
+        //public void Test_MultithreadedTableWriter_BasicDecimal32_compression_compression_delta()
+        //{
+        //    DBConnection conn = new DBConnection();
+        //    conn.connect(SERVER, PORT, USER, PASSWORD);
+        //    String script = "";
+        //    script += "share table(100:0, `col0`col1`col2`col3, [DECIMAL32(0),DECIMAL32(2),DECIMAL32(3),DECIMAL32(4)]) as table1";
+        //    conn.run(script);
+        //    int[] compressMethods = new int[4];
+        //    for (int i = 0; i < 4; i++)
+        //    {
+        //        compressMethods[i] = Vector_Fields.COMPRESS_DELTA;
+        //    }
+        //    MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1, "", compressMethods);
+        //    for (int i = 0; i < 1000000; i++)
+        //    {
+        //        List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicDecimal64(i % 99, 0), new BasicDecimal64(i % 99, 2), new BasicDecimal64(i % 99, 6), new BasicDecimal64(i % 99, 7) });
+        //        ErrorCodeInfo pErrorInfo = mtw.insert(x);
+        //    }
+        //    MultithreadedTableWriter.Status status = mtw.getStatus();
+        //    mtw.waitForThreadCompletion();
+        //    BasicTable re = (BasicTable)conn.run("table1");
+        //    BasicTable expected = (BasicTable)conn.run("table(decimal32(0..999999%99,0) as col0, decimal32(0..999999%99,2) as col1, decimal32(0..999999%99,6) as col2, decimal32(0..999999%99,7) as col3)");
+        //    // compareBasicTable(re, expected);
+        //    for (int i = 0; i < re.columns(); i++)
+        //    {
+        //        for (int j = 0; j < re.rows(); j++)
+        //        {
+        //            Assert.AreEqual(re.getColumn(i).get(j).getObject(), expected.getColumn(i).get(j).getObject());
+
+        //        }
+        //    }
+        //    conn.run("undef(`table1, SHARED)");
+        //    conn.close();
+        //}
 
         [TestMethod]
         public void Test_MultithreadedTableWriter_BasicArrayVector()
@@ -1044,9 +1316,55 @@ namespace dolphindb_csharp_api_test.route_test
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
+            BasicTable re = (BasicTable)conn.run("t1=select * from table1;\n t1");
+            Assert.AreEqual(10000, re.rows());
             conn.run("undef(`table1, SHARED)");
             conn.close();
         }
+        //[TestMethod]// not support
+        //public void Test_MultithreadedTableWriter_BasicArrayVector_decimal()
+        //{
+        //    DBConnection conn = new DBConnection();
+        //    conn.connect(SERVER, PORT, USER, PASSWORD);
+        //    String script = "";
+        //    script += "share table(100:0, [`col0, `col1, `col2, `col3, `col4, `col5, `col6, `col7, `col8, `col9, `col10, `col11, `col12, `col13, `col14, `col15, `col16, `col17, `col18, `col19, `col20], [INT[], BOOL[], SHORT[], CHAR[], LONG[], DATE[], MONTH[], TIME[], MINUTE[], SECOND[], DATETIME[], TIMESTAMP[], NANOTIME[], NANOTIMESTAMP[], DOUBLE[], FLOAT[], UUID[], INT128[], IPADDR[], DECIMAL32(3)[], DECIMAL32(4)[]]) as table1";
+        //    conn.run(script);
+        //    MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 1000, 1, 1);
+        //    conn.run("v1 = array(ANY, 0, 1000000);v2 = array(ANY, 0, 1000000);v3 = array(ANY, 0, 1000000);v4 = array(ANY, 0, 1000000);v5 = array(ANY, 0, 1000000);v6 = array(ANY, 0, 1000000);v7 = array(ANY, 0, 1000000);v8 = array(ANY, 0, 1000000);v9 = array(ANY, 0, 1000000);v10 = array(ANY, 0, 1000000);v11 = array(ANY, 0, 1000000);v12 = array(ANY, 0, 1000000);v13 = array(ANY, 0, 1000000);v14 = array(ANY, 0, 1000000);v15 = array(ANY, 0, 1000000);v16 = array(ANY, 0, 1000000);v17 = array(ANY, 0, 1000000);v18 = array(ANY, 0, 1000000);v19 = array(ANY, 0, 1000000);v20 = array(ANY, 0, 1000000);v21 = array(ANY, 0, 1000000);");
+        //    for (int i = 0; i < 10000; i++)
+        //    {
+
+        //        BasicIntVector col1v = (BasicIntVector)conn.run("tmp = rand(-100..100, 10); v1.append!(tmp);tmp;");
+        //        BasicBooleanVector col2v = (BasicBooleanVector)conn.run("tmp = rand([true, false], 10); v2.append!(tmp);tmp;");
+        //        BasicShortVector col3v = (BasicShortVector)conn.run("tmp = rand(short(-100..100), 10); v3.append!(tmp);tmp;");
+        //        BasicByteVector col4v = (BasicByteVector)conn.run("tmp = rand(char(1..100), 10); v4.append!(tmp);tmp;");
+        //        BasicLongVector col5v = (BasicLongVector)conn.run("tmp = rand(long(-100..100), 10); v5.append!(tmp);tmp;");
+        //        BasicDateVector col6v = (BasicDateVector)conn.run("tmp = rand(2012.01.01..2012.01.10, 10); v6.append!(tmp);tmp;");
+        //        BasicMonthVector col7v = (BasicMonthVector)conn.run("tmp = rand(2012.01M..2012.12M, 10); v7.append!(tmp);tmp;");
+        //        BasicTimeVector col8v = (BasicTimeVector)conn.run("tmp = rand(temporalAdd(09:00:00.000, 0..100, 's'), 10); v8.append!(tmp);tmp;");
+        //        BasicMinuteVector col9v = (BasicMinuteVector)conn.run("tmp = rand(09:00m..12:00m, 10); v9.append!(tmp);tmp;");
+        //        BasicSecondVector col10v = (BasicSecondVector)conn.run("tmp = rand(09:00:00..12:00:00, 10); v10.append!(tmp);tmp;");
+        //        BasicDateTimeVector col11v = (BasicDateTimeVector)conn.run("tmp = rand(temporalAdd(2012.01.01T09:00:00, 0..100, 's'), 10); v11.append!(tmp);tmp;");
+        //        BasicTimestampVector col12v = (BasicTimestampVector)conn.run("tmp = rand(temporalAdd(2012.01.01T09:00:00.000, 0..100, 's'), 10); v12.append!(tmp);tmp;");
+        //        BasicNanoTimeVector col13v = (BasicNanoTimeVector)conn.run("tmp = rand(temporalAdd(09:00:00.000000000, 0..100, 's'), 10); v13.append!(tmp);tmp;");
+        //        BasicNanoTimestampVector col14v = (BasicNanoTimestampVector)conn.run("tmp = rand(temporalAdd(2012.01.01T09:00:00.000000000, 0..100, 's'), 10); v14.append!(tmp);tmp;");
+        //        BasicDoubleVector col15v = (BasicDoubleVector)conn.run("tmp = rand(double(-100..100), 10); v15.append!(tmp);tmp;");
+        //        BasicFloatVector col16v = (BasicFloatVector)conn.run("tmp = rand(float(-100..100), 10); v16.append!(tmp);tmp;");
+        //        BasicUuidVector col17v = (BasicUuidVector)conn.run("tmp = rand(uuid(), 10); v17.append!(tmp);tmp;");
+        //        BasicInt128Vector col18v = (BasicInt128Vector)conn.run("tmp = rand(int128(), 10); v18.append!(tmp);tmp;");
+        //        BasicIPAddrVector col19v = (BasicIPAddrVector)conn.run("tmp = rand(ipaddr(), 10); v19.append!(tmp);tmp;");
+        //        BasicDecimal32Vector col20v = (BasicDecimal32Vector)conn.run("tmp = take(decimal32(3,3), 10); v20.append!(tmp);tmp;");
+        //        BasicDecimal64Vector col21v = (BasicDecimal64Vector)conn.run("tmp = take(decimal64(3,4), 10); v21.append!(tmp);tmp;");
+        //        ErrorCodeInfo pErrorInfo = mtw.insert(col1v, col2v, col3v, col4v, col5v, col6v, col7v, col8v, col9v, col10v, col11v, col12v, col13v, col14v, col15v, col16v, col17v, col18v, col19v, col20v, col21v);
+        //    }
+        //    MultithreadedTableWriter.Status status = mtw.getStatus();
+        //    mtw.waitForThreadCompletion();
+        //    BasicTable re = (BasicTable)conn.run("t1=select * from table1;\n t1");
+        //    Assert.AreEqual(10000, re.rows());
+
+        //    conn.run("undef(`table1, SHARED)");
+        //    conn.close();
+        //}
 
         //raw datatype
         [TestMethod]
@@ -1090,7 +1408,7 @@ namespace dolphindb_csharp_api_test.route_test
             for (int i = 0; i < 1000000; i++)
             {
 
-                ErrorCodeInfo pErrorInfo = mtw.insert((byte)(i%99), (byte)(i % 99), (byte)(i % 99), (byte)(i % 99));
+                ErrorCodeInfo pErrorInfo = mtw.insert((byte)(i % 99), (byte)(i % 99), (byte)(i % 99), (byte)(i % 99));
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
@@ -1231,7 +1549,7 @@ namespace dolphindb_csharp_api_test.route_test
             for (int i = 0; i < 1000000; i++)
             {
 
-                ErrorCodeInfo pErrorInfo = mtw.insert("A"+i.ToString(), "B"+i.ToString(), v1[i%5], v2[i%5], v3[i%5]);
+                ErrorCodeInfo pErrorInfo = mtw.insert("A" + i.ToString(), "B" + i.ToString(), v1[i % 5], v2[i % 5], v3[i % 5]);
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
@@ -1346,7 +1664,7 @@ namespace dolphindb_csharp_api_test.route_test
             for (int i = 0; i < 1000000; i++)
             {
 
-                ErrorCodeInfo pErrorInfo = mtw.insert(new TimeSpan(12, 15, i%60), new TimeSpan(12, 15, i % 60), new TimeSpan(12, 15, i % 60), new TimeSpan(12, 15, i % 60));
+                ErrorCodeInfo pErrorInfo = mtw.insert(new TimeSpan(12, 15, i % 60), new TimeSpan(12, 15, i % 60), new TimeSpan(12, 15, i % 60), new TimeSpan(12, 15, i % 60));
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
@@ -1454,13 +1772,14 @@ namespace dolphindb_csharp_api_test.route_test
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
-                if (i % 2 == 0) {
+                if (i % 2 == 0)
+                {
                     bool[] col1v = new bool[] { true, false, true, false, true, false, true, false, true, false };
                     ErrorCodeInfo pErrorInfo = mtw.insert(col1v);
                 }
                 else
                 {
-                    bool[] col1v = new bool[] { true, false, true, false, true};
+                    bool[] col1v = new bool[] { true, false, true, false, true };
                     ErrorCodeInfo pErrorInfo = mtw.insert(col1v);
                 }
             }
@@ -1484,7 +1803,8 @@ namespace dolphindb_csharp_api_test.route_test
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             for (int i = 0; i < 1000000; i++)
             {
-                if (i % 2 == 0) {
+                if (i % 2 == 0)
+                {
                     short[] col0v = new short[] { (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99) };
                     short[] col1v = new short[] { (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99) };
                     short[] col2v = new short[] { (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99) };
@@ -1499,7 +1819,7 @@ namespace dolphindb_csharp_api_test.route_test
                     short[] col3v = new short[] { (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99), (short)(i % 99) };
                     ErrorCodeInfo pErrorInfo = mtw.insert(col0v, col1v, col2v, col3v);
                 }
-                
+
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
@@ -1534,7 +1854,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -1578,7 +1898,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -1620,7 +1940,7 @@ namespace dolphindb_csharp_api_test.route_test
             for (int i = 0; i < 1000000; i++)
             {
                 ErrorCodeInfo pErrorInfo = mtw.insert(i, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null, (object)null);
-               
+
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
@@ -1692,7 +2012,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -1736,7 +2056,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -1780,7 +2100,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -1824,7 +2144,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -1868,7 +2188,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -2015,9 +2335,20 @@ namespace dolphindb_csharp_api_test.route_test
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(1), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo1 = mtw1.insert(x);
+            }
+            mtw1.waitForThreadCompletion();
+            for (int i = 0; i < 30000; i++)
+            {
+                List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(1), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo2 = mtw2.insert(x);
+            }
+            mtw2.waitForThreadCompletion();
+            for (int i = 0; i < 30000; i++)
+            {
+                List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(1), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo3 = mtw3.insert(x);
             }
+            mtw3.waitForThreadCompletion();
             Thread.Sleep(7000);
             List<List<IEntity>> unwritten1 = mtw1.getUnwrittenData();
             List<List<IEntity>> unwritten2 = mtw2.getUnwrittenData();
@@ -2114,7 +2445,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -2163,7 +2494,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -2212,7 +2543,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -2262,7 +2593,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -2308,10 +2639,10 @@ namespace dolphindb_csharp_api_test.route_test
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 1000000, 1, 7, "id");
             for (int i = 0; i < 3000000; i++)
             {
-                List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i%10), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
+                List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i % 10), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -2360,7 +2691,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i % 100), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -2409,7 +2740,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i % 10), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -2458,7 +2789,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -2882,7 +3213,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -2929,7 +3260,8 @@ namespace dolphindb_csharp_api_test.route_test
             try
             {
                 MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 1000000, 1, 5, "id");
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
                 exception = ex;
@@ -2957,7 +3289,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            
+
             for (int i = 0; i < 10; i++)
             {
                 Thread.Sleep(1000);
@@ -2983,7 +3315,7 @@ namespace dolphindb_csharp_api_test.route_test
             conn.run("expected = table(0..2999999 as id, 'AA'+string(0..2999999%99) as sym, 'BB'+string(0..2999999%99) as str, 0..2999999%999+0.1 as price, 0..2999999%999 as val)");
             BasicTable expected = (BasicTable)conn.run("select * from expected order by id, sym, str, price");
             compareBasicTable(re, expected);
-            conn.run("dropDatabase('dfs://test_MultithreadedTableWriter')");
+            //conn.run("dropDatabase('dfs://test_MultithreadedTableWriter')");
             mtw.waitForThreadCompletion();
             conn.close();
         }
@@ -3002,15 +3334,16 @@ namespace dolphindb_csharp_api_test.route_test
             script += "db.createPartitionedTable(dummy, `pt, `id);";
             conn.run(script);
             int[] compressMethods = new int[23];
-            for(int i = 0; i < 23; i++)
+            for (int i = 0; i < 23; i++)
             {
                 compressMethods[i] = Vector_Fields.COMPRESS_LZ4;
             }
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 1000000, 1, 4, "id", compressMethods);
             for (int i = 0; i < 1000000; i++)
             {
-                if (i % 2 == 0) {
-                    ErrorCodeInfo pErrorInfo = mtw.insert(i % 10, true, 97, 97, 97, 97, new DateTime(2012, 1, 1), new DateTime(2012, 1, 1), new TimeSpan(12, 30, 25), new TimeSpan(12, 30, 25), new TimeSpan(12, 30, 25), new TimeSpan(12, 30, 25), new DateTime(2012, 1, 1), new DateTime(2012, 1, 1), new DateTime(2012, 1, 1), new DateTime(2012, 1, 1), (double)i, (float)i, "A"+i.ToString(), "B"+(i%10).ToString(), "5d212a78-cc48-e3b1-4235-b4d91473ee87", "e1671797c52e15f763380b45e841ec32", "192.168.1.3");
+                if (i % 2 == 0)
+                {
+                    ErrorCodeInfo pErrorInfo = mtw.insert(i % 10, true, 97, 97, 97, 97, new DateTime(2012, 1, 1), new DateTime(2012, 1, 1), new TimeSpan(12, 30, 25), new TimeSpan(12, 30, 25), new TimeSpan(12, 30, 25), new TimeSpan(12, 30, 25), new DateTime(2012, 1, 1), new DateTime(2012, 1, 1), new DateTime(2012, 1, 1), new DateTime(2012, 1, 1), (double)i, (float)i, "A" + i.ToString(), "B" + (i % 10).ToString(), "5d212a78-cc48-e3b1-4235-b4d91473ee87", "e1671797c52e15f763380b45e841ec32", "192.168.1.3");
                 }
                 else
                 {
@@ -3049,11 +3382,11 @@ namespace dolphindb_csharp_api_test.route_test
                 if (i % 2 == 0)
                 {
                     int[] col1v = new int[] { i, i, i, i, i };
-                    ErrorCodeInfo pErrorInfo = mtw.insert(i % 10, "C"+i.ToString(), col1v);
+                    ErrorCodeInfo pErrorInfo = mtw.insert(i % 10, "C" + i.ToString(), col1v);
                 }
                 else
                 {
-                    int[] col1v = new int[] {};
+                    int[] col1v = new int[] { };
                     ErrorCodeInfo pErrorInfo = mtw.insert(i % 10, (object)null, col1v);
                 }
             }
@@ -3124,7 +3457,8 @@ namespace dolphindb_csharp_api_test.route_test
             try
             {
                 MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 1000000, 1, 4, "id", compressMethods);
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
                 exception = ex;
@@ -3517,7 +3851,7 @@ namespace dolphindb_csharp_api_test.route_test
             for (int i = 0; i < 3000000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
-                ErrorCodeInfo pErrorInfo  = mtw.insert(x);
+                ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
             for (int i = 0; i < 10; i++)
@@ -3565,7 +3899,7 @@ namespace dolphindb_csharp_api_test.route_test
             for (int i = 0; i < 3000000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
-                ErrorCodeInfo pErrorInfo  = mtw.insert(x);
+                ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
             for (int i = 0; i < 10; i++)
@@ -3613,7 +3947,7 @@ namespace dolphindb_csharp_api_test.route_test
             for (int i = 0; i < 3000000; i++)
             {
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
-                ErrorCodeInfo pErrorInfo  = mtw.insert(x);
+                ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
             for (int i = 0; i < 10; i++)
@@ -3708,9 +4042,11 @@ namespace dolphindb_csharp_api_test.route_test
             Console.WriteLine(StreamLeaderPort.ToString());
             DBConnection conn1 = new DBConnection();
             conn1.connect(StreamLeaderHost, StreamLeaderPort, "admin", "123456");
-            try {
+            try
+            {
                 conn1.run("dropStreamTable(\"haSt1\")");
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
             }
@@ -3814,6 +4150,2177 @@ namespace dolphindb_csharp_api_test.route_test
             conn1.close();
         }
 
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_setNotifyOnSuccessr_dfs_table_huge_data_single_thread_tsdb()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "dbName = 'dfs://test_MultithreadedTableWriter';";
+            script += "if(existsDatabase(dbName)){dropDatabase(dbName)};";
+            script += "db = database(dbName, HASH, [INT, 10], engine=\"TSDB\");";
+            script += "dummy = table(100:0, [`id, `sym, `str, `price, `val], [INT, SYMBOL, STRING, DOUBLE, INT]);";
+            script += "db.createPartitionedTable(dummy, `pt, `id, , `sym`id);";
+            conn.run(script);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 1000000, 1, 1, "id");
+            List<int> list = new List<int>();
+            Action<IVector> notifyOnSuccess = (IVector items) =>
+            {
+                BasicIntVector lastCol = (BasicIntVector)items;
+                var darray = lastCol.getdataArray();
+
+                //Console.WriteLine(darray);
+                Console.WriteLine($"darrycount:{darray.Count}");
+                for (int i = 0; i < darray.Count; i++)
+                {
+                    var tag = (ulong)darray[i];
+                    //Console.WriteLine($"rtag:{tag}");
+                    lock (list)
+                    {
+                        list.Add(darray[i]);
+                    }
+                }
+
+                //Console.WriteLine(list[100]);
+                return;
+            };
+            mtw.setNotifyOnSuccess(notifyOnSuccess, DATA_TYPE.DT_INT);
+            for (int i = 0; i < 3000000; i++)
+            {
+                List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999), new BasicInt(i) });
+                ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            }
+
+            for (int i = 0; i < 10; i++)
+            {
+                Thread.Sleep(1000);
+                long total = 0;
+                MultithreadedTableWriter.Status status = mtw.getStatus();
+                total = status.threadStatus[0].sentRows;
+                Console.WriteLine(total);
+                if (total.Equals(3000000))
+                {
+                    break;
+                }
+                else
+                {
+                    if (i == 9)
+                    {
+                        Assert.AreEqual(total, 3000000);
+                    }
+                }
+
+            }
+            list.Sort();
+            for (int i = 0; i < 3000000; i++)
+            {
+                Assert.AreEqual(i, list[i]);
+            }
+            BasicTable re = (BasicTable)conn.run("select * from loadTable('dfs://test_MultithreadedTableWriter', 'pt') order by id, sym, price");
+            conn.run("expected = table(0..2999999 as id, 'AA'+string(0..2999999%99) as sym, 'BB'+string(0..2999999%99) as str, 0..2999999%999+0.1 as price, 0..2999999%999 as val)");
+            BasicTable expected = (BasicTable)conn.run("select * from expected order by id, sym, str, price");
+            compareBasicTable(re, expected);
+            conn.run("dropDatabase('dfs://test_MultithreadedTableWriter')");
+            mtw.waitForThreadCompletion();
+            conn.close();
+        }
+
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_setNotifyOnSuccess_dfs_table_huge_data_multiple_thread_tsdb()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "dbName = 'dfs://test_MultithreadedTableWriter';";
+            script += "if(existsDatabase(dbName)){dropDatabase(dbName)};";
+            script += "db = database(dbName, HASH, [INT, 10], engine=\"TSDB\");";
+            script += "dummy = table(100:0, [`id, `sym, `str, `price, `val], [INT, SYMBOL, STRING, DOUBLE, INT]);";
+            script += "db.createPartitionedTable(dummy, `pt, `id, , `sym`id);";
+            conn.run(script);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 1000000, 1, 5, "id");
+            List<int> list = new List<int>();
+            Action<IVector> notifyOnSuccess = (IVector items) =>
+            {
+                BasicIntVector lastCol = (BasicIntVector)items;
+                var darray = lastCol.getdataArray();
+
+                //Console.WriteLine(darray);
+                //Console.WriteLine($"darrycount:{darray.Count}");
+                for (int i = 0; i < darray.Count; i++)
+                {
+                    var tag = (ulong)darray[i];
+                    //Console.WriteLine($"rtag:{tag}");
+                    lock (list)
+                    {
+                        list.Add(darray[i]);
+                    }
+                }
+                //Console.WriteLine(list[100]);
+                return;
+            };
+            mtw.setNotifyOnSuccess(notifyOnSuccess, DATA_TYPE.DT_INT);
+
+            for (int i = 0; i < 3000000; i++)
+            {
+                List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999), new BasicInt(i) });
+                ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            }
+
+            for (int i = 0; i < 10; i++)
+            {
+                Thread.Sleep(1000);
+                long total = 0;
+                MultithreadedTableWriter.Status status = mtw.getStatus();
+                total = status.threadStatus[0].sentRows + status.threadStatus[1].sentRows + status.threadStatus[2].sentRows + status.threadStatus[3].sentRows + status.threadStatus[4].sentRows;
+                Console.WriteLine(total);
+                if (total.Equals(3000000))
+                {
+                    break;
+                }
+                else
+                {
+                    if (i == 9)
+                    {
+                        Assert.AreEqual(total, 3000000);
+                    }
+                }
+
+            }
+
+            BasicTable re = (BasicTable)conn.run("select * from loadTable('dfs://test_MultithreadedTableWriter', 'pt') order by id, sym, price");
+            conn.run("expected = table(0..2999999 as id, 'AA'+string(0..2999999%99) as sym, 'BB'+string(0..2999999%99) as str, 0..2999999%999+0.1 as price, 0..2999999%999 as val)");
+            BasicTable expected = (BasicTable)conn.run("select * from expected order by id, sym, str, price");
+            compareBasicTable(re, expected);
+            conn.run("dropDatabase('dfs://test_MultithreadedTableWriter')");
+            mtw.waitForThreadCompletion();
+            list.Sort();
+            for (int i = 0; i < 3000000; i++)
+            {
+                Assert.AreEqual(i, list[i]);
+            }
+            conn.close();
+        }
+
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_setNotifyOnSuccess_BasicArrayVector()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "share table(100:0, [`col0, `col1, `col2, `col3, `col4, `col5, `col6, `col7, `col8, `col9, `col10, `col11, `col12, `col13, `col14, `col15, `col16, `col17, `col18], [INT[], BOOL[], SHORT[], CHAR[], LONG[], DATE[], MONTH[], TIME[], MINUTE[], SECOND[], DATETIME[], TIMESTAMP[], NANOTIME[], NANOTIMESTAMP[], DOUBLE[], FLOAT[], UUID[], INT128[], IPADDR[]]) as table1";
+            conn.run(script);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 1000, 1, 1);
+            List<int> list = new List<int>();
+            Action<IVector> notifyOnSuccess = (IVector items) =>
+            {
+                BasicIntVector lastCol = (BasicIntVector)items;
+                var darray = lastCol.getdataArray();
+
+                //Console.WriteLine(darray);
+                //Console.WriteLine($"darrycount:{darray.Count}");
+                for (int i = 0; i < darray.Count; i++)
+                {
+                    var tag = (ulong)darray[i];
+                    //Console.WriteLine($"rtag:{tag}");
+                    lock (list)
+                    {
+                        list.Add(darray[i]);
+                    }
+                }
+                //Console.WriteLine(list[0]);
+                return;
+            };
+            mtw.setNotifyOnSuccess(notifyOnSuccess, DATA_TYPE.DT_INT);
+            conn.run("v1 = array(ANY, 0, 1000000);v2 = array(ANY, 0, 1000000);v3 = array(ANY, 0, 1000000);v4 = array(ANY, 0, 1000000);v5 = array(ANY, 0, 1000000);v6 = array(ANY, 0, 1000000);v7 = array(ANY, 0, 1000000);v8 = array(ANY, 0, 1000000);v9 = array(ANY, 0, 1000000);v10 = array(ANY, 0, 1000000);v11 = array(ANY, 0, 1000000);v12 = array(ANY, 0, 1000000);v13 = array(ANY, 0, 1000000);v14 = array(ANY, 0, 1000000);v15 = array(ANY, 0, 1000000);v16 = array(ANY, 0, 1000000);v17 = array(ANY, 0, 1000000);v18 = array(ANY, 0, 1000000);v19 = array(ANY, 0, 1000000);");
+            for (int i = 0; i < 1000; i++)
+            {
+
+                BasicIntVector col1v = (BasicIntVector)conn.run("tmp = rand(-100..100, 10); v1.append!(tmp);tmp;");
+                BasicBooleanVector col2v = (BasicBooleanVector)conn.run("tmp = rand([true, false], 10); v2.append!(tmp);tmp;");
+                BasicShortVector col3v = (BasicShortVector)conn.run("tmp = rand(short(-100..100), 10); v3.append!(tmp);tmp;");
+                BasicByteVector col4v = (BasicByteVector)conn.run("tmp = rand(char(1..100), 10); v4.append!(tmp);tmp;");
+                BasicLongVector col5v = (BasicLongVector)conn.run("tmp = rand(long(-100..100), 10); v5.append!(tmp);tmp;");
+                BasicDateVector col6v = (BasicDateVector)conn.run("tmp = rand(2012.01.01..2012.01.10, 10); v6.append!(tmp);tmp;");
+                BasicMonthVector col7v = (BasicMonthVector)conn.run("tmp = rand(2012.01M..2012.12M, 10); v7.append!(tmp);tmp;");
+                BasicTimeVector col8v = (BasicTimeVector)conn.run("tmp = rand(temporalAdd(09:00:00.000, 0..100, 's'), 10); v8.append!(tmp);tmp;");
+                BasicMinuteVector col9v = (BasicMinuteVector)conn.run("tmp = rand(09:00m..12:00m, 10); v9.append!(tmp);tmp;");
+                BasicSecondVector col10v = (BasicSecondVector)conn.run("tmp = rand(09:00:00..12:00:00, 10); v10.append!(tmp);tmp;");
+                BasicDateTimeVector col11v = (BasicDateTimeVector)conn.run("tmp = rand(temporalAdd(2012.01.01T09:00:00, 0..100, 's'), 10); v11.append!(tmp);tmp;");
+                BasicTimestampVector col12v = (BasicTimestampVector)conn.run("tmp = rand(temporalAdd(2012.01.01T09:00:00.000, 0..100, 's'), 10); v12.append!(tmp);tmp;");
+                BasicNanoTimeVector col13v = (BasicNanoTimeVector)conn.run("tmp = rand(temporalAdd(09:00:00.000000000, 0..100, 's'), 10); v13.append!(tmp);tmp;");
+                BasicNanoTimestampVector col14v = (BasicNanoTimestampVector)conn.run("tmp = rand(temporalAdd(2012.01.01T09:00:00.000000000, 0..100, 's'), 10); v14.append!(tmp);tmp;");
+                BasicDoubleVector col15v = (BasicDoubleVector)conn.run("tmp = rand(double(-100..100), 10); v15.append!(tmp);tmp;");
+                BasicFloatVector col16v = (BasicFloatVector)conn.run("tmp = rand(float(-100..100), 10); v16.append!(tmp);tmp;");
+                BasicUuidVector col17v = (BasicUuidVector)conn.run("tmp = rand(uuid(), 10); v17.append!(tmp);tmp;");
+                BasicInt128Vector col18v = (BasicInt128Vector)conn.run("tmp = rand(int128(), 10); v18.append!(tmp);tmp;");
+                BasicIPAddrVector col19v = (BasicIPAddrVector)conn.run("tmp = rand(ipaddr(), 10); v19.append!(tmp);tmp;");
+                BasicInt col20 = new BasicInt(i);
+
+                ErrorCodeInfo pErrorInfo = mtw.insert(col1v, col2v, col3v, col4v, col5v, col6v, col7v, col8v, col9v, col10v, col11v, col12v, col13v, col14v, col15v, col16v, col17v, col18v, col19v, col20);
+            }
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            list.Sort();
+            for (int i = 0; i < 1000; i++)
+            {
+                Assert.AreEqual(i, list[i]);
+            }
+            conn.run("undef(`table1, SHARED)");
+            conn.close();
+        }
+
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_setNotifyOnSuccess_BasicInt()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "share table(100:0, [`col0], [INT]) as table1";
+            conn.run(script);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
+            List<int> list = new List<int>();
+            Action<IVector> notifyOnSuccess = (IVector items) =>
+            {
+                BasicIntVector lastCol = (BasicIntVector)items;
+                var darray = lastCol.getdataArray();
+
+                //Console.WriteLine(darray);
+                Console.WriteLine($"darrycount:{darray.Count}");
+                for (int i = 0; i < darray.Count; i++)
+                {
+                    var tag = (ulong)darray[i];
+                    //Console.WriteLine($"rtag:{tag}");
+                    lock (list)
+                    {
+                        list.Add(darray[i]);
+                    }
+                }
+                //Console.WriteLine(list[0]);
+                return;
+            };
+            mtw.setNotifyOnSuccess(notifyOnSuccess, DATA_TYPE.DT_INT);
+            for (int i = 0; i < 1000000; i++)
+            {
+
+                List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicInt(i) });
+                ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            }
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            list.Sort();
+            for (int i = 0; i < 1000000; i++)
+            {
+                Assert.AreEqual(i, list[i]);
+            }
+            BasicTable re = (BasicTable)conn.run("table1");
+            BasicTable expected = (BasicTable)conn.run("table(0..999999 as col0)");
+            compareBasicTable(re, expected);
+            conn.run("undef(`table1, SHARED)");
+            conn.close();
+        }
+
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_setNotifyOnSuccess_small_data()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "share table(100:0, [`col0], [INT]) as table1";
+            conn.run(script);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
+            List<int> list = new List<int>();
+            Action<IVector> notifyOnSuccess = (IVector items) =>
+            {
+                BasicIntVector lastCol = (BasicIntVector)items;
+                var darray = lastCol.getdataArray();
+
+                //Console.WriteLine(darray);
+                Console.WriteLine($"darrycount:{darray.Count}");
+                for (int i = 0; i < darray.Count; i++)
+                {
+                    var tag = (ulong)darray[i];
+                    //Console.WriteLine($"rtag:{tag}");
+                    lock (list)
+                    {
+                        list.Add(darray[i]);
+                    }
+                }
+                Console.WriteLine(list[0]);
+                return;
+            };
+            mtw.setNotifyOnSuccess(notifyOnSuccess, DATA_TYPE.DT_INT);
+            for (int i = 0; i < 10; i++)
+            {
+
+                List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicInt(i) });
+                ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            }
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            list.Sort();
+            for (int i = 0; i < 10; i++)
+            {
+                Assert.AreEqual(i, list[i]);
+            }
+            BasicTable re = (BasicTable)conn.run("table1");
+            BasicTable expected = (BasicTable)conn.run("table(0..9 as col0)");
+            compareBasicTable(re, expected);
+            conn.run("undef(`table1, SHARED)");
+            conn.close();
+        }
+
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_setNotifyOnSuccess_Multiple_calls()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "share table(100:0, [`col0], [INT]) as table1";
+            conn.run(script);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
+            List<int> list = new List<int>();
+            Action<IVector> notifyOnSuccess = (IVector items) =>
+            {
+                BasicIntVector lastCol = (BasicIntVector)items;
+                var darray = lastCol.getdataArray();
+                Console.WriteLine($"darrycount:{darray.Count}");
+                for (int i = 0; i < darray.Count; i++)
+                {
+                    var tag = (ulong)darray[i];
+                    //Console.WriteLine($"rtag:{tag}");
+                    lock (list)
+                    {
+                        list.Add(darray[i]);
+                    }
+                }
+                return;
+            };
+            Exception exception = null;
+            try
+            {
+                mtw.setNotifyOnSuccess(notifyOnSuccess, DATA_TYPE.DT_INT);
+                mtw.setNotifyOnSuccess(notifyOnSuccess, DATA_TYPE.DT_INT);
+            }
+            catch (Exception ex)
+
+            {
+                exception = ex;
+
+            }
+            Assert.IsNotNull(exception);
+            Console.Out.WriteLine(exception);
+            for (int i = 0; i < 10; i++)
+            {
+
+                List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicInt(i) });
+                ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            }
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            list.Sort();
+            for (int i = 0; i < 10; i++)
+            {
+                Assert.AreEqual(i, list[i]);
+            }
+            conn.run("undef(`table1, SHARED)");
+            conn.close();
+        }
+
+        [TestMethod]
+        public void test_MultithreadedTableWriter_Callback_memoryTable_single_thread_true()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "share table(100:0, [`col0], [STRING]) as table1";
+            conn.run(script);
+
+            CallbackHandler callbackHandler = new CallbackHandler();
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1, "", null, 0, null, callbackHandler);
+            for (int i = 0; i < 10; i++)
+            {
+                List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicString(Convert.ToString(i)), new BasicString(Convert.ToString(i)) });
+                ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            }
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            BasicTable re = (BasicTable)conn.run("select * from table1 order by col0");
+            Console.Out.WriteLine(re.rows());
+            BasicTable expected = (BasicTable)conn.run("table(string(0..9) as col0)");
+            compareBasicTable(re, expected);
+
+            BasicStringVector id = callbackHandler.getId();
+            BasicBooleanVector issuccess = callbackHandler.getIsSuccess();
+
+            DataTable dt = new DataTable();
+            List<DataColumn> cols = new List<DataColumn>(){
+                new DataColumn("id",Type.GetType("System.String")),
+               new DataColumn("issuccess",Type.GetType("System.Boolean"))
+            };
+            dt.Columns.AddRange(cols.ToArray());
+            BasicTable bt = new BasicTable(dt);
+            bt.getColumn(0).append(id);
+            bt.getColumn(1).append(issuccess);
+            Dictionary<string, IEntity> obj = new Dictionary<string, IEntity>();
+            obj.Add("callback", (IEntity)bt);
+            conn.upload(obj);
+            BasicTable act = (BasicTable)conn.run("select * from callback where issuccess = true order by id");
+
+            Assert.AreEqual(act.rows(), re.rows());
+            conn.run("undef(`table1, SHARED)");
+            conn.close();
+        }
+        [TestMethod]
+        public void test_MultithreadedTableWriter_Callback_memoryTable_single_thread_false()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            DBConnection conn1 = new DBConnection();
+            conn1.connect(SERVER, PORTCON, USER, PASSWORD);
+            String script = "";
+            script += "share table(100:0, [`col0], [STRING]) as table1";
+            conn.run(script);
+
+            CallbackHandler callbackHandler = new CallbackHandler();
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1, "", null, 0, null, callbackHandler);
+            for (int i = 0; i < 10; i++)
+            {
+                try
+                {
+                    List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicString(Convert.ToString(i)), new BasicString(Convert.ToString(i)) });
+                    ErrorCodeInfo pErrorInfo = mtw.insert(x);
+                }
+                catch (Exception e)
+                {
+
+                    Console.Out.WriteLine(e.Message);
+
+                }
+
+                if (i == 5)
+                {
+                    try
+                    {
+                        conn1.run("stopDataNode([\"" + SERVER + ":" + PORT + "\"])");
+                    }
+                    catch (Exception e)
+                    {
+
+                        Console.Out.WriteLine(e.Message);
+
+                    }
+
+                }
+            }
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            try
+            {
+                conn1.run("startDataNode([\"" + SERVER + ":" + PORT + "\"])");
+            }
+            catch (Exception e)
+            {
+
+                Console.Out.WriteLine(e.Message);
+
+            }
+            conn1.run("sleep(1000)");
+            DBConnection conn2 = new DBConnection();
+            conn2.connect(SERVER, PORT, USER, PASSWORD);
+
+            BasicStringVector id = callbackHandler.getId();
+            BasicBooleanVector issuccess = callbackHandler.getIsSuccess();
+
+            DataTable dt = new DataTable();
+            List<DataColumn> cols = new List<DataColumn>(){
+                new DataColumn("id",Type.GetType("System.String")),
+               new DataColumn("issuccess",Type.GetType("System.Boolean"))
+            };
+            dt.Columns.AddRange(cols.ToArray());
+            BasicTable bt = new BasicTable(dt);
+            bt.getColumn(0).append(id);
+            bt.getColumn(1).append(issuccess);
+            Dictionary<string, IEntity> obj = new Dictionary<string, IEntity>();
+            obj.Add("callback", (IEntity)bt);
+            conn2.upload(obj);
+            BasicTable act = (BasicTable)conn2.run("select * from callback where issuccess = false order by id");
+            Assert.AreEqual(act.rows(), 6);
+            conn.close();
+            conn1.close();
+            conn2.close();
+        }
+        [TestMethod]
+        public void test_MultithreadedTableWriter_Callback_dfs_single_thread_true()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "dbName = 'dfs://test_MultithreadedTableWriter';";
+            script += "if(existsDatabase(dbName)){";
+            script += "dropDB(dbName);";
+            script += "}";
+            script += "db = database(dbName, HASH, [STRING, 10], engine=\"TSDB\"); ";
+            script += "dummy = table(100:0, [`id], [STRING]);";
+            script += "db.createPartitionedTable(dummy, `pt, `id, , `id);";
+            conn.run(script);
+
+            CallbackHandler callbackHandler = new CallbackHandler();
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 10000, 1, 1, "", null, 0, null, callbackHandler);
+            for (int i = 0; i < 10; i++)
+            {
+                List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicString(Convert.ToString(i)), new BasicString(Convert.ToString(i)) });
+                ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            }
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            BasicTable re = (BasicTable)conn.run("select * from loadTable('dfs://test_MultithreadedTableWriter', 'pt') order by id");
+            Console.Out.WriteLine(re.rows());
+            BasicTable expected = (BasicTable)conn.run("table(string(0..9) as col0)");
+            compareBasicTable(re, expected);
+
+            BasicStringVector id = callbackHandler.getId();
+            BasicBooleanVector issuccess = callbackHandler.getIsSuccess();
+
+            DataTable dt = new DataTable();
+            List<DataColumn> cols = new List<DataColumn>(){
+                new DataColumn("id",Type.GetType("System.String")),
+               new DataColumn("issuccess",Type.GetType("System.Boolean"))
+            };
+            dt.Columns.AddRange(cols.ToArray());
+            BasicTable bt = new BasicTable(dt);
+            bt.getColumn(0).append(id);
+            bt.getColumn(1).append(issuccess);
+            Dictionary<string, IEntity> obj = new Dictionary<string, IEntity>();
+            obj.Add("callback", (IEntity)bt);
+            conn.upload(obj);
+            BasicTable act = (BasicTable)conn.run("select * from callback where issuccess = true order by id");
+
+            Assert.AreEqual(act.rows(), re.rows());
+            conn.close();
+        }
+        [TestMethod]
+        public void test_MultithreadedTableWriter_Callback_dfs_single_thread_false()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            DBConnection conn1 = new DBConnection();
+            conn1.connect(SERVER, PORTCON, USER, PASSWORD);
+            String script = "";
+            script += "dbName = 'dfs://test_MultithreadedTableWriter';";
+            script += "if(existsDatabase(dbName)){";
+            script += "dropDB(dbName);";
+            script += "}";
+            script += "db = database(dbName, HASH, [STRING, 10], engine=\"TSDB\"); ";
+            script += "dummy = table(100:0, [`id], [STRING]);";
+            script += "db.createPartitionedTable(dummy, `pt, `id, , `id);";
+            conn.run(script);
+
+            CallbackHandler callbackHandler = new CallbackHandler();
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 10000, 1, 1, "", null, 0, null, callbackHandler);
+            for (int i = 0; i < 10; i++)
+            {
+                try
+                {
+                    List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicString(Convert.ToString(i)), new BasicString(Convert.ToString(i)) });
+                    ErrorCodeInfo pErrorInfo = mtw.insert(x);
+                }
+                catch (Exception e)
+                {
+
+                    Console.Out.WriteLine(e.Message);
+
+                }
+
+                if (i == 5)
+                {
+                    try
+                    {
+                        conn1.run("stopDataNode([\"" + SERVER + ":" + PORT + "\"])");
+                    }
+                    catch (Exception e)
+                    {
+
+                        Console.Out.WriteLine(e.Message);
+
+                    }
+
+                }
+            }
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+
+            try
+            {
+                conn1.run("startDataNode([\"" + SERVER + ":" + PORT + "\"])");
+            }
+            catch (Exception e)
+            {
+
+                Console.Out.WriteLine(e.Message);
+
+            }
+            conn1.run("sleep(20000)");
+            DBConnection conn2 = new DBConnection();
+            conn2.connect(SERVER, PORT, USER, PASSWORD);
+            BasicTable re = (BasicTable)conn2.run("select * from loadTable('dfs://test_MultithreadedTableWriter', 'pt') order by id");
+            Console.Out.WriteLine(re.rows());
+
+            BasicStringVector id = callbackHandler.getId();
+            BasicBooleanVector issuccess = callbackHandler.getIsSuccess();
+
+            DataTable dt = new DataTable();
+            List<DataColumn> cols = new List<DataColumn>(){
+                new DataColumn("id",Type.GetType("System.String")),
+               new DataColumn("issuccess",Type.GetType("System.Boolean"))
+            };
+            dt.Columns.AddRange(cols.ToArray());
+            BasicTable bt = new BasicTable(dt);
+            bt.getColumn(0).append(id);
+            bt.getColumn(1).append(issuccess);
+            Dictionary<string, IEntity> obj = new Dictionary<string, IEntity>();
+            obj.Add("callback", (IEntity)bt);
+            conn2.upload(obj);
+            BasicTable act = (BasicTable)conn2.run("select * from callback where issuccess = false order by id");
+            BasicTable act2 = (BasicTable)conn2.run("select * from callback where issuccess = true order by id");
+
+            Assert.AreEqual(act.rows(), 6);
+            Assert.AreEqual(act2.rows(), re.rows());
+            conn.close();
+            conn1.close();
+            conn2.close();
+        }
+
+        [TestMethod]
+        public void test_MultithreadedTableWriter_Callback_dfs_multiple_thread_true()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "dbName = 'dfs://test_MultithreadedTableWriter';";
+            script += "if(existsDatabase(dbName)){";
+            script += "dropDB(dbName);";
+            script += "}";
+            script += "db = database(dbName, HASH, [STRING, 10], engine=\"TSDB\"); ";
+            script += "dummy = table(100:0, [`id], [STRING]);";
+            script += "db.createPartitionedTable(dummy, `pt, `id, , `id);";
+            conn.run(script);
+
+            CallbackHandler callbackHandler = new CallbackHandler();
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 10, 1, 10, "id", null, 0, null, callbackHandler);
+            for (int i = 0; i < 100; i++)
+            {
+                List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicString(Convert.ToString(i)), new BasicString(Convert.ToString(i)) });
+                ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            }
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            BasicTable re = (BasicTable)conn.run("select * from loadTable('dfs://test_MultithreadedTableWriter', 'pt') order by id");
+            BasicTable expected = (BasicTable)conn.run("select * from table(string(0..99) as col0) order by col0");
+            compareBasicTable(re, expected);
+
+            BasicStringVector id = callbackHandler.getId();
+            BasicBooleanVector issuccess = callbackHandler.getIsSuccess();
+            Console.Out.WriteLine(issuccess.rows());
+
+            for (int i = 0; i < issuccess.rows(); i++)
+            {
+                Console.Out.WriteLine(id.getString(i) + " " + issuccess.getBoolean(i));
+            }
+
+            DataTable dt = new DataTable();
+            List<DataColumn> cols = new List<DataColumn>(){
+                new DataColumn("id",Type.GetType("System.String")),
+                new DataColumn("issuccess",Type.GetType("System.Boolean"))
+            };
+            dt.Columns.AddRange(cols.ToArray());
+            BasicTable bt = new BasicTable(dt);
+            //object locker = new object();
+            bt.getColumn(0).append(id);
+            bt.getColumn(1).append(issuccess);
+
+            Dictionary<string, IEntity> obj = new Dictionary<string, IEntity>();
+            obj.Add("callback", (IEntity)bt);
+            conn.upload(obj);
+            BasicTable act = (BasicTable)conn.run("select * from callback where issuccess = true order by id ");
+            Assert.AreEqual(act.rows(), re.rows());
+            Assert.AreEqual(100, act.rows());
+            conn.close();
+        }
+
+        [TestMethod]
+        public void test_MultithreadedTableWriter_Callback_dfs_multiple_thread_false()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            DBConnection conn1 = new DBConnection();
+            conn1.connect(SERVER, PORTCON, USER, PASSWORD);
+            String script = "";
+            script += "dbName = 'dfs://test_MultithreadedTableWriter';";
+            script += "if(existsDatabase(dbName)){";
+            script += "dropDB(dbName);";
+            script += "}";
+            script += "db = database(dbName, HASH, [STRING, 10], engine=\"TSDB\"); ";
+            script += "dummy = table(100:0, [`id], [STRING]);";
+            script += "db.createPartitionedTable(dummy, `pt, `id, , `id);";
+            conn.run(script);
+
+            CallbackHandler callbackHandler = new CallbackHandler();
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 10, 1, 10, "id", null, 0, null, callbackHandler);
+            for (int i = 0; i < 100; i++)
+            {
+                try
+                {
+                    List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicString(Convert.ToString(i)), new BasicString(Convert.ToString(i)) });
+                    ErrorCodeInfo pErrorInfo = mtw.insert(x);
+                }
+                catch (Exception e)
+                {
+
+                    Console.Out.WriteLine(e.Message);
+
+                }
+
+                if (i == 80)
+                {
+                    try
+                    {
+                        conn1.run("sleep(1000)");
+                        conn1.run("stopDataNode([\"" + SERVER + ":" + PORT + "\"])");
+                    }
+                    catch (Exception e)
+                    {
+
+                        Console.Out.WriteLine(e.Message);
+
+                    }
+
+                }
+            }
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+
+            try
+            {
+                conn1.run("startDataNode([\"" + SERVER + ":" + PORT + "\"])");
+            }
+            catch (Exception e)
+            {
+
+                Console.Out.WriteLine(e.Message);
+
+            }
+            conn1.run("sleep(20000)");
+            DBConnection conn2 = new DBConnection();
+            conn2.connect(SERVER, PORT, USER, PASSWORD);
+            BasicTable re = (BasicTable)conn2.run("select * from loadTable('dfs://test_MultithreadedTableWriter', 'pt') order by id");
+            Console.Out.WriteLine(re.rows());
+
+            BasicStringVector id = callbackHandler.getId();
+            BasicBooleanVector issuccess = callbackHandler.getIsSuccess();
+
+            DataTable dt = new DataTable();
+            List<DataColumn> cols = new List<DataColumn>(){
+                new DataColumn("id",Type.GetType("System.String")),
+               new DataColumn("issuccess",Type.GetType("System.Boolean"))
+            };
+            dt.Columns.AddRange(cols.ToArray());
+            BasicTable bt = new BasicTable(dt);
+            object locker = new object();
+            lock (locker)
+            {
+                bt.getColumn(0).append(id);
+                bt.getColumn(1).append(issuccess);
+            }
+            Dictionary<string, IEntity> obj = new Dictionary<string, IEntity>();
+            obj.Add("callback", (IEntity)bt);
+            conn2.upload(obj);
+            BasicTable act = (BasicTable)conn2.run("select * from callback ");
+            BasicTable act2 = (BasicTable)conn2.run("select * from callback where issuccess = true order by id");
+            Console.Out.WriteLine(act.rows());
+            Console.Out.WriteLine(act2.rows());
+            Assert.AreEqual(act2.rows(), re.rows());
+            for (int j = 0; j < re.rows(); j++)
+            {
+                Assert.AreEqual((AbstractScalar)re.getColumn(0).get(j), (AbstractScalar)act2.getColumn(0).get(j));
+            }
+            conn.close();
+            conn1.close();
+            conn2.close();
+        }
+        [TestMethod]
+        public void test_MultithreadedTableWriter_Callback_dfs_multiple_thread_bigdata_true()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "dbName = 'dfs://test_MultithreadedTableWriter';";
+            script += "if(existsDatabase(dbName)){";
+            script += "dropDB(dbName);";
+            script += "}";
+            script += "db = database(dbName, HASH, [STRING, 10], engine=\"TSDB\"); ";
+            script += "dummy = table(100:0, [`id], [STRING]);";
+            script += "db.createPartitionedTable(dummy, `pt, `id, , `id);";
+            conn.run(script);
+
+            CallbackHandler callbackHandler = new CallbackHandler();
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 100000, 1, 20, "id", null, 0, null, callbackHandler);
+            for (int i = 0; i < 1000000; i++)
+            {
+                List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicString(Convert.ToString(i)), new BasicString(Convert.ToString(i)) });
+                try
+                {
+                    ErrorCodeInfo pErrorInfo = mtw.insert(x);
+                }
+                catch (Exception e)
+                {
+                    string s = e.Message;
+                }
+
+            }
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            BasicTable re = (BasicTable)conn.run("select * from loadTable('dfs://test_MultithreadedTableWriter', 'pt') order by id");
+            Console.Out.WriteLine(re.rows());
+            BasicTable expected = (BasicTable)conn.run("select * from table(string(0..999999) as col0) order by col0");
+            compareBasicTable(re, expected);
+
+            BasicStringVector id = callbackHandler.getId();
+            BasicBooleanVector issuccess = callbackHandler.getIsSuccess();
+
+            DataTable dt = new DataTable();
+            List<DataColumn> cols = new List<DataColumn>(){
+                new DataColumn("id",Type.GetType("System.String")),
+               new DataColumn("issuccess",Type.GetType("System.Boolean"))
+            };
+            dt.Columns.AddRange(cols.ToArray());
+            BasicTable bt = new BasicTable(dt);
+            object locker = new object();
+            lock (locker)
+            {
+                bt.getColumn(0).append(id);
+                bt.getColumn(1).append(issuccess);
+            }
+            Dictionary<string, IEntity> obj = new Dictionary<string, IEntity>();
+            obj.Add("callback", (IEntity)bt);
+            conn.upload(obj);
+            BasicTable act = (BasicTable)conn.run("select * from callback where issuccess = true order by id ");
+            Assert.AreEqual(act.rows(), re.rows());
+            for (int j = 0; j < re.rows(); j++)
+            {
+                Assert.AreEqual((AbstractScalar)re.getColumn(0).get(j), (AbstractScalar)act.getColumn(0).get(j));
+            }
+            conn.close();
+        }
+
+        [TestMethod]
+        public void test_MultithreadedTableWriter_Callback_dfs_multiple_thread_bigdata_false()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            DBConnection conn1 = new DBConnection();
+            conn1.connect(SERVER, PORTCON, USER, PASSWORD);
+            String script = "";
+            script += "dbName = 'dfs://test_MultithreadedTableWriter';";
+            script += "if(existsDatabase(dbName)){";
+            script += "dropDB(dbName);";
+            script += "}";
+            script += "db = database(dbName, HASH, [STRING, 10], engine=\"TSDB\"); ";
+            script += "dummy = table(100:0, [`id], [STRING]);";
+            script += "db.createPartitionedTable(dummy, `pt, `id, , `id);";
+            conn.run(script);
+
+            CallbackHandler callbackHandler = new CallbackHandler();
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 10000, 1, 20, "id", null, 0, null, callbackHandler);
+            for (int i = 0; i < 1000000; i++)
+            {
+                try
+                {
+                    List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicString(Convert.ToString(i)), new BasicString(Convert.ToString(i)) });
+                    ErrorCodeInfo pErrorInfo = mtw.insert(x);
+                }
+                catch (Exception e)
+                {
+
+                    Console.Out.WriteLine(e.Message);
+
+                }
+
+                if (i == 500000)
+                {
+                    try
+                    {
+                        conn1.run("sleep(5000)");
+                        conn1.run("stopDataNode([\"" + SERVER + ":" + PORT + "\"])");
+                    }
+                    catch (Exception e)
+                    {
+
+                        Console.Out.WriteLine(e.Message);
+
+                    }
+
+                }
+            }
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+
+            try
+            {
+                conn1.run("startDataNode([\"" + SERVER + ":" + PORT + "\"])");
+            }
+            catch (Exception e)
+            {
+
+                Console.Out.WriteLine(e.Message);
+
+            }
+            conn1.run("sleep(20000)");
+            DBConnection conn2 = new DBConnection();
+            conn2.connect(SERVER, PORT, USER, PASSWORD);
+            BasicTable re = (BasicTable)conn2.run("select * from loadTable('dfs://test_MultithreadedTableWriter', 'pt') order by id");
+            Console.Out.WriteLine(re.rows());
+
+            BasicStringVector id = callbackHandler.getId();
+            BasicBooleanVector issuccess = callbackHandler.getIsSuccess();
+
+
+            DataTable dt = new DataTable();
+            List<DataColumn> cols = new List<DataColumn>(){
+                new DataColumn("id",Type.GetType("System.String")),
+               new DataColumn("issuccess",Type.GetType("System.Boolean"))
+            };
+            dt.Columns.AddRange(cols.ToArray());
+            BasicTable bt = new BasicTable(dt);
+            object locker = new object();
+            lock (locker)
+            {
+                bt.getColumn(0).append(id);
+                bt.getColumn(1).append(issuccess);
+            }
+            Dictionary<string, IEntity> obj = new Dictionary<string, IEntity>();
+            obj.Add("callback", (IEntity)bt);
+            conn2.upload(obj);
+            BasicTable act = (BasicTable)conn2.run("select * from callback ");
+            BasicTable act2 = (BasicTable)conn2.run("select * from callback where issuccess = true order by id");
+            Console.Out.WriteLine(act.rows());
+            Console.Out.WriteLine(act2.rows());
+            Assert.AreEqual(act2.rows(), re.rows());
+            conn.close();
+            conn1.close();
+            conn2.close();
+        }
+        [TestMethod]
+        public void test_MultithreadedTableWriter_Callback_dfs_single_thread_false_insertUnwrittenData()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            DBConnection conn1 = new DBConnection();
+            conn1.connect(SERVER, PORTCON, USER, PASSWORD);
+            String script = "";
+            script += "dbName = 'dfs://test_MultithreadedTableWriter';";
+            script += "if(existsDatabase(dbName)){";
+            script += "dropDB(dbName);";
+            script += "}";
+            script += "db = database(dbName, HASH, [STRING, 10], engine=\"TSDB\"); ";
+            script += "dummy = table(100:0, [`id], [STRING]);";
+            script += "db.createPartitionedTable(dummy, `pt, `id, , `id);";
+            conn.run(script);
+
+            CallbackHandler callbackHandler = new CallbackHandler();
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 1, 1, 1, "", null, 0, null, callbackHandler);
+            for (int i = 0; i < 100; i++)
+            {
+                try
+                {
+                    List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicString(Convert.ToString(i)), new BasicString(Convert.ToString(i)) });
+                    ErrorCodeInfo pErrorInfo = mtw.insert(x);
+                }
+                catch (Exception e)
+                {
+
+                    Console.Out.WriteLine(e.Message);
+
+                }
+
+                if (i == 5)
+                {
+                    try
+                    {
+                        conn1.run("sleep(1000)");
+                        conn1.run("stopDataNode([\"" + SERVER + ":" + PORT + "\"])");
+                    }
+                    catch (Exception e)
+                    {
+
+                        Console.Out.WriteLine(e.Message);
+
+                    }
+
+                }
+            }
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+
+            try
+            {               
+                conn1.run("startDataNode([\"" + SERVER + ":" + PORT + "\"])");
+            }
+            catch (Exception e)
+            {
+
+                Console.Out.WriteLine(e.Message);
+
+            }
+            conn1.run("sleep(20000)");
+            DBConnection conn2 = new DBConnection();
+            conn2.connect(SERVER, PORT, USER, PASSWORD);
+            BasicTable re = (BasicTable)conn2.run("select * from loadTable('dfs://test_MultithreadedTableWriter', 'pt') order by id");
+            Console.Out.WriteLine(re.rows());
+
+            BasicStringVector id = callbackHandler.getId();
+            BasicBooleanVector issuccess = callbackHandler.getIsSuccess();
+
+            DataTable dt = new DataTable();
+            List<DataColumn> cols = new List<DataColumn>(){
+                new DataColumn("id",Type.GetType("System.String")),
+               new DataColumn("issuccess",Type.GetType("System.Boolean"))
+            };
+            dt.Columns.AddRange(cols.ToArray());
+            BasicTable bt = new BasicTable(dt);
+            bt.getColumn(0).append(id);
+            bt.getColumn(1).append(issuccess);
+            Dictionary<string, IEntity> obj = new Dictionary<string, IEntity>();
+            obj.Add("callback", (IEntity)bt);
+            conn2.upload(obj);
+            BasicTable act = (BasicTable)conn2.run("select * from callback ");
+            BasicTable act2 = (BasicTable)conn2.run("select * from callback where issuccess = true order by id");
+            //Assert.AreEqual(act.rows(), 6);
+            Console.Out.WriteLine("act.rows()"+act.rows());
+            Console.Out.WriteLine("act2.rows()" + act2.rows());
+            Assert.AreEqual(act2.rows(), re.rows());
+            List<List<IEntity>> unwrite1 = mtw.getUnwrittenData();
+            MultithreadedTableWriter mtw1 = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 10000, 1, 1, "", null, 0, null, callbackHandler);
+            mtw1.insertUnwrittenData(unwrite1);
+            mtw1.waitForThreadCompletion();
+            BasicTable ex1 = (BasicTable)conn2.run("select * from loadTable('dfs://test_MultithreadedTableWriter', 'pt') order by id");
+            Assert.AreEqual(act.rows(), ex1.rows());
+            Console.Out.WriteLine("ex1.rows()" + ex1.rows());
+            conn.close();
+            conn1.close();
+            conn2.close();
+        }
+        [TestMethod]
+        public void test_MultithreadedTableWriter_Callback_dfs_multiple_thread_false_insertUnwrittenData()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            DBConnection conn1 = new DBConnection();
+            conn1.connect(SERVER, PORTCON, USER, PASSWORD);
+            String script = "";
+            script += "dbName = 'dfs://test_MultithreadedTableWriter';";
+            script += "if(existsDatabase(dbName)){";
+            script += "dropDB(dbName);";
+            script += "}";
+            script += "db = database(dbName, HASH, [STRING, 10], engine=\"TSDB\"); ";
+            script += "dummy = table(100:0, [`id], [STRING]);";
+            script += "db.createPartitionedTable(dummy, `pt, `id, , `id);";
+            conn.run(script);
+
+            CallbackHandler callbackHandler = new CallbackHandler();
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 10, 1, 5, "id", null, 0, null, callbackHandler);
+            for (int i = 0; i < 100; i++)
+            {
+                try
+                {
+                    List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicString(Convert.ToString(i)), new BasicString(Convert.ToString(i)) });
+                    ErrorCodeInfo pErrorInfo = mtw.insert(x);
+                }
+                catch (Exception e)
+                {
+
+                    Console.Out.WriteLine(e.Message);
+
+                }
+
+                if (i == 5)
+                {
+                    try
+                    {
+                        conn1.run("sleep(1000)");
+                        conn1.run("stopDataNode([\"" + SERVER + ":" + PORT + "\"])");
+                    }
+                    catch (Exception e)
+                    {
+
+                        Console.Out.WriteLine(e.Message);
+
+                    }
+
+                }
+            }
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+
+            try
+            {
+                conn1.run("startDataNode([\"" + SERVER + ":" + PORT + "\"])");
+            }
+            catch (Exception e)
+            {
+
+                Console.Out.WriteLine(e.Message);
+
+            }
+            conn1.run("sleep(20000)");
+            DBConnection conn2 = new DBConnection();
+            conn2.connect(SERVER, PORT, USER, PASSWORD);
+            BasicTable re = (BasicTable)conn2.run("select * from loadTable('dfs://test_MultithreadedTableWriter', 'pt') order by id");
+            Console.Out.WriteLine(re.rows());
+
+            BasicStringVector id = callbackHandler.getId();
+            BasicBooleanVector issuccess = callbackHandler.getIsSuccess();
+
+            DataTable dt = new DataTable();
+            List<DataColumn> cols = new List<DataColumn>(){
+                new DataColumn("id",Type.GetType("System.String")),
+               new DataColumn("issuccess",Type.GetType("System.Boolean"))
+            };
+            dt.Columns.AddRange(cols.ToArray());
+            BasicTable bt = new BasicTable(dt);
+            bt.getColumn(0).append(id);
+            bt.getColumn(1).append(issuccess);
+            Dictionary<string, IEntity> obj = new Dictionary<string, IEntity>();
+            obj.Add("callback", (IEntity)bt);
+            conn2.upload(obj);
+            BasicTable act = (BasicTable)conn2.run("select * from callback ");
+            BasicTable act2 = (BasicTable)conn2.run("select * from callback where issuccess = true order by id");
+            //Assert.AreEqual(act.rows(), 6);
+            Console.Out.WriteLine("act.rows()" + act.rows());
+            Console.Out.WriteLine("act2.rows()" + act2.rows());
+            Assert.AreEqual(act2.rows(), re.rows());
+            List<List<IEntity>> unwrite1 = mtw.getUnwrittenData();
+            MultithreadedTableWriter mtw1 = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 10000, 1, 1, "", null, 0, null, callbackHandler);
+            mtw1.insertUnwrittenData(unwrite1);
+            mtw1.waitForThreadCompletion();
+            BasicTable ex1 = (BasicTable)conn2.run("select * from loadTable('dfs://test_MultithreadedTableWriter', 'pt') order by id");
+            Assert.AreEqual(act.rows(), ex1.rows());
+            Console.Out.WriteLine("ex1.rows()" + ex1.rows());
+            conn.close();
+            conn1.close();
+            conn2.close();
+        }
+        [TestMethod]
+        public void test_MultithreadedTableWriter_upsert_keyedTable_allDateType_update()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "cbool = true false false;\n";
+            script += "cchar = 'a' 'b' 'c';\n";
+            script += "cshort = 122h 32h 45h;\n";
+            script += "cint = 1 4 9;\n";
+            script += "clong = 17l 39l 72l;\n";
+            script += "cdate = 2013.06.13 2015.07.12 2019.08.15;\n";
+            script += "cmonth = 2011.08M 2014.02M 2019.07M;\n";
+            script += "ctime = 04:15:51.921 09:27:16.095 11:32:28.387;\n";
+            script += "cminute = 03:25m 08:12m 10:15m;\n";
+            script += "csecond = 01:15:20 04:26:45 09:22:59;\n";
+            script += "cdatetime = 1976.09.10 02:31:42 1987.12.13 11:58:31 1999.12.10 20:49:23;\n";
+            script += "ctimestamp = 1997.07.20 21:45:16.339 2002.11.26 12:40:31.783 2008.08.10 23:54:27.629;\n";
+            script += "cnanotime = 01:25:33.365869429 03:47:25.364828475 08:16:22.748395721;\n";
+            script += "cnanotimestamp = 2005.09.23 13:30:35.468385940 2007.12.11 14:54:38.949792731 2009.09.30 16:39:51.973463623;\n";
+            script += "cfloat = 7.5f 0.79f 8.27f;\n";
+            script += "cdouble = 5.7 7.2 3.9;\n";
+            script += "cstring = \"hello\" \"hi\" \"here\";\n";
+            script += "cdatehour = datehour(2012.06.15 15:32:10.158 2012.06.15 17:30:10.008 2014.09.29 23:55:42.693);\n";
+            script += "cblob = blob(\"dolphindb\" \"gaussdb\" \"goldendb\")\n";
+           // script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
+           // script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
+            script += "t = keyedTable(`cint,cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
+            script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
+            script += "cstring,cdatehour,cblob);";
+            script += "share t as st;";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour,blob(\"dolphindb\")as cblob)");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "st", false, false, null, 10, 1, 1, "", null, 0, new String[] { "ignoreNull=false", "keyColNames=null" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            BasicTable ua = (BasicTable)conn.run("select * from st;");
+            Assert.AreEqual(3, ua.rows());
+            BasicTable act = (BasicTable)conn.run("select * from st where cint = 9;");
+            //Assert.AreEqual(((BasicDecimal64)bt.getColumn(20).get(0)).getValue(), ((BasicDecimal64)act.getColumn(20).get(0)).getValue());
+            compareBasicTable(bt, act);
+            conn.run("undef(`st, SHARED)");
+            conn.close();
+        }
+        //[TestMethod]
+        //public void test_MultithreadedTableWriter_upsert_keyedTable_allDateType_update()
+        //{
+        //    DBConnection conn = new DBConnection();
+        //    conn.connect(SERVER, PORT, USER, PASSWORD);
+        //    string script = null;
+        //    script += "cbool = true false false;\n";
+        //    script += "cchar = 'a' 'b' 'c';\n";
+        //    script += "cshort = 122h 32h 45h;\n";
+        //    script += "cint = 1 4 9;\n";
+        //    script += "clong = 17l 39l 72l;\n";
+        //    script += "cdate = 2013.06.13 2015.07.12 2019.08.15;\n";
+        //    script += "cmonth = 2011.08M 2014.02M 2019.07M;\n";
+        //    script += "ctime = 04:15:51.921 09:27:16.095 11:32:28.387;\n";
+        //    script += "cminute = 03:25m 08:12m 10:15m;\n";
+        //    script += "csecond = 01:15:20 04:26:45 09:22:59;\n";
+        //    script += "cdatetime = 1976.09.10 02:31:42 1987.12.13 11:58:31 1999.12.10 20:49:23;\n";
+        //    script += "ctimestamp = 1997.07.20 21:45:16.339 2002.11.26 12:40:31.783 2008.08.10 23:54:27.629;\n";
+        //    script += "cnanotime = 01:25:33.365869429 03:47:25.364828475 08:16:22.748395721;\n";
+        //    script += "cnanotimestamp = 2005.09.23 13:30:35.468385940 2007.12.11 14:54:38.949792731 2009.09.30 16:39:51.973463623;\n";
+        //    script += "cfloat = 7.5f 0.79f 8.27f;\n";
+        //    script += "cdouble = 5.7 7.2 3.9;\n";
+        //    script += "cstring = \"hello\" \"hi\" \"here\";\n";
+        //    script += "cdatehour = datehour(2012.06.15 15:32:10.158 2012.06.15 17:30:10.008 2014.09.29 23:55:42.693);\n";
+        //    script += "cblob = blob(\"dolphindb\" \"gaussdb\" \"goldendb\")\n";
+        //    script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
+        //    script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
+        //    script += "t = keyedTable(`cint,cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
+        //    script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
+        //    script += "cstring,cdatehour,cblob,cdecimal32,cdecimal64);";
+        //    script += "share t as st;";
+        //    conn.run(script);
+        //    BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour,blob(\"dolphindb\")as cblob,decimal32(19,2) as cdecimal32,decimal64(27,4) as cdecimal64)");
+        //    MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "st", false, false, null, 10, 1, 1, "", null, 0, new String[] { "ignoreNull=false", "keyColNames=null" });
+        //    List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0), bt.getColumn(19).get(0), bt.getColumn(20).get(0) });
+        //    ErrorCodeInfo pErrorInfo = mtw.insert(x);
+        //    MultithreadedTableWriter.Status status = mtw.getStatus();
+        //    mtw.waitForThreadCompletion();
+        //    BasicTable ua = (BasicTable)conn.run("select * from st;");
+        //    Assert.AreEqual(3, ua.rows());
+        //    BasicTable act = (BasicTable)conn.run("select * from st where cint = 9;");
+        //    Assert.AreEqual(((BasicDecimal64)bt.getColumn(20).get(0)).getValue(), ((BasicDecimal64)act.getColumn(20).get(0)).getValue());
+        //    compareBasicTable(bt, act);
+        //    conn.run("undef(`st, SHARED)");
+        //    conn.close();
+        //}
+        [TestMethod]
+        public void test_MultithreadedTableWriter_upsert_keyedTable_allDateType_insert()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "cbool = true false false;\n";
+            script += "cchar = 'a' 'b' 'c';\n";
+            script += "cshort = 122h 32h 45h;\n";
+            script += "cint = 1 4 9;\n";
+            script += "clong = 17l 39l 72l;\n";
+            script += "cdate = 2013.06.13 2015.07.12 2019.08.15;\n";
+            script += "cmonth = 2011.08M 2014.02M 2019.07M;\n";
+            script += "ctime = 04:15:51.921 09:27:16.095 11:32:28.387;\n";
+            script += "cminute = 03:25m 08:12m 10:15m;\n";
+            script += "csecond = 01:15:20 04:26:45 09:22:59;\n";
+            script += "cdatetime = 1976.09.10 02:31:42 1987.12.13 11:58:31 1999.12.10 20:49:23;\n";
+            script += "ctimestamp = 1997.07.20 21:45:16.339 2002.11.26 12:40:31.783 2008.08.10 23:54:27.629;\n";
+            script += "cnanotime = 01:25:33.365869429 03:47:25.364828475 08:16:22.748395721;\n";
+            script += "cnanotimestamp = 2005.09.23 13:30:35.468385940 2007.12.11 14:54:38.949792731 2009.09.30 16:39:51.973463623;\n";
+            script += "cfloat = 7.5f 0.79f 8.27f;\n";
+            script += "cdouble = 5.7 7.2 3.9;\n";
+            script += "cstring = \"hello\" \"hi\" \"here\";\n";
+            script += "cdatehour = datehour(2012.06.15 15:32:10.158 2012.06.15 17:30:10.008 2014.09.29 23:55:42.693);\n";
+            script += "cblob = blob(\"dolphindb\" \"gaussdb\" \"goldendb\")\n";
+            script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
+            script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
+            script += "t = keyedTable(`cint,cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
+            script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
+            script += "cstring,cdatehour,cblob,cdecimal32,cdecimal64);";
+            script += "share t as st;";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,10 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour,blob(\"dolphindb\")as cblob,decimal32(19,2) as cdecimal32,decimal64(27,4) as cdecimal64)");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "st", false, false, null, 10, 1, 1, "", null, 0, new String[] { "ignoreNull=false", "keyColNames=null" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0), bt.getColumn(19).get(0), bt.getColumn(20).get(0) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            BasicTable ua = (BasicTable)conn.run("select * from st;");
+            Assert.AreEqual(4, ua.rows());
+            BasicTable act = (BasicTable)conn.run("select * from st where cint = 10;");
+            //Assert.AreEqual(((BasicDecimal64)bt.getColumn(20).get(0)).getValue(), ((BasicDecimal64)act.getColumn(20).get(0)).getValue());
+            compareBasicTable(bt, act);
+            conn.run("undef(`st, SHARED)");
+            conn.close();
+        }
+        [TestMethod]
+        public void test_MultithreadedTableWriter_upsert_indexedTable_allDateType_update()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "cbool = true false false;\n";
+            script += "cchar = 'a' 'b' 'c';\n";
+            script += "cshort = 122h 32h 45h;\n";
+            script += "cint = 1 4 9;\n";
+            script += "clong = 17l 39l 72l;\n";
+            script += "cdate = 2013.06.13 2015.07.12 2019.08.15;\n";
+            script += "cmonth = 2011.08M 2014.02M 2019.07M;\n";
+            script += "ctime = 04:15:51.921 09:27:16.095 11:32:28.387;\n";
+            script += "cminute = 03:25m 08:12m 10:15m;\n";
+            script += "csecond = 01:15:20 04:26:45 09:22:59;\n";
+            script += "cdatetime = 1976.09.10 02:31:42 1987.12.13 11:58:31 1999.12.10 20:49:23;\n";
+            script += "ctimestamp = 1997.07.20 21:45:16.339 2002.11.26 12:40:31.783 2008.08.10 23:54:27.629;\n";
+            script += "cnanotime = 01:25:33.365869429 03:47:25.364828475 08:16:22.748395721;\n";
+            script += "cnanotimestamp = 2005.09.23 13:30:35.468385940 2007.12.11 14:54:38.949792731 2009.09.30 16:39:51.973463623;\n";
+            script += "cfloat = 7.5f 0.79f 8.27f;\n";
+            script += "cdouble = 5.7 7.2 3.9;\n";
+            script += "cstring = \"hello\" \"hi\" \"here\";\n";
+            script += "cdatehour = datehour(2012.06.15 15:32:10.158 2012.06.15 17:30:10.008 2014.09.29 23:55:42.693);\n";
+            script += "cblob = blob(\"dolphindb\" \"gaussdb\" \"goldendb\")\n";
+            //script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
+            //script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
+            script += "t = indexedTable(`cint,cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
+            script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
+            //script += "cstring,cdatehour,cblob,cdecimal32,cdecimal64);";
+            script += "cstring,cdatehour,cblob);";
+
+            script += "share t as st;";
+            conn.run(script);
+            //BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour,blob(\"dolphindb\")as cblob,decimal32(19,2) as cdecimal32,decimal64(27,4) as cdecimal64)");
+
+            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour,blob(\"dolphindb\")as cblob)");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "st", false, false, null, 10, 1, 1, "", null, 0, new String[] { "ignoreNull=false", "keyColNames=null" });
+            //List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0), bt.getColumn(19).get(0), bt.getColumn(20).get(0) });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0) });
+
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            BasicTable ua = (BasicTable)conn.run("select * from st;");
+            Assert.AreEqual(3, ua.rows());
+            BasicTable act = (BasicTable)conn.run("select * from st where cint = 9;");
+            //Assert.AreEqual(((BasicDecimal64)bt.getColumn(20).get(0)).getValue(), ((BasicDecimal64)act.getColumn(20).get(0)).getValue());
+            compareBasicTable(bt, act);//APICS-192
+            conn.run("undef(`st, SHARED)");
+            conn.close();
+        }
+        [TestMethod]
+        public void test_MultithreadedTableWriter_upsert_indexedTable_allDateType_insert()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "cbool = true false false;\n";
+            script += "cchar = 'a' 'b' 'c';\n";
+            script += "cshort = 122h 32h 45h;\n";
+            script += "cint = 1 4 9;\n";
+            script += "clong = 17l 39l 72l;\n";
+            script += "cdate = 2013.06.13 2015.07.12 2019.08.15;\n";
+            script += "cmonth = 2011.08M 2014.02M 2019.07M;\n";
+            script += "ctime = 04:15:51.921 09:27:16.095 11:32:28.387;\n";
+            script += "cminute = 03:25m 08:12m 10:15m;\n";
+            script += "csecond = 01:15:20 04:26:45 09:22:59;\n";
+            script += "cdatetime = 1976.09.10 02:31:42 1987.12.13 11:58:31 1999.12.10 20:49:23;\n";
+            script += "ctimestamp = 1997.07.20 21:45:16.339 2002.11.26 12:40:31.783 2008.08.10 23:54:27.629;\n";
+            script += "cnanotime = 01:25:33.365869429 03:47:25.364828475 08:16:22.748395721;\n";
+            script += "cnanotimestamp = 2005.09.23 13:30:35.468385940 2007.12.11 14:54:38.949792731 2009.09.30 16:39:51.973463623;\n";
+            script += "cfloat = 7.5f 0.79f 8.27f;\n";
+            script += "cdouble = 5.7 7.2 3.9;\n";
+            script += "cstring = \"hello\" \"hi\" \"here\";\n";
+            script += "cdatehour = datehour(2012.06.15 15:32:10.158 2012.06.15 17:30:10.008 2014.09.29 23:55:42.693);\n";
+            script += "cblob = blob(\"dolphindb\" \"gaussdb\" \"goldendb\")\n";
+            //script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
+            //script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
+            script += "t = indexedTable(`cint,cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
+            script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
+            script += "cstring,cdatehour,cblob);";
+            script += "share t as st;";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,10 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour,blob(\"dolphindb\")as cblob)");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "st", false, false, null, 10, 1, 1, "", null, 0, new String[] { "ignoreNull=false", "keyColNames=null" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            BasicTable ua = (BasicTable)conn.run("select * from st;");
+            Assert.AreEqual(4, ua.rows());
+            BasicTable act = (BasicTable)conn.run("select * from st where cint = 10;");
+            //Assert.AreEqual(((BasicDecimal64)bt.getColumn(20).get(0)).getValue(), ((BasicDecimal64)act.getColumn(20).get(0)).getValue());
+            compareBasicTable(bt, act);
+            conn.run("undef(`st, SHARED)");
+            conn.close();
+        }
+        [TestMethod]
+        public void test_MultithreadedTableWriter_upsert_partitionedTable_allDateType_update()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "cbool = true false false;\n";
+            script += "cchar = 'a' 'b' 'c';\n";
+            script += "cshort = 122h 32h 45h;\n";
+            script += "cint = 1 4 9;\n";
+            script += "clong = 17l 39l 72l;\n";
+            script += "cdate = 2013.06.13 2015.07.12 2019.08.15;\n";
+            script += "cmonth = 2011.08M 2014.02M 2019.07M;\n";
+            script += "ctime = 04:15:51.921 09:27:16.095 11:32:28.387;\n";
+            script += "cminute = 03:25m 08:12m 10:15m;\n";
+            script += "csecond = 01:15:20 04:26:45 09:22:59;\n";
+            script += "cdatetime = 1976.09.10 02:31:42 1987.12.13 11:58:31 1999.12.10 20:49:23;\n";
+            script += "ctimestamp = 1997.07.20 21:45:16.339 2002.11.26 12:40:31.783 2008.08.10 23:54:27.629;\n";
+            script += "cnanotime = 01:25:33.365869429 03:47:25.364828475 08:16:22.748395721;\n";
+            script += "cnanotimestamp = 2005.09.23 13:30:35.468385940 2007.12.11 14:54:38.949792731 2009.09.30 16:39:51.973463623;\n";
+            script += "cfloat = 7.5f 0.79f 8.27f;\n";
+            script += "cdouble = 5.7 7.2 3.9;\n";
+            script += "cstring = \"hello\" \"hi\" \"here\";\n";
+            script += "cdatehour = datehour(2012.06.15 15:32:10.158 2012.06.15 17:30:10.008 2014.09.29 23:55:42.693);\n";
+            script += "cblob = blob(\"dolphindb\" \"gaussdb\" \"goldendb\")\n";
+            //script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
+            //script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
+            script += "t = table(cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
+            script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
+            script += "cstring,cdatehour);";
+            script += "if(existsDatabase(\"dfs://partitionedTable\")){\n";
+            script += "dropDatabase(\"dfs://partitionedTable\")}\n";
+            script += "db = database(\"dfs://partitionedTable\",VALUE,1..10);";
+            script += "pt = db.createPartitionedTable(t,`pt,`cint);\n";
+            script += "pt.append!(t);\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour)");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://partitionedTable", "pt", false, false, null, 10, 1, 5, "cint", null, MultithreadedTableWriter.Mode.M_Upsert, new String[] { "ignoreNull=false", "keyColNames=`cint" });
+            List <IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            BasicTable ua = (BasicTable)conn.run("select * from loadTable(\"dfs://partitionedTable\",`pt);");
+            Assert.AreEqual(3, ua.rows());
+            BasicTable act = (BasicTable)conn.run("select * from loadTable(\"dfs://partitionedTable\",`pt) where cint = 9;");
+            Assert.AreEqual(1, act.rows());
+
+            //Assert.AreEqual(((BasicDecimal64)bt.getColumn(19).get(0)).getValue(), ((BasicDecimal64)act.getColumn(19).get(0)).getValue());
+            compareBasicTable(bt, act);
+            conn.close();
+        }
+        [TestMethod]
+        public void test_MultithreadedTableWriter_upsert_partitionedTable_allDateType_insert()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "cbool = true false false;\n";
+            script += "cchar = 'a' 'b' 'c';\n";
+            script += "cshort = 122h 32h 45h;\n";
+            script += "cint = 1 4 9;\n";
+            script += "clong = 17l 39l 72l;\n";
+            script += "cdate = 2013.06.13 2015.07.12 2019.08.15;\n";
+            script += "cmonth = 2011.08M 2014.02M 2019.07M;\n";
+            script += "ctime = 04:15:51.921 09:27:16.095 11:32:28.387;\n";
+            script += "cminute = 03:25m 08:12m 10:15m;\n";
+            script += "csecond = 01:15:20 04:26:45 09:22:59;\n";
+            script += "cdatetime = 1976.09.10 02:31:42 1987.12.13 11:58:31 1999.12.10 20:49:23;\n";
+            script += "ctimestamp = 1997.07.20 21:45:16.339 2002.11.26 12:40:31.783 2008.08.10 23:54:27.629;\n";
+            script += "cnanotime = 01:25:33.365869429 03:47:25.364828475 08:16:22.748395721;\n";
+            script += "cnanotimestamp = 2005.09.23 13:30:35.468385940 2007.12.11 14:54:38.949792731 2009.09.30 16:39:51.973463623;\n";
+            script += "cfloat = 7.5f 0.79f 8.27f;\n";
+            script += "cdouble = 5.7 7.2 3.9;\n";
+            script += "cstring = \"hello\" \"hi\" \"here\";\n";
+            script += "cdatehour = datehour(2012.06.15 15:32:10.158 2012.06.15 17:30:10.008 2014.09.29 23:55:42.693);\n";
+            script += "cblob = blob(\"dolphindb\" \"gaussdb\" \"goldendb\")\n";
+            //script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
+            //script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
+            script += "t = table(cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
+            script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
+            script += "cstring,cdatehour);";
+            script += "if(existsDatabase(\"dfs://partitionedTable\")){\n";
+            script += "dropDatabase(\"dfs://partitionedTable\")}\n";
+            script += "db = database(\"dfs://partitionedTable\",VALUE,1..10);";
+            script += "pt = db.createPartitionedTable(t,`pt,`cint);\n";
+            script += "pt.append!(t);\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour)");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://partitionedTable", "pt", false, false, null, 10, 1, 5, "cint", null, MultithreadedTableWriter.Mode.M_Upsert, new String[] { "ignoreNull=false", "keyColNames=`cint" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            BasicTable ua = (BasicTable)conn.run("select * from loadTable(\"dfs://partitionedTable\",`pt);");
+            Assert.AreEqual(3, ua.rows());
+            BasicTable act = (BasicTable)conn.run("select * from loadTable(\"dfs://partitionedTable\",`pt) where cint = 9;");
+            Assert.AreEqual(1, act.rows());
+
+            //Assert.AreEqual(((BasicDecimal64)bt.getColumn(19).get(0)).getValue(), ((BasicDecimal64)act.getColumn(19).get(0)).getValue());
+            compareBasicTable(bt, act);
+            conn.close();
+        }
+
+        [TestMethod]
+        public void test_MultithreadedTableWriter_upsert_DimensionTable_allDateType_update()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "cbool = true false false;\n";
+            script += "cchar = 'a' 'b' 'c';\n";
+            script += "cshort = 122h 32h 45h;\n";
+            script += "cint = 1 4 9;\n";
+            script += "clong = 17l 39l 72l;\n";
+            script += "cdate = 2013.06.13 2015.07.12 2019.08.15;\n";
+            script += "cmonth = 2011.08M 2014.02M 2019.07M;\n";
+            script += "ctime = 04:15:51.921 09:27:16.095 11:32:28.387;\n";
+            script += "cminute = 03:25m 08:12m 10:15m;\n";
+            script += "csecond = 01:15:20 04:26:45 09:22:59;\n";
+            script += "cdatetime = 1976.09.10 02:31:42 1987.12.13 11:58:31 1999.12.10 20:49:23;\n";
+            script += "ctimestamp = 1997.07.20 21:45:16.339 2002.11.26 12:40:31.783 2008.08.10 23:54:27.629;\n";
+            script += "cnanotime = 01:25:33.365869429 03:47:25.364828475 08:16:22.748395721;\n";
+            script += "cnanotimestamp = 2005.09.23 13:30:35.468385940 2007.12.11 14:54:38.949792731 2009.09.30 16:39:51.973463623;\n";
+            script += "cfloat = 7.5f 0.79f 8.27f;\n";
+            script += "cdouble = 5.7 7.2 3.9;\n";
+            script += "cstring = \"hello\" \"hi\" \"here\";\n";
+            script += "cdatehour = datehour(2012.06.15 15:32:10.158 2012.06.15 17:30:10.008 2014.09.29 23:55:42.693);\n";
+            script += "cblob = blob(\"dolphindb\" \"gaussdb\" \"goldendb\")\n";
+            //script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
+            //script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
+            script += "t = table(cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
+            script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
+            script += "cstring,cdatehour);";
+            script += "if(existsDatabase(\"dfs://partitionedTable\")){\n";
+            script += "dropDatabase(\"dfs://partitionedTable\")}\n";
+            script += "db = database(\"dfs://partitionedTable\",VALUE,1..10);";
+            script += "pt = db.createTable(t,`pt);\n";
+            script += "pt.append!(t);\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour)");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://partitionedTable", "pt", false, false, null, 10, 1, 1, "cint", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=false", "keyColNames=`cint" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            BasicTable ua = (BasicTable)conn.run("select * from loadTable(\"dfs://partitionedTable\",`pt);");
+            Assert.AreEqual(3, ua.rows());
+            BasicTable act = (BasicTable)conn.run("select * from loadTable(\"dfs://partitionedTable\",`pt) where cint = 9;");
+            Assert.AreEqual(1, act.rows());
+            //Assert.AreEqual(((BasicDecimal64)bt.getColumn(19).get(0)).getValue(), ((BasicDecimal64)act.getColumn(19).get(0)).getValue());
+            compareBasicTable(bt, act);
+            conn.close();
+        }
+        [TestMethod]
+        public void test_MultithreadedTableWriter_upsert_DimensionTable_allDateType_insert()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "cbool = true false false;\n";
+            script += "cchar = 'a' 'b' 'c';\n";
+            script += "cshort = 122h 32h 45h;\n";
+            script += "cint = 1 4 9;\n";
+            script += "clong = 17l 39l 72l;\n";
+            script += "cdate = 2013.06.13 2015.07.12 2019.08.15;\n";
+            script += "cmonth = 2011.08M 2014.02M 2019.07M;\n";
+            script += "ctime = 04:15:51.921 09:27:16.095 11:32:28.387;\n";
+            script += "cminute = 03:25m 08:12m 10:15m;\n";
+            script += "csecond = 01:15:20 04:26:45 09:22:59;\n";
+            script += "cdatetime = 1976.09.10 02:31:42 1987.12.13 11:58:31 1999.12.10 20:49:23;\n";
+            script += "ctimestamp = 1997.07.20 21:45:16.339 2002.11.26 12:40:31.783 2008.08.10 23:54:27.629;\n";
+            script += "cnanotime = 01:25:33.365869429 03:47:25.364828475 08:16:22.748395721;\n";
+            script += "cnanotimestamp = 2005.09.23 13:30:35.468385940 2007.12.11 14:54:38.949792731 2009.09.30 16:39:51.973463623;\n";
+            script += "cfloat = 7.5f 0.79f 8.27f;\n";
+            script += "cdouble = 5.7 7.2 3.9;\n";
+            script += "cstring = \"hello\" \"hi\" \"here\";\n";
+            script += "cdatehour = datehour(2012.06.15 15:32:10.158 2012.06.15 17:30:10.008 2014.09.29 23:55:42.693);\n";
+            script += "cblob = blob(\"dolphindb\" \"gaussdb\" \"goldendb\")\n";
+            //script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
+            //script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
+            script += "t = table(cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
+            script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
+            script += "cstring,cdatehour);";
+            script += "if(existsDatabase(\"dfs://partitionedTable\")){\n";
+            script += "dropDatabase(\"dfs://partitionedTable\")}\n";
+            script += "db = database(\"dfs://partitionedTable\",VALUE,1..10);";
+            script += "pt = db.createTable(t,`pt);\n";
+            script += "pt.append!(t);\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,10 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour)");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://partitionedTable", "pt", false, false, null, 10, 1, 1, "cint", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=false", "keyColNames=`cint" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            BasicTable ua = (BasicTable)conn.run("select * from loadTable(\"dfs://partitionedTable\",`pt);");
+            Assert.AreEqual(4, ua.rows());
+            BasicTable act = (BasicTable)conn.run("select * from loadTable(\"dfs://partitionedTable\",`pt) where cint = 10;");
+            //Assert.AreEqual(((BasicDecimal64)bt.getColumn(19).get(0)).getValue(), ((BasicDecimal64)act.getColumn(19).get(0)).getValue());
+            compareBasicTable(bt, act);
+            conn.close();
+        }
+        [TestMethod]
+        public void test_MultithreadedTableWriter_upsert_pModeOption_null()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "share keyedTable(`id2,take(1..10, 100) as id, 1..100 as id2, 100..1 as value) as kt;";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t2 = table( 1 2 as id, 1 2 as id2, 1001 NULL as value);t2;");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "kt", false, false, null, 10, 1, 1, "", null, (MultithreadedTableWriter.Mode)1, null);
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0) });
+            List<IScalar> x1 = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(1), bt.getColumn(1).get(1), bt.getColumn(2).get(1) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            ErrorCodeInfo pErrorInfo1 = mtw.insert(x1);
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            BasicTable ua = (BasicTable)conn.run("select * from kt;");
+            Assert.AreEqual(100, ua.rows());
+            //compareBasicTable(bt, act);
+            conn.run("undef(`kt, SHARED)");
+            conn.close();
+        }
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_upsert_keyedTable_ignoreNull_true()
+        {
+            DBConnection conn = new DBConnection(false, false, false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "share keyedTable(`id2,take(1..10, 100) as id, 1..100 as id2, 100..1 as value) as kt;";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t2 = table( 1 2 as id, 1 2 as id2, 1001 NULL as value);t2;");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "kt", false, false, null, 10, 1, 1, "", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=true" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0) });
+            List<IScalar> x1 = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(1), bt.getColumn(1).get(1), bt.getColumn(2).get(1) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            ErrorCodeInfo pErrorInfo1 = mtw.insert(x1);
+            mtw.waitForThreadCompletion();
+            BasicTable res = (BasicTable)conn.run("select * from kt where value = NULL;");
+            BasicTable res1 = (BasicTable)conn.run("select * from kt order by id2 ");
+            Assert.AreEqual(0, res.rows());
+            Assert.AreEqual(100, res1.rows());
+            Assert.AreEqual(1001, res1.getColumn(2).get(0).getObject());
+            Assert.AreEqual(99, res1.getColumn(2).get(1).getObject());
+            conn.run("undef(`kt, SHARED)");
+            conn.close();
+        }
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_upsert_keyedTable_ignoreNull_false()
+        {
+            DBConnection conn = new DBConnection(false, false, false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "share keyedTable(`id2,take(1..10, 100) as id, 1..100 as id2, 100..1 as value) as kt;";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t2 = table( 1 2 as id, 1 2 as id2, 1001 NULL as value);t2;");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "kt", false, false, null, 10, 1, 1, "", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=false" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0) });
+            List<IScalar> x1 = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(1), bt.getColumn(1).get(1), bt.getColumn(2).get(1) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            ErrorCodeInfo pErrorInfo1 = mtw.insert(x1);
+            mtw.waitForThreadCompletion();
+            BasicTable res = (BasicTable)conn.run("select * from kt where value = NULL;");
+            BasicTable res1 = (BasicTable)conn.run("select * from kt order by id2 ");
+            Assert.AreEqual(1, res.rows());
+            Assert.AreEqual(100, res1.rows());
+            Assert.AreEqual(1001, res1.getColumn(2).get(0).getObject());
+            Assert.AreEqual(-2147483648, res1.getColumn(2).get(1).getObject());
+            conn.run("undef(`kt, SHARED)");
+            conn.close();
+        }
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_upsert_indexedTable_ignoreNull_true()
+        {
+            DBConnection conn = new DBConnection(false, false, false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "share indexedTable(`id2,take(1..10, 100) as id, 1..100 as id2, 100..1 as value) as kt;";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t2 = table( 1 2 as id, 1 2 as id2, 1001 NULL as value);t2;");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "kt", false, false, null, 10, 1, 1, "", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=true" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0) });
+            List<IScalar> x1 = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(1), bt.getColumn(1).get(1), bt.getColumn(2).get(1) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            ErrorCodeInfo pErrorInfo1 = mtw.insert(x1);
+            mtw.waitForThreadCompletion();
+            BasicTable res = (BasicTable)conn.run("select * from kt where value = NULL;");
+            BasicTable res1 = (BasicTable)conn.run("select * from kt order by id2 ");
+            Assert.AreEqual(0, res.rows());
+            Assert.AreEqual(100, res1.rows());
+            Assert.AreEqual(1001, res1.getColumn(2).get(0).getObject());
+            Assert.AreEqual(99, res1.getColumn(2).get(1).getObject());
+            conn.run("undef(`kt, SHARED)");
+            conn.close();
+        }
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_upsert_indexedTable_ignoreNull_false()
+        {
+            DBConnection conn = new DBConnection(false, false, false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "share indexedTable(`id2,take(1..10, 100) as id, 1..100 as id2, 100..1 as value) as kt;";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t2 = table( 1 2 as id, 1 2 as id2, 1001 NULL as value);t2;");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "kt", false, false, null, 10, 1, 1, "", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=false" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0) });
+            List<IScalar> x1 = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(1), bt.getColumn(1).get(1), bt.getColumn(2).get(1) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            ErrorCodeInfo pErrorInfo1 = mtw.insert(x1);
+            mtw.waitForThreadCompletion();
+            BasicTable res = (BasicTable)conn.run("select * from kt where value = NULL;");
+            BasicTable res1 = (BasicTable)conn.run("select * from kt order by id2 ");
+            Assert.AreEqual(1, res.rows());
+            Assert.AreEqual(100, res1.rows());
+            Assert.AreEqual(1001, res1.getColumn(2).get(0).getObject());
+            Assert.AreEqual(-2147483648, res1.getColumn(2).get(1).getObject());
+            conn.run("undef(`kt, SHARED)");
+            conn.close();
+        }
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_upsert_partitionedTable_ignoreNull_true()
+        {
+            DBConnection conn = new DBConnection(false, false, false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "dbPath = \"dfs://tableUpsert_test\"\n";
+            script += "if(existsDatabase(dbPath))\n";
+            script += "dropDatabase(dbPath)\n";
+            script += "t = table(take(1..10, 100) as id, 1..100 as id2, 100..1 as value)\n";
+            script += "db  = database(dbPath, RANGE,1 50 10000)\n";
+            script += "pt = db.createPartitionedTable(t,`pt,`id).append!(t)\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t2 = table( 1 2 as id, 1 2 as id2, 1001 NULL as value);t2;");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://tableUpsert_test", "pt", false, false, null, 10, 1, 1, "id2", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=true" , "keyColNames=`id2" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0) });
+            List<IScalar> x1 = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(1), bt.getColumn(1).get(1), bt.getColumn(2).get(1) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            ErrorCodeInfo pErrorInfo1 = mtw.insert(x1);
+            mtw.waitForThreadCompletion();
+            BasicTable res = (BasicTable)conn.run("select * from pt where value = NULL;");
+            BasicTable res1 = (BasicTable)conn.run("select * from pt order by id2 ");
+            Assert.AreEqual(0, res.rows());
+            Assert.AreEqual(100, res1.rows());
+            Assert.AreEqual(1001, res1.getColumn(2).get(0).getObject());
+            Assert.AreEqual(99, res1.getColumn(2).get(1).getObject());
+            conn.close();
+        }
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_upsert_partitionedTable_ignoreNull_false()
+        {
+            DBConnection conn = new DBConnection(false, false, false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "dbPath = \"dfs://tableUpsert_test\"\n";
+            script += "if(existsDatabase(dbPath))\n";
+            script += "dropDatabase(dbPath)\n";
+            script += "t = table(take(1..10, 100) as id, 1..100 as id2, 100..1 as value)\n";
+            script += "db  = database(dbPath, RANGE,1 50 10000)\n";
+            script += "pt = db.createPartitionedTable(t,`pt,`id).append!(t)\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t2 = table( 1 2 as id, 1 2 as id2, 1001 NULL as value);t2;");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://tableUpsert_test", "pt", false, false, null, 10, 1, 1, "id2", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=false", "keyColNames=`id2" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0) });
+            List<IScalar> x1 = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(1), bt.getColumn(1).get(1), bt.getColumn(2).get(1) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            ErrorCodeInfo pErrorInfo1 = mtw.insert(x1);
+            mtw.waitForThreadCompletion();
+            BasicTable res = (BasicTable)conn.run("select * from pt where value = NULL;");
+            BasicTable res1 = (BasicTable)conn.run("select * from pt order by id2 ");
+            Assert.AreEqual(1, res.rows());
+            Assert.AreEqual(100, res1.rows());
+            Assert.AreEqual(1001, res1.getColumn(2).get(0).getObject());
+            Assert.AreEqual(-2147483648, res1.getColumn(2).get(1).getObject());
+            conn.close();
+        }
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_upsert_DimensionTable_ignoreNull_true()
+        {
+            DBConnection conn = new DBConnection(false, false, false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "dbPath = \"dfs://tableUpsert_test\"\n";
+            script += "if(existsDatabase(dbPath))\n";
+            script += "dropDatabase(dbPath)\n";
+            script += "t = table(take(1..10, 100) as id, 1..100 as id2, 100..1 as value)\n";
+            script += "db  = database(dbPath, RANGE,1 50 10000)\n";
+            script += "pt = db.createTable(t,`pt).append!(t)\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t2 = table( 1 2 as id, 1 2 as id2, 1001 NULL as value);t2;");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://tableUpsert_test", "pt", false, false, null, 10, 1, 1, "id2", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=true", "keyColNames=`id2" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0) });
+            List<IScalar> x1 = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(1), bt.getColumn(1).get(1), bt.getColumn(2).get(1) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            ErrorCodeInfo pErrorInfo1 = mtw.insert(x1);
+            mtw.waitForThreadCompletion();
+            BasicTable res = (BasicTable)conn.run("select * from pt where value = NULL;");
+            BasicTable res1 = (BasicTable)conn.run("select * from pt order by id2 ");
+            Assert.AreEqual(0, res.rows());
+            Assert.AreEqual(100, res1.rows());
+            Assert.AreEqual(1001, res1.getColumn(2).get(0).getObject());
+            Assert.AreEqual(99, res1.getColumn(2).get(1).getObject());
+            conn.close();
+        }
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_upsert_DimensionTable_ignoreNull_false()
+        {
+            DBConnection conn = new DBConnection(false, false, false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "dbPath = \"dfs://tableUpsert_test\"\n";
+            script += "if(existsDatabase(dbPath))\n";
+            script += "dropDatabase(dbPath)\n";
+            script += "t = table(take(1..10, 100) as id, 1..100 as id2, 100..1 as value)\n";
+            script += "db  = database(dbPath, RANGE,1 50 10000)\n";
+            script += "pt = db.createTable(t,`pt).append!(t)\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t2 = table( 1 2 as id, 1 2 as id2, 1001 NULL as value);t2;");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://tableUpsert_test", "pt", false, false, null, 10, 1, 1, "id2", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=false", "keyColNames=`id2" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0) });
+            List<IScalar> x1 = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(1), bt.getColumn(1).get(1), bt.getColumn(2).get(1) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            ErrorCodeInfo pErrorInfo1 = mtw.insert(x1);
+            mtw.waitForThreadCompletion();
+            BasicTable res = (BasicTable)conn.run("select * from pt where value = NULL;");
+            BasicTable res1 = (BasicTable)conn.run("select * from pt order by id2 ");
+            Assert.AreEqual(1, res.rows());
+            Assert.AreEqual(100, res1.rows());
+            Assert.AreEqual(1001, res1.getColumn(2).get(0).getObject());
+            Assert.AreEqual(-2147483648, res1.getColumn(2).get(1).getObject());
+            conn.close();
+        }
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_upsert_DFS_keyColNames_null()
+        {
+            DBConnection conn = new DBConnection(false, false, false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "dbPath = \"dfs://tableUpsert_test\"\n";
+            script += "if(existsDatabase(dbPath))\n";
+            script += "dropDatabase(dbPath)\n";
+            script += "t = table(take(1..10, 100) as id, 1..100 as id2, 100..1 as value)\n";
+            script += "db  = database(dbPath, RANGE,1 50 10000)\n";
+            script += "pt = db.createPartitionedTable(t,`pt,`id).append!(t)\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t2 = table( 1 2 as id, 1 101 as id2, 1001 NULL as value);t2;");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://tableUpsert_test", "pt", false, false, null, 10, 1, 1, "id2", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=false", "keyColNames= \"\"" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0) });
+            List<IScalar> x1 = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(1), bt.getColumn(1).get(1), bt.getColumn(2).get(1) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            mtw.waitForThreadCompletion();
+            Console.Out.WriteLine(pErrorInfo.ToString());
+
+            //Console.Out.WriteLine(pErrorInfo1.ToString());
+            BasicTable res = (BasicTable)conn.run("select * from pt where value = NULL;");
+            BasicTable res1 = (BasicTable)conn.run("select * from pt order by id2 ");
+            Assert.AreEqual(0, res.rows());
+            Assert.AreEqual(100, res1.rows());
+            conn.close();
+        }
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_upsert_DFS_sortColumns()
+        {
+            DBConnection conn = new DBConnection(false, false, false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "dbPath = \"dfs://tableUpsert_test\"\n";
+            script += "if(existsDatabase(dbPath))\n";
+            script += "dropDatabase(dbPath)\n";
+            script += "t = table(take(1..10, 100) as id, 1..100 as id2, 100..1 as value)\n";
+            script += "db  = database(dbPath, RANGE,1 50 10000)\n";
+            script += "pt = db.createTable(t,`pt).append!(t)\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t2 = table( 1 2 as id, 1 2 as id2, 1001 NULL as value);t2;");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://tableUpsert_test", "pt", false, false, null, 10, 1, 1, "id2", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=false", "keyColNames= `id2", "sortColumns= `value" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0) });
+            List<IScalar> x1 = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(1), bt.getColumn(1).get(1), bt.getColumn(2).get(1) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            ErrorCodeInfo pErrorInfo1 = mtw.insert(x1);
+            mtw.waitForThreadCompletion();
+            BasicTable res1 = (BasicTable)conn.run("select * from pt ");
+            Assert.AreEqual(100, res1.rows());
+            Assert.AreEqual(1001, res1.getColumn(2).get(99).getObject());
+            conn.close();
+        }
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_upsert_notMatchColumns()
+        {
+            DBConnection conn = new DBConnection(false, false, false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "dbPath = \"dfs://tableUpsert_test\"\n";
+            script += "if(existsDatabase(dbPath))\n";
+            script += "dropDatabase(dbPath)\n";
+            script += "t = table(take(1..10, 100) as id, 1..100 as id2, 100..1 as value)\n";
+            script += "db  = database(dbPath, RANGE,1 50 10000)\n";
+            script += "pt = db.createPartitionedTable(t,`pt,`id).append!(t)\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t2 = table( 1 2 as id, 1 101 as id2,1 2 as id3, 1001 NULL as value);t2;");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://tableUpsert_test", "pt", false, false, null, 10, 1, 1, "id2", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=false", "keyColNames= \"\"" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0) });
+            List<IScalar> x1 = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(1), bt.getColumn(1).get(1), bt.getColumn(2).get(1) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            ErrorCodeInfo pErrorInfo1 = mtw.insert(x1);
+            mtw.waitForThreadCompletion();
+            Console.Out.WriteLine(pErrorInfo.ToString());
+            BasicTable res = (BasicTable)conn.run("select * from pt where value = NULL;");
+            BasicTable res1 = (BasicTable)conn.run("select * from pt order by id2 ");
+            Assert.AreEqual(0, res.rows());
+            Assert.AreEqual(100, res1.rows());
+            conn.close();
+        }
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_upsert_notMatchDataType()
+        {
+            DBConnection conn = new DBConnection(false, false, false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "dbPath = \"dfs://tableUpsert_test\"\n";
+            script += "if(existsDatabase(dbPath))\n";
+            script += "dropDatabase(dbPath)\n";
+            script += "t = table(take(string(1..10), 100) as id, 1..100 as id2, 100..1 as value)\n";
+            script += "db  = database(dbPath, RANGE,1 50 10000)\n";
+            script += "pt = db.createPartitionedTable(t,`pt,`id2).append!(t)\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t2 = table( 1 2 as id, 101 102 as id2, 1001 NULL as value);t2;");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://tableUpsert_test", "pt", false, false, null, 10, 1, 1, "id2", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=false", "keyColNames= \"\"" });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0) });
+            List<IScalar> x1 = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(1), bt.getColumn(1).get(1), bt.getColumn(2).get(1) });
+            ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            ErrorCodeInfo pErrorInfo1 = mtw.insert(x1);
+            mtw.waitForThreadCompletion();
+            //Console.Out.WriteLine(pErrorInfo.ToString());
+            BasicTable res = (BasicTable)conn.run("select * from pt where value = NULL;");
+            BasicTable res1 = (BasicTable)conn.run("select * from pt order by id2 ");
+            Assert.AreEqual(0, res.rows());
+            Assert.AreEqual(100, res1.rows());
+            conn.close();
+        }
+        [TestMethod]
+       public void Test_MultithreadedTableWriter_upsert_big_data()
+        {
+            DBConnection conn = new DBConnection(false, false, false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "dbPath = \"dfs://tableUpsert_test\"\n";
+            script += "if(existsDatabase(dbPath))\n";
+            script += "dropDatabase(dbPath)\n";
+            script += "t = table(take(1..100, 100) as id, 1..100 as id2, 100..1 as value)\n";
+            script += "db  = database(dbPath, RANGE,1 50 10000)\n";
+            script += "pt = db.createPartitionedTable(t,`pt,`id).append!(t)\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t2 = table( take(1..1000,3000000) as id, 1..3000000 as id2, 1..3000000 as value);t2;");
+            Console.Out.WriteLine(bt.rows());
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://tableUpsert_test", "pt", false, false, null, 10, 1, 1, "id2", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=false", "keyColNames= \"id2\"" });
+            for (int i = 0; i < 3000000; i++)
+            {
+               List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(i), bt.getColumn(1).get(i), bt.getColumn(2).get(i) });
+               ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            }
+            mtw.waitForThreadCompletion();
+
+            BasicTable res1 = (BasicTable)conn.run("select * from loadTable(\"dfs://tableUpsert_test\",`pt) ");
+            Assert.AreEqual(3000000, res1.rows());
+            for (int i = 0; i < 3000000; i++)
+            {
+                List<IScalar> x1 = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(i), bt.getColumn(1).get(i), bt.getColumn(2).get(i) });
+                ErrorCodeInfo pErrorInfo1 = mtw.insert(x1);
+            }
+            mtw.waitForThreadCompletion();
+            BasicTable res2 = (BasicTable)conn.run("select * from pt ");
+            Assert.AreEqual(3000100, res2.rows());
+            conn.close();
+        }
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_partitionCol_notTrue()
+        {
+            DBConnection conn = new DBConnection(false, false, false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "dbPath = \"dfs://tableUpsert_test\"\n";
+            script += "if(existsDatabase(dbPath))\n";
+            script += "dropDatabase(dbPath)\n";
+            script += "t = table(take(string(1..10), 100) as id, 1..100 as id2, 100..1 as value)\n";
+            script += "db  = database(dbPath, RANGE,1 50 10000)\n";
+            script += "pt = db.createPartitionedTable(t,`pt,`id2).append!(t)\n";
+            conn.run(script);
+            Exception exception = null;
+            try 
+            {
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://tableUpsert_test", "pt", false, false, null, 10, 1, 5, null, null, 0, new String[] { "ignoreNull=false", "keyColNames=null" });
+
+            }
+            catch (Exception ex) 
+            { 
+                exception = ex; 
+            }
+            Assert.AreEqual("The parameter partionCol must be the partitioning column \"\" in the table. ",exception.Message);            
+            conn.close();
+        }
+
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_Status_ToString()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "share table(100:0, [`col0], [STRING]) as table1";
+            conn.run(script);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
+            for (int i = 0; i < 1000000; i++)
+            {
+                List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicString("AA" + (i % 99).ToString()) });
+                ErrorCodeInfo pErrorInfo = mtw.insert(x);
+            }
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            Console.WriteLine(status.ToString());
+            mtw.waitForThreadCompletion();
+            BasicTable re = (BasicTable)conn.run("table1");
+            BasicTable expected = (BasicTable)conn.run("table('AA'+string(0..999999%99) as col0)");
+            compareBasicTable(re, expected);
+            conn.run("undef(`table1, SHARED)");
+            conn.close();
+        }
+
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_Create_Remain()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = "";
+            script += "share table(100:0, [`col0], [STRING]) as table1";
+            conn.run(script);
+            try
+            {
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false,
+                false, null, 10000, 1, 1, "", new int[] { 1, 2, 1, 2 });
+            }
+            catch(Exception e)
+            {
+                Assert.AreEqual("The number of elements in parameter compressMethods does not match the column size 1. ", e.Message);
+                Console.WriteLine(e.Message);
+            }
+
+            string sc3 = "n=1000\n" +
+                "ID=rand(100, n)\n" +
+                "dates=2017.08.07..2017.08.11\n" +
+                "date=rand(dates, n)\n" +
+                "x=rand(10.0, n)\n" +
+                "t=table(ID, date, x)\n" +
+                "\n" +
+                "if(existsDatabase(\"dfs://compoDB\")){dropDatabase(\"dfs://compoDB\")}\n" +
+                "dbDate = database(, partitionType=VALUE, partitionScheme=2017.08.07..2017.08.11)\n" +
+                "dbID = database(, partitionType=RANGE, partitionScheme=0 50 100)\n" +
+                "db = database(directory=\"dfs://compoDB\", partitionType=COMPO, partitionScheme=[dbDate, dbID])\n" +
+                "pt = db.createPartitionedTable(t, `pt, `date`ID)\n" +
+                "pt.append!(t)";
+            conn.run(sc3);
+            try
+            {
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://compoDB", "pt", false,
+                false, null, 10000, 1, 5, "");
+            }
+            catch(Exception e)
+            {
+                Assert.AreEqual("The parameter partitionCol must be specified when threadCount is greater than 1.", e.Message);
+                Console.WriteLine(e.Message);
+            }
+
+            try
+            {
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://compoDB", "pt", false,
+                false, null, 10000, 1, 5, "hkjbsbgjka");
+            }
+            catch (Exception e)
+            {
+                Assert.AreEqual("The parameter partionCol must be the partitioning column \"hkjbsbgjka\" in the table. ", e.Message);
+                Console.WriteLine(e.Message);
+            }
+
+            try
+            {
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false,
+                false, null, 10000, 1, 5, "gakhfgah");
+            }
+            catch(Exception e)
+            {
+                Assert.AreEqual("The column gakhfgah does not belong to table table1", e.Message);
+                Console.WriteLine(e.Message);
+            }
+
+            MultithreadedTableWriter mtw1 = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
+            ErrorCodeInfo errorCodeInfo = mtw1.insert(new List<IEntity>());
+            Assert.AreEqual(errorCodeInfo.errorInfo, "");
+        }
+
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_InsertUnwrittenData_1()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = "";
+            script += "share table(100:0, [`col0], [STRING]) as table1";
+            conn.run(script);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
+            List<List<IEntity>> table = new List<List<IEntity>>();
+            for (int i = 0; i < 100000; i++)
+            {
+                List<IEntity> data = new List<IEntity>();
+                BasicString bs = new BasicString("A" + i);
+                data.Add(bs);
+                table.Add(data);
+            }
+            mtw.insertUnwrittenData(table);
+            mtw.waitForThreadCompletion();
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            Console.WriteLine(status.ToString());
+            BasicTable re = (BasicTable)conn.run("table1");
+            Assert.AreEqual(re.rows(), 100000);
+            conn.run("undef(`table1, SHARED)");
+            conn.close();
+        }
+
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_InsertUnwrittenData_2()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = "";
+            script += "share table(100:0, [`col0], [STRING]) as table1";
+            conn.run(script);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 5, "col0");
+            List<List<IEntity>> table = new List<List<IEntity>>();
+            for (int i = 0; i < 100000; i++)
+            {
+                List<IEntity> data = new List<IEntity>();
+                BasicString bs = new BasicString("A" + i);
+                data.Add(bs);
+                table.Add(data);
+            }
+            mtw.insertUnwrittenData(table);
+            mtw.waitForThreadCompletion();
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            Console.WriteLine(status.ToString());
+            BasicTable re = (BasicTable)conn.run("table1");
+            Assert.AreEqual(re.rows(), 100000);
+            conn.run("undef(`table1, SHARED)");
+            conn.close();
+        }
+
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_InsertUnwrittenData_3()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string sc = "if(existsDatabase(\"dfs://dataXdemo\")){dropDatabase(\"dfs://dataXdemo\")}\n" +
+                "db = database(\"dfs://dataXdemo\", VALUE, 1..10)\n" +
+                "t = table(take(1..10, 100) as id, take([`A, `B, `C], 100) as sym, 1..100 as qty, 100..1 as price)\n" +
+                "pt = db.createPartitionedTable(t, `pt, `id).append!(t)";
+            conn.run(sc);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://dataXdemo", "pt", false, false, null, 10000, 1, 5, "id");
+            List<List<IEntity>> table = new List<List<IEntity>>();
+            for (int i = 0; i < 100000; i++)
+            {
+                List<IEntity> data = new List<IEntity>();
+                BasicInt bi = new BasicInt(i);
+                BasicString bs = new BasicString("A" + i);
+                data.Add(bi);
+                data.Add(bs);
+                data.Add(bi);
+                data.Add(bi);
+                table.Add(data);
+            }
+            mtw.insertUnwrittenData(table);
+            mtw.waitForThreadCompletion();
+        }
     }
 }
 

@@ -198,14 +198,6 @@ namespace dolphindb.data
             return end;
         }
 
-        protected override void writeVectorToBuffer(ByteBuffer buffer)
-        {
-            foreach (long val in values)
-            {
-                buffer.WriteLong(val);
-            }
-        }
-
         public override void deserialize(int start, int count, ExtendedDataInput @in)
         {
             if (start + count > values.Count)
@@ -261,6 +253,11 @@ namespace dolphindb.data
         public override IEntity getEntity(int index)
         {
             return new BasicLong(values[index]);
+        }
+
+        public override int getExtraParamForType()
+        {
+            throw new NotImplementedException();
         }
     }
 

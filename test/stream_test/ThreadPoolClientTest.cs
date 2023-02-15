@@ -1,4 +1,4 @@
-Ôªøusing Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -382,14 +382,14 @@ namespace dolphindb_csharp_api_test.stream_test
             try
             {
                 //Not allow to use localhost 
-                 client = new ThreadPooledClient("localhost", LOCALPORT);
+                 client = new ThreadPooledClient("localhost", 10200);
             }
             catch (Exception ex)
             {
                 exception = ex;
             }
             Assert.IsNull(exception);
-            client.close();
+            //client.close();
             conn.close();
         }
 
@@ -404,7 +404,7 @@ namespace dolphindb_csharp_api_test.stream_test
             String script = "";
             script += "try{undef(`trades, SHARED)}catch(ex){}";
             conn.run(script);
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10201);
             Exception exception = null;
             try
             {
@@ -428,18 +428,18 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.connect(SERVER, PORT, "admin", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
+            PrepareStreamTable1(conn, "pub1");
             PrepareStreamTable1(conn, "sub1");
             PrepareStreamTable1(conn, "sub2");
             Handler1 handler1 = new Handler1();
             Handler2 handler2 = new Handler2();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 18233);
-            client.subscribe(SERVER, PORT, "pub", "action1", handler1, 0);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10202);
+            client.subscribe(SERVER, PORT, "pub1", "action1", handler1, 0);
             Exception exception = null;
             try
             {
                 //usage: subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset)
-                client.subscribe(SERVER, PORT, "pub", "action1", handler2, 0);
+                client.subscribe(SERVER, PORT, "pub1", "action1", handler2, 0);
             }
             catch (Exception ex)
             {
@@ -447,9 +447,9 @@ namespace dolphindb_csharp_api_test.stream_test
                 exception = ex;
             }
             Assert.IsNotNull(exception);
-            client.unsubscribe(SERVER, PORT, "pub", "action1");
+            client.unsubscribe(SERVER, PORT, "pub1", "action1");
             client.close();
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub1, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.run("undef(`sub2, SHARED)");
             conn.close();
@@ -464,18 +464,18 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.connect(SERVER, PORT, "admin", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
+            PrepareStreamTable1(conn, "pub2");
             PrepareStreamTable1(conn, "sub1");
             //write 1000 rows first
-            WriteStreamTable1(conn, "pub", 1000);
-            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub");
+            WriteStreamTable1(conn, "pub2", 1000);
+            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub2");
             Assert.AreEqual(1000, num1.getInt());
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(8676);
+            ThreadPooledClient client = new ThreadPooledClient(10203);
             //usage: subscribe(string host, int port, string tableName, MessageHandler handler, long offset)
-            client.subscribe(SERVER, PORT, "pub", handler1, -1);
+            client.subscribe(SERVER, PORT, "pub2", handler1, -1);
             //write 1000 rows after subscribe
-            WriteStreamTable1(conn, "pub", 1000);
+            WriteStreamTable1(conn, "pub2", 1000);
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
@@ -487,13 +487,13 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             BasicInt num2 = (BasicInt)conn.run("exec count(*) from sub1");
             Assert.AreEqual(1000, num2.getInt());
-            client.unsubscribe(SERVER, PORT, "pub");
+            client.unsubscribe(SERVER, PORT, "pub2");
             
             try
             {
                 client.close();
                 Thread.Sleep(1000);
-                conn.run("undef(`pub, SHARED)");
+                conn.run("undef(`pub2, SHARED)");
                 conn.run("undef(`sub1, SHARED)");
                 conn.close();
                 streamConn.close();
@@ -512,18 +512,18 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.connect(SERVER, PORT, "admin", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
+            PrepareStreamTable1(conn, "pub3");
             PrepareStreamTable1(conn, "sub1");
             //write 1000 rows first
-            WriteStreamTable1(conn, "pub", 1000);
-            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub");
+            WriteStreamTable1(conn, "pub3", 1000);
+            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub3");
             Assert.AreEqual(1000, num1.getInt());
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 18241);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10204);
             //usage: subscribe(string host, int port, string tableName, MessageHandler handler, long offset)
-            client.subscribe(SERVER, PORT, "pub", handler1, -1);
+            client.subscribe(SERVER, PORT, "pub3", handler1, -1);
             //write 1000 rows after subscribe
-            WriteStreamTable1(conn, "pub", 1000);
+            WriteStreamTable1(conn, "pub3", 1000);
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
@@ -535,9 +535,9 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             BasicInt num2 = (BasicInt)conn.run("exec count(*) from sub1");
             Assert.AreEqual(1000, num2.getInt());
-            client.unsubscribe(SERVER, PORT, "pub");
+            client.unsubscribe(SERVER, PORT, "pub3");
             client.close();
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub3, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.close();
             streamConn.close();
@@ -550,18 +550,18 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.connect(SERVER, PORT, "admin", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
+            PrepareStreamTable1(conn, "pub4");
             PrepareStreamTable1(conn, "sub1");
             //write 1000 rows first
-            WriteStreamTable1(conn, "pub", 1000);
-            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub");
+            WriteStreamTable1(conn, "pub4", 1000);
+            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub4");
             Assert.AreEqual(1000, num1.getInt());
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 18236);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10205);
             //usage: subscribe(string host, int port, string tableName, MessageHandler handler, long offset)
-            client.subscribe(SERVER, PORT, "pub", handler1, 0);
+            client.subscribe(SERVER, PORT, "pub4", handler1, 0);
             //write 1000 rows after subscribe
-            WriteStreamTable1(conn, "pub", 1000);
+            WriteStreamTable1(conn, "pub4", 1000);
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
@@ -573,9 +573,9 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             BasicInt num2 = (BasicInt)conn.run("exec count(*) from sub1");
             Assert.AreEqual(2000, num2.getInt());
-            client.unsubscribe(SERVER, PORT, "pub");
+            client.unsubscribe(SERVER, PORT, "pub4");
             client.close();
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub4, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.close();
             streamConn.close();
@@ -588,18 +588,18 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.connect(SERVER, PORT, "admin", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
+            PrepareStreamTable1(conn, "pub5");
             PrepareStreamTable1(conn, "sub1");
             //write 1000 rows first
-            WriteStreamTable1(conn, "pub", 1000);
-            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub");
+            WriteStreamTable1(conn, "pub5", 1000);
+            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub5");
             Assert.AreEqual(1000, num1.getInt());
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10206);
             //usage: subscribe(string host, int port, string tableName, MessageHandler handler, long offset)
-            client.subscribe(SERVER, PORT, "pub", handler1, -1);
+            client.subscribe(SERVER, PORT, "pub5", handler1, -1);
             //write 1000 rows after subscribe
-            WriteStreamTable1(conn, "pub", 1000);
+            WriteStreamTable1(conn, "pub5", 1000);
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
@@ -611,9 +611,9 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             BasicInt num2 = (BasicInt)conn.run("exec count(*) from sub1");
             Assert.AreEqual(1000, num2.getInt());
-            client.unsubscribe(SERVER, PORT, "pub");
+            client.unsubscribe(SERVER, PORT, "pub5");
             client.close();
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub5, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.close();
             streamConn.close();
@@ -626,18 +626,18 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.connect(SERVER, PORT, "admin", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
+            PrepareStreamTable1(conn, "pub6");
             PrepareStreamTable1(conn, "sub1");
             //write 1000 rows first
-            WriteStreamTable1(conn, "pub", 1000);
-            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub");
+            WriteStreamTable1(conn, "pub6", 1000);
+            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub6");
             Assert.AreEqual(1000, num1.getInt());
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10207);
             //usage: subscribe(string host, int port, string tableName, MessageHandler handler, long offset)
-            client.subscribe(SERVER, PORT, "pub", handler1, 500);
+            client.subscribe(SERVER, PORT, "pub6", handler1, 500);
             //write 1000 rows after subscribe
-            WriteStreamTable1(conn, "pub", 1000);
+            WriteStreamTable1(conn, "pub6", 1000);
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
@@ -649,9 +649,9 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             BasicInt num2 = (BasicInt)conn.run("exec count(*) from sub1");
             Assert.AreEqual(1500, num2.getInt());
-            client.unsubscribe(SERVER, PORT, "pub");
+            client.unsubscribe(SERVER, PORT, "pub6");
             client.close();
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub6, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.close();
             streamConn.close();
@@ -664,19 +664,19 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.connect(SERVER, PORT, "admin", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
+            PrepareStreamTable1(conn, "pub7");
             PrepareStreamTable1(conn, "sub1");
             //write 1000 rows first
-            WriteStreamTable1(conn, "pub", 1000);
-            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub");
+            WriteStreamTable1(conn, "pub7", 1000);
+            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub7");
             Assert.AreEqual(1000, num1.getInt());
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10208);
             //usage: subscribe(string host, int port, string tableName, MessageHandler handler, long offset)
             Exception exception = null;
             try
             {
-                client.subscribe(SERVER, PORT, "pub", handler1, 1500);
+                client.subscribe(SERVER, PORT, "pub7", handler1, 1500);
             }
             catch (Exception ex)
             {
@@ -685,7 +685,7 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             Assert.IsNotNull(exception);
             client.close();
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub7, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.close();
             streamConn.close();
@@ -698,18 +698,18 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.connect(SERVER, PORT, "admin", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
+            PrepareStreamTable1(conn, "pub8");
             PrepareStreamTable1(conn, "sub1");
             //write 1000 rows first
-            WriteStreamTable1(conn, "pub", 1000);
-            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub");
+            WriteStreamTable1(conn, "pub8", 1000);
+            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub8");
             Assert.AreEqual(1000, num1.getInt());
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10209);
             //usage: subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset)
-            client.subscribe(SERVER, PORT, "pub", "sub1", handler1, 0);
+            client.subscribe(SERVER, PORT, "pub8", "sub1", handler1, 0);
             //write 1000 rows after subscribe
-            WriteStreamTable1(conn, "pub", 1000);
+            WriteStreamTable1(conn, "pub8", 1000);
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
@@ -721,9 +721,9 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             BasicInt num2 = (BasicInt)conn.run("exec count(*) from sub1");
             Assert.AreEqual(2000, num2.getInt());
-            client.unsubscribe(SERVER, PORT, "pub", "sub1");
+            client.unsubscribe(SERVER, PORT, "pub8", "sub1");
             client.close();
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub8, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.close();
             streamConn.close();
@@ -736,18 +736,18 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.connect(SERVER, PORT, "admin", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
-            conn.run("setStreamTableFilterColumn(pub, `permno)");
+            PrepareStreamTable1(conn, "pub9");
+            conn.run("setStreamTableFilterColumn(pub9, `permno)");
             PrepareStreamTable1(conn, "sub1");
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 18238);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10210);
             //usage: subscribe(string host, int port, string tableName, MessageHandler handler, long offset, IVector filter)
             BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            client.subscribe(SERVER, PORT, "pub", handler1, 0, filter);
+            client.subscribe(SERVER, PORT, "pub9", handler1, 0, filter);
             String script = "";
-            script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..1000), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub.append!(tmp); ";
+            script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..1000), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub9.append!(tmp); ";
             conn.run(script);
-            BasicInt expectedNum = (BasicInt)conn.run("exec count(*) from pub where permno in 1..10");
+            BasicInt expectedNum = (BasicInt)conn.run("exec count(*) from pub9 where permno in 1..10");
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
@@ -759,11 +759,11 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             BasicInt num2 = (BasicInt)conn.run("exec count(*) from sub1");
             Assert.AreEqual(expectedNum.getInt(), num2.getInt());
-            BasicBoolean re = (BasicBoolean)conn.run("each(eqObj, (select * from pub where permno in 1..10 order by permno,ticker).values(), (select * from sub1 order by permno,ticker).values()).all()");
+            BasicBoolean re = (BasicBoolean)conn.run("each(eqObj, (select * from pub9 where permno in 1..10 order by permno,ticker).values(), (select * from sub1 order by permno,ticker).values()).all()");
             Assert.AreEqual(re.getValue(), true);
-            //client.unsubscribe(SERVER, PORT, "pub");
+            //client.unsubscribe(SERVER, PORT, "pub9");
             //client.close();
-            //conn.run("undef(`pub, SHARED)");
+            //conn.run("undef(`pub9, SHARED)");
             //conn.run("undef(`sub1, SHARED)");
             //conn.close();
             //streamConn.close();
@@ -776,18 +776,18 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.connect(SERVER, PORT, "admin", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
-            conn.run("setStreamTableFilterColumn(pub, `ticker)");
+            PrepareStreamTable1(conn, "pub10");
+            conn.run("setStreamTableFilterColumn(pub10, `ticker)");
             PrepareStreamTable1(conn, "sub1");
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 18240);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10211);
             //usage: subscribe(string host, int port, string tableName, MessageHandler handler, long offset, IVector filter)
             BasicSymbolVector filter = new BasicSymbolVector(new string[] { "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10" });
-            client.subscribe(SERVER, PORT, "pub", handler1, 0, filter);
+            client.subscribe(SERVER, PORT, "pub10", handler1, 0, filter);
             String script = "";
-            script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..100), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub.append!(tmp); ";
+            script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..100), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub10.append!(tmp); ";
             conn.run(script);
-            BasicInt expectedNum = (BasicInt)conn.run("exec count(*) from pub where ticker in \"A\"+string(1..10)");
+            BasicInt expectedNum = (BasicInt)conn.run("exec count(*) from pub10 where ticker in \"A\"+string(1..10)");
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
@@ -799,11 +799,11 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             BasicInt num2 = (BasicInt)conn.run("exec count(*) from sub1");
             Assert.AreEqual(expectedNum.getInt(), num2.getInt());
-            BasicBoolean re = (BasicBoolean)conn.run("each(eqObj, (select * from pub where ticker in \"A\"+string(1..10) order by ticker, permno).values(), (select * from sub1 order by ticker, permno).values()).all()");
+            BasicBoolean re = (BasicBoolean)conn.run("each(eqObj, (select * from pub10 where ticker in \"A\"+string(1..10) order by ticker, permno,price1).values(), (select * from sub1 order by ticker, permno,price1).values()).all()");
             Assert.AreEqual(re.getValue(), true);
-            client.unsubscribe(SERVER, PORT, "pub");
+            client.unsubscribe(SERVER, PORT, "pub10");
             client.close();
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub10, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.close();
             streamConn.close();
@@ -817,20 +817,20 @@ namespace dolphindb_csharp_api_test.stream_test
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
             String script1 = "";
-            script1 += "share streamTable(1000:0,  `permno`date`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, DATE, STRING, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]) as pub;setStreamTableFilterColumn(pub, `ticker)";
+            script1 += "share streamTable(1000:0,  `permno`date`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, DATE, STRING, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]) as pub11;setStreamTableFilterColumn(pub11, `ticker)";
             conn.run(script1);
             String script2 = "";
             script2 += "share streamTable(1000:0,  `permno`date`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, DATE, STRING, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]) as sub1";
             conn.run(script2);
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 18239);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10212);
             //usage: subscribe(string host, int port, string tableName, MessageHandler handler, long offset, IVector filter)
             BasicStringVector filter = new BasicStringVector(new string[] { "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10" });
-            client.subscribe(SERVER, PORT, "pub", handler1, 0, filter);
+            client.subscribe(SERVER, PORT, "pub11", handler1, 0, filter);
             String script3 = "";
-            script3 += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, DATE, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = rand(2012.01.01..2012.01.30, batch);tmp[`ticker] = rand(\"A\" + string(1..100), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub.append!(tmp); ";
+            script3 += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, DATE, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = rand(2012.01.01..2012.01.30, batch);tmp[`ticker] = rand(\"A\" + string(1..100), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub11.append!(tmp); ";
             conn.run(script3);
-            BasicInt expectedNum = (BasicInt)conn.run("exec count(*) from pub where ticker in \"A\"+string(1..10)");
+            BasicInt expectedNum = (BasicInt)conn.run("exec count(*) from pub11 where ticker in \"A\"+string(1..10)");
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
@@ -842,11 +842,11 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             BasicInt num2 = (BasicInt)conn.run("exec count(*) from sub1");
             Assert.AreEqual(expectedNum.getInt(), num2.getInt());
-            BasicBoolean re = (BasicBoolean)conn.run("each(eqObj, (select * from pub where ticker in \"A\"+string(1..10) order by ticker, permno).values(), (select * from sub1 order by ticker, permno).values()).all()");
+            BasicBoolean re = (BasicBoolean)conn.run("each(eqObj, (select * from pub11 where ticker in \"A\"+string(1..10) order by ticker, permno,price1).values(), (select * from sub1 order by ticker, permno,price1).values()).all()");
             Assert.AreEqual(re.getValue(), true);
-            client.unsubscribe(SERVER, PORT, "pub");
+            client.unsubscribe(SERVER, PORT, "pub11");
             client.close();
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub11, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.close();
             streamConn.close();
@@ -860,20 +860,20 @@ namespace dolphindb_csharp_api_test.stream_test
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
             String script1 = "";
-            script1 += "share streamTable(1000:0,  `permno`date`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, DATE, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]) as pub;setStreamTableFilterColumn(pub, `date)";
+            script1 += "share streamTable(1000:0,  `permno`date`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, DATE, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]) as pub12;setStreamTableFilterColumn(pub12, `date)";
             conn.run(script1);
             String script2 = "";
             script2 += "share streamTable(1000:0,  `permno`date`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, DATE, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]) as sub1";
             conn.run(script2);
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 18237);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10213);
             //usage: subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, IVector filter)
             BasicDateVector filter = (BasicDateVector)conn.run("2012.01.01..2012.01.10");
-            client.subscribe(SERVER, PORT, "pub", "sub1", handler1, 0, filter);
+            client.subscribe(SERVER, PORT, "pub12", "sub1", handler1, 0, filter);
             String script3 = "";
-            script3 += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, DATE, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = rand(2012.01.01..2012.01.30, batch);tmp[`ticker] = rand(\"A\" + string(1..100), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub.append!(tmp); ";
+            script3 += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, DATE, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = rand(2012.01.01..2012.01.30, batch);tmp[`ticker] = rand(\"A\" + string(1..100), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub12.append!(tmp); ";
             conn.run(script3);
-            BasicInt expectedNum = (BasicInt)conn.run("exec count(*) from pub where date in 2012.01.01..2012.01.10");
+            BasicInt expectedNum = (BasicInt)conn.run("exec count(*) from pub12 where date in 2012.01.01..2012.01.10");
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
@@ -885,11 +885,11 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             BasicInt num2 = (BasicInt)conn.run("exec count(*) from sub1");
             Assert.AreEqual(expectedNum.getInt(), num2.getInt());
-            BasicBoolean re = (BasicBoolean)conn.run("each(eqObj, (select * from pub where date in 2012.01.01..2012.01.10 order by date, permno).values(), (select * from sub1 order by date, permno).values()).all()");
+            BasicBoolean re = (BasicBoolean)conn.run("each(eqObj, (select * from pub12 where date in 2012.01.01..2012.01.10 order by date, permno,ticker).values(), (select * from sub1 order by date, permno,ticker).values()).all()");
             Assert.AreEqual(re.getValue(), true);
-            client.unsubscribe(SERVER, PORT, "pub", "sub1");
+            client.unsubscribe(SERVER, PORT, "pub12", "sub1");
             client.close();
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub12, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.close();
             streamConn.close();
@@ -902,18 +902,18 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.connect(SERVER, PORT, "admin", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
+            PrepareStreamTable1(conn, "pub13");
             PrepareStreamTable1(conn, "sub1");
             //write 1000 rows first
-            WriteStreamTable1(conn, "pub", 1000);
-            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub");
+            WriteStreamTable1(conn, "pub13", 1000);
+            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub13");
             Assert.AreEqual(1000, num1.getInt());
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10214);
             //usage: subscribe(string host, int port, string tableName, MessageHandler handler, long offset, bool reconnect)
-            client.subscribe(SERVER, PORT, "pub", handler1, 0, true);
+            client.subscribe(SERVER, PORT, "pub13", handler1, 0, true);
             //write 1000 rows after subscribe
-            WriteStreamTable1(conn, "pub", 1000);
+            WriteStreamTable1(conn, "pub13", 1000);
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
@@ -925,9 +925,9 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             BasicInt num2 = (BasicInt)conn.run("exec count(*) from sub1");
             Assert.AreEqual(2000, num2.getInt());
-            client.unsubscribe(SERVER, PORT, "pub");
+            client.unsubscribe(SERVER, PORT, "pub13");
             client.close();
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub13, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.close();
             streamConn.close();
@@ -940,18 +940,18 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.connect(SERVER, PORT, "admin", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
+            PrepareStreamTable1(conn, "pub14");
             PrepareStreamTable1(conn, "sub1");
             //write 1000 rows first
-            WriteStreamTable1(conn, "pub", 1000);
-            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub");
+            WriteStreamTable1(conn, "pub14", 1000);
+            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub14");
             Assert.AreEqual(1000, num1.getInt());
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10215);
             //usage: subscribe(string host, int port, string tableName, MessageHandler handler, long offset, bool reconnect)
-            client.subscribe(SERVER, PORT, "pub", handler1, 0, false);
+            client.subscribe(SERVER, PORT, "pub14", handler1, 0, false);
             //write 1000 rows after subscribe
-            WriteStreamTable1(conn, "pub", 1000);
+            WriteStreamTable1(conn, "pub14", 1000);
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
@@ -963,9 +963,9 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             BasicInt num2 = (BasicInt)conn.run("exec count(*) from sub1");
             Assert.AreEqual(2000, num2.getInt());
-            client.unsubscribe(SERVER, PORT, "pub");
+            client.unsubscribe(SERVER, PORT, "pub14");
             client.close();
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub14, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.close();
             streamConn.close();
@@ -978,24 +978,24 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.connect(SERVER, PORT, "admin", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
+            PrepareStreamTable1(conn, "pub15");
             PrepareStreamTable1(conn, "sub1");
             PrepareStreamTable1(conn, "sub2");
             PrepareStreamTable1(conn, "sub3");
             //write 1000 rows first
-            WriteStreamTable1(conn, "pub", 1000);
-            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub");
+            WriteStreamTable1(conn, "pub15", 1000);
+            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub15");
             Assert.AreEqual(1000, num1.getInt());
             Handler1 handler1 = new Handler1();
             Handler2 handler2 = new Handler2();
             Handler3 handler3 = new Handler3();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10216);
             //usage: subscribe(string host, int port, string tableName, MessageHandler handler, long offset)
-            client.subscribe(SERVER, PORT, "pub", "action1", handler1, 0);
-            client.subscribe(SERVER, PORT, "pub", "action2", handler2, -1);
-            client.subscribe(SERVER, PORT, "pub", "action3", handler3, 500);
+            client.subscribe(SERVER, PORT, "pub15", "action1", handler1, 0);
+            client.subscribe(SERVER, PORT, "pub15", "action2", handler2, -1);
+            client.subscribe(SERVER, PORT, "pub15", "action3", handler3, 500);
             //write 1000 rows after subscribe
-            WriteStreamTable1(conn, "pub", 1000);
+            WriteStreamTable1(conn, "pub15", 1000);
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum1 = (BasicInt)conn.run("exec count(*) from sub1");
@@ -1013,11 +1013,11 @@ namespace dolphindb_csharp_api_test.stream_test
             Assert.AreEqual(1000, sub2_num.getInt());
             BasicInt sub3_num = (BasicInt)conn.run("exec count(*) from sub3");
             Assert.AreEqual(1500, sub3_num.getInt());
-            client.unsubscribe(SERVER, PORT, "pub", "action1");
-            client.unsubscribe(SERVER, PORT, "pub", "action2");
-            client.unsubscribe(SERVER, PORT, "pub", "action3");
+            client.unsubscribe(SERVER, PORT, "pub15", "action1");
+            client.unsubscribe(SERVER, PORT, "pub15", "action2");
+            client.unsubscribe(SERVER, PORT, "pub15", "action3");
             client.close();
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub15, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.run("undef(`sub2, SHARED)");
             conn.run("undef(`sub3, SHARED)");
@@ -1032,24 +1032,24 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.connect(SERVER, PORT, "admin", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
+            PrepareStreamTable1(conn, "pub16");
             PrepareStreamTable1(conn, "sub1");
             PrepareStreamTable1(conn, "sub2");
             PrepareStreamTable1(conn, "sub3");
             //write 1000 rows first
-            WriteStreamTable1(conn, "pub", 1000);
-            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub");
+            WriteStreamTable1(conn, "pub16", 1000);
+            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub16");
             Assert.AreEqual(1000, num1.getInt());
             Handler1 handler1 = new Handler1();
             Handler2 handler2 = new Handler2();
             Handler3 handler3 = new Handler3();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 18231);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10217);
             //usage: subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset)
-            client.subscribe(SERVER, PORT, "pub", "action1", handler1, 0);
-            client.subscribe(SERVER, PORT, "pub", "action2", handler2, 0);
-            client.subscribe(SERVER, PORT, "pub", "action3", handler3, 0);
+            client.subscribe(SERVER, PORT, "pub16", "action1", handler1, 0);
+            client.subscribe(SERVER, PORT, "pub16", "action2", handler2, 0);
+            client.subscribe(SERVER, PORT, "pub16", "action3", handler3, 0);
             //write 1000 rows after subscribe
-            WriteStreamTable1(conn, "pub", 1000);
+            WriteStreamTable1(conn, "pub16", 1000);
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum1 = (BasicInt)conn.run("exec count(*) from sub1");
@@ -1067,8 +1067,8 @@ namespace dolphindb_csharp_api_test.stream_test
             Assert.AreEqual(2000, sub2_num_1.getInt());
             BasicInt sub3_num_1 = (BasicInt)conn.run("exec count(*) from sub3");
             Assert.AreEqual(2000, sub3_num_1.getInt());
-            client.unsubscribe(SERVER, PORT, "pub", "action1");
-            WriteStreamTable1(conn, "pub", 1000);
+            client.unsubscribe(SERVER, PORT, "pub16", "action1");
+            WriteStreamTable1(conn, "pub16", 1000);
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum1 = (BasicInt)conn.run("exec count(*) from sub1");
@@ -1086,8 +1086,8 @@ namespace dolphindb_csharp_api_test.stream_test
             Assert.AreEqual(3000, sub2_num_2.getInt());
             BasicInt sub3_num_2 = (BasicInt)conn.run("exec count(*) from sub3");
             Assert.AreEqual(3000, sub3_num_2.getInt());
-            client.unsubscribe(SERVER, PORT, "pub", "action2");
-            WriteStreamTable1(conn, "pub", 1000);
+            client.unsubscribe(SERVER, PORT, "pub16", "action2");
+            WriteStreamTable1(conn, "pub16", 1000);
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum1 = (BasicInt)conn.run("exec count(*) from sub1");
@@ -1105,9 +1105,9 @@ namespace dolphindb_csharp_api_test.stream_test
             Assert.AreEqual(3000, sub2_num_3.getInt());
             BasicInt sub3_num_3 = (BasicInt)conn.run("exec count(*) from sub3");
             Assert.AreEqual(4000, sub3_num_3.getInt());
-            client.unsubscribe(SERVER, PORT, "pub", "action3");
+            client.unsubscribe(SERVER, PORT, "pub16", "action3");
             client.close();
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub16, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.run("undef(`sub2, SHARED)");
             conn.run("undef(`sub3, SHARED)");
@@ -1122,18 +1122,18 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.connect(SERVER, PORT, "admin", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
+            PrepareStreamTable1(conn, "pub17");
             PrepareStreamTable1(conn, "sub1");
             //write 1000 rows first
-            WriteStreamTable1(conn, "pub", 1000);
-            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub");
+            WriteStreamTable1(conn, "pub17", 1000);
+            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub17");
             Assert.AreEqual(1000, num1.getInt());
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10218);
             //usage: subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect)
-            client.subscribe(SERVER, PORT, "pub", "sub1", handler1, 0, false);
+            client.subscribe(SERVER, PORT, "pub17", "sub1", handler1, 0, false);
             //write 1000 rows after subscribe
-            WriteStreamTable1(conn, "pub", 1000);
+            WriteStreamTable1(conn, "pub17", 1000);
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
@@ -1145,9 +1145,9 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             BasicInt num2 = (BasicInt)conn.run("exec count(*) from sub1");
             Assert.AreEqual(2000, num2.getInt());
-            client.unsubscribe(SERVER, PORT, "pub", "sub1");
+            client.unsubscribe(SERVER, PORT, "pub17", "sub1");
             client.close();
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub17, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.close();
             streamConn.close();
@@ -1160,18 +1160,18 @@ namespace dolphindb_csharp_api_test.stream_test
             conn.connect(SERVER, PORT, "admin", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
-            conn.run("setStreamTableFilterColumn(pub, `ticker)");
+            PrepareStreamTable1(conn, "pub18");
+            conn.run("setStreamTableFilterColumn(pub18, `ticker)");
             PrepareStreamTable1(conn, "sub1");
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10219);
             //usage: subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, IVector filter)
             BasicSymbolVector filter = new BasicSymbolVector(new string[] { "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10" });
-            client.subscribe(SERVER, PORT, "pub", "action1", handler1, 0, filter);
+            client.subscribe(SERVER, PORT, "pub18", "action1", handler1, 0, filter);
             String script = "";
-            script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..100), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub.append!(tmp); ";
+            script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..100), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub18.append!(tmp); ";
             conn.run(script);
-            BasicInt expectedNum = (BasicInt)conn.run("exec count(*) from pub where ticker in \"A\"+string(1..10)");
+            BasicInt expectedNum = (BasicInt)conn.run("exec count(*) from pub18 where ticker in \"A\"+string(1..10)");
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
@@ -1183,11 +1183,11 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             BasicInt num2 = (BasicInt)conn.run("exec count(*) from sub1");
             Assert.AreEqual(expectedNum.getInt(), num2.getInt());
-            BasicBoolean re = (BasicBoolean)conn.run("each(eqObj, (select * from pub where ticker in \"A\"+string(1..10) order by ticker, permno).values(), (select * from sub1 order by ticker, permno).values()).all()");
+            BasicBoolean re = (BasicBoolean)conn.run("each(eqObj, (select * from pub18 where ticker in \"A\"+string(1..10) order by ticker, permno,price1).values(), (select * from sub1 order by ticker, permno,price1).values()).all()");
             Assert.AreEqual(re.getValue(), true);
-            client.unsubscribe(SERVER, PORT, "pub", "action1");
+            client.unsubscribe(SERVER, PORT, "pub18", "action1");
             client.close();
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub18, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.close();
             streamConn.close();
@@ -1223,7 +1223,7 @@ namespace dolphindb_csharp_api_test.stream_test
             streamConn = new DBConnection();
             streamConn.connect(StreamLeaderHost, StreamLeaderPort, "admin", "123456");
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 18235);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10220);
             client.subscribe(StreamLeaderHost, StreamLeaderPort, "haSt1", handler1, 0);
             String script = "";
             script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..100), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);haSt1.append!(tmp); ";
@@ -1277,7 +1277,7 @@ namespace dolphindb_csharp_api_test.stream_test
             streamConn = new DBConnection();
             streamConn.connect(StreamFollowerHost, StreamFollowerPort, "admin", "123456");
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 18234);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10221);
             client.subscribe(StreamFollowerHost, StreamFollowerPort, "haSt1", handler1, 0);
             String script = "";
             script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..100), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);haSt1.append!(tmp); ";
@@ -1314,7 +1314,7 @@ namespace dolphindb_csharp_api_test.stream_test
             String script = "";
             script += "try{undef(`trades, SHARED)}catch(ex){}";
             conn.run(script);
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10222);
             Exception exception = null;
             Handler1 handler1 = new Handler1();
             BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
@@ -1322,7 +1322,7 @@ namespace dolphindb_csharp_api_test.stream_test
             {
       //subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, StreamDeserializer deserializer = null, string user = "", string password = "")
                 //usage: subscribe(string SERVER, int port, string tableName, MessageHandler handler, long offset,int batchSize=-1)
-                client.subscribe(SERVER, PORT, "pub", "sub1", handler1, 0, false, filter, null, "a1234", "a1234");
+                client.subscribe(SERVER, PORT, "pub19", "sub1", handler1, 0, false, filter, null, "a1234", "a1234");
             }
             catch (Exception ex)
             {
@@ -1345,14 +1345,14 @@ namespace dolphindb_csharp_api_test.stream_test
             String script = "";
             script += "try{undef(`trades, SHARED)}catch(ex){}";
             conn.run(script);
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10223);
             Exception exception = null;
             Handler1 handler1 = new Handler1();
             BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
             try
             {
                 //usage: subscribe(string SERVER, int port, string tableName, MessageHandler handler, long offset,int batchSize=-1)
-                client.subscribe(SERVER, PORT, "pub", "sub1", handler1, 0, false, filter, null, "admin", "123455");
+                client.subscribe(SERVER, PORT, "pub20", "sub1", handler1, 0, false, filter, null, "admin", "123455");
             }
             catch (Exception ex)
             {
@@ -1378,23 +1378,23 @@ namespace dolphindb_csharp_api_test.stream_test
             conn2.connect(SERVER, PORT, "testuser3", "123456");
             streamConn = new DBConnection();
             streamConn.connect(SERVER, PORT, "admin", "123456");
-            PrepareStreamTable1(conn, "pub");
-            conn.run("setStreamTableFilterColumn(pub, `permno)");
+            PrepareStreamTable1(conn, "pub21");
+            conn.run("setStreamTableFilterColumn(pub21, `permno)");
             PrepareStreamTable1(conn, "sub1");
             Handler1 handler1 = new Handler1();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10224);
             Exception exception = null;
             //usage: subscribe(string SERVER, int port, string tableName, MessageHandler handler, long offset, IVector filter,int batchSize=-1)
             BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            // client.subscribe(SERVER, PORT, "pub", handler1, 0, filter, -1);
-            client.subscribe(SERVER, PORT, "pub", "sub1", handler1, 0, false, filter,null, "admin", "123456");
-            //client.subscribe(SERVER, PORT, "pub", "sub1", handler1, 0, false, filter, null, "testuser1", "123456");
+            // client.subscribe(SERVER, PORT, "pub21", handler1, 0, filter, -1);
+            client.subscribe(SERVER, PORT, "pub21", "sub1", handler1, 0, false, filter,null, "admin", "123456");
+            //client.subscribe(SERVER, PORT, "pub21", "sub1", handler1, 0, false, filter, null, "testuser1", "123456");
             //usage: subscribe(string SERVER, int port, string tableName, MessageHandler handler, long offset,int batchSize=-1)
 
             String script = "";
-            script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..1000), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub.append!(tmp); ";
+            script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..1000), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub21.append!(tmp); ";
             conn.run(script);
-            BasicInt expectedNum = (BasicInt)conn.run("exec count(*) from pub where permno in 1..10");
+            BasicInt expectedNum = (BasicInt)conn.run("exec count(*) from pub21 where permno in 1..10");
             for (int i = 0; i < 10; i++)
             {
                 BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
@@ -1427,15 +1427,15 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             //Assert.IsNotNull(exception);
             Assert.AreEqual(expectedNum.getInt(), num2.getInt());
-            BasicBoolean re = (BasicBoolean)conn.run("each(eqObj, (select * from pub where permno in 1..10  order by  permno,ticker ).values(), (select * from sub1 order by  permno,ticker).values()).all()");
+            BasicBoolean re = (BasicBoolean)conn.run("each(eqObj, (select * from pub21 where permno in 1..10  order by  permno,ticker ).values(), (select * from sub1 order by  permno,ticker).values()).all()");
             Assert.AreEqual(re.getValue(), true);
-            client.unsubscribe(SERVER, PORT, "pub", "sub1");
+            client.unsubscribe(SERVER, PORT, "pub21", "sub1");
             client.close();
             String script1 = "def test_user(){deleteUser(\"testuser1\")}\n rpc(getControllerAlias(), test_user)";
             String script2 = "def test_user(){deleteUser(\"testuser3\")}\n rpc(getControllerAlias(), test_user)";
             conn.run(script1);
             conn.run(script2);
-            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`pub21, SHARED)");
             conn.run("undef(`sub1, SHARED)");
             conn.close();
             conn1.close();
@@ -1452,7 +1452,7 @@ namespace dolphindb_csharp_api_test.stream_test
             streamConn.connect(SERVER, PORT, "admin", "123456");
             try
             {
-                conn.run("dropStreamTable(`outTables)");
+                conn.run("dropStreamTable(`outTables1pool)");
             }
             catch (Exception e)
             {
@@ -1460,15 +1460,15 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             try
             {
-                conn.run("dropStreamTable(`st1)");
+                conn.run("dropStreamTable(`st1pool)");
             }
             catch (Exception e)
             {
                 Console.Out.WriteLine(e.Message);
             }
 
-            String script = "st1 = streamTable(100:0, `timestampv`sym`blob`price1,[TIMESTAMP,SYMBOL,BLOB,DOUBLE])\n" +
-                    "enableTableShareAndPersistence(table=st1, tableName=`outTables, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
+            String script = "st1pool = streamTable(100:0, `timestampv`sym`blob`price1,[TIMESTAMP,SYMBOL,BLOB,DOUBLE])\n" +
+                    "enableTableShareAndPersistence(table=st1pool, tableName=`outTables1pool, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
             conn.run(script);
 
             string replayScript = "n = 10000;table1 = table(100:0, `datetimev`timestampv`sym`price1`price2, [DATETIME, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE]);" +
@@ -1476,7 +1476,7 @@ namespace dolphindb_csharp_api_test.stream_test
                 "tableInsert(table1, 2012.01.01T01:21:23 + 1..n, 2018.12.01T01:21:23.000 + 1..n, take(`a`b`c,n), rand(100,n)+rand(1.0, n), rand(100,n)+rand(1.0, n));" +
                 "tableInsert(table2, 2012.01.01T01:21:23 + 1..n, 2018.12.01T01:21:23.000 + 1..n, take(`a`b`c,n), rand(100,n)+rand(1.0, n));" +
                 "d = dict(['msg1','msg2'], [table1, table2]);" +
-                "replay(inputTables=d, outputTables=`outTables, dateColumn=`timestampv, timeColumn=`timestampv)";
+                "replay(inputTables=d, outputTables=`outTables1pool, dateColumn=`timestampv, timeColumn=`timestampv)";
             conn.run(replayScript);
 
             BasicTable table1 = (BasicTable)conn.run("table1");
@@ -1490,8 +1490,8 @@ namespace dolphindb_csharp_api_test.stream_test
             schemas["msg2"] = outSharedTables2Schema;
             StreamDeserializer streamFilter = new StreamDeserializer(schemas);
             Handler6 handler = new Handler6(streamFilter);
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
-            client.subscribe(SERVER, PORT, "outTables", "mutiSchema", handler, 0, true);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10225);
+            client.subscribe(SERVER, PORT, "outTables1pool", "mutiSchema", handler, 0, true);
             List<BasicMessage> msg1 = handler.getMsg1();
             List<BasicMessage> msg2 = handler.getMsg2();
             Thread.Sleep(4000);
@@ -1513,9 +1513,9 @@ namespace dolphindb_csharp_api_test.stream_test
             //        Assert.AreEqual(tableCol.get(j), msg2[j].getEntity(i));
             //    }
             //}
-            client.unsubscribe(SERVER, PORT, "outTables", "mutiSchema");
+            client.unsubscribe(SERVER, PORT, "outTables1pool", "mutiSchema");
             client.close();
-            conn.run("undef(`outTables, SHARED)");
+            //conn.run("undef(`outTables1pool, SHARED)");
             conn.close();
             streamConn.close();
 
@@ -1530,7 +1530,7 @@ namespace dolphindb_csharp_api_test.stream_test
             streamConn.connect(SERVER, PORT, "admin", "123456");
             try
             {
-                conn.run("dropStreamTable(`outTables)");
+                conn.run("dropStreamTable(`outTables2pool)");
             }
             catch (Exception e)
             {
@@ -1538,14 +1538,14 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             try
             {
-                conn.run("dropStreamTable(`st1)");
+                conn.run("dropStreamTable(`st1pool)");
             }
             catch (Exception e)
             {
                 Console.Out.WriteLine(e.Message);
             }
-            String script = "st1 = streamTable(100:0, `timestampv`sym`blob`price1,[TIMESTAMP,SYMBOL,BLOB,DOUBLE])\n" +
-                    "enableTableShareAndPersistence(table=st1, tableName=`outTables, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
+            String script = "st1pool = streamTable(100:0, `timestampv`sym`blob`price1,[TIMESTAMP,SYMBOL,BLOB,DOUBLE])\n" +
+                    "enableTableShareAndPersistence(table=st1pool, tableName=`outTables2pool, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
             conn.run(script);
 
             string replayScript = "n = 10000;table1 = table(100:0, `datetimev`timestampv`sym`price1`price2, [DATETIME, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE]);" +
@@ -1553,13 +1553,13 @@ namespace dolphindb_csharp_api_test.stream_test
                 "tableInsert(table1, 2012.01.01T01:21:23 + 1..n, 2018.12.01T01:21:23.000 + 1..n, take(`a`b`c,n), rand(100,n)+rand(1.0, n), rand(100,n)+rand(1.0, n));" +
                 "tableInsert(table2, 2012.01.01T01:21:23 + 1..n, 2018.12.01T01:21:23.000 + 1..n, take(`a`b`c,n), rand(100,n)+rand(1.0, n));" +
                 "d = dict(['msg1','msg2'], [table1, table2]);" +
-                "replay(inputTables=d, outputTables=`outTables, dateColumn=`timestampv, timeColumn=`timestampv)";
+                "replay(inputTables=d, outputTables=`outTables2pool, dateColumn=`timestampv, timeColumn=`timestampv)";
             conn.run(replayScript);
 
             BasicTable table1 = (BasicTable)conn.run("table1");
             BasicTable table2 = (BasicTable)conn.run("table2");
 
-            //2„ÄÅcolType
+            //2°¢colType
             Dictionary<string, List<DATA_TYPE>> colTypes = new Dictionary<string, List<DATA_TYPE>>();
             List<DATA_TYPE> table1ColTypes = new List<DATA_TYPE> { DATA_TYPE.DT_DATETIME, DATA_TYPE.DT_TIMESTAMP, DATA_TYPE.DT_SYMBOL, DATA_TYPE.DT_DOUBLE, DATA_TYPE.DT_DOUBLE };
             colTypes["msg1"] = table1ColTypes;
@@ -1568,8 +1568,8 @@ namespace dolphindb_csharp_api_test.stream_test
             StreamDeserializer streamFilter = new StreamDeserializer(colTypes);
 
             Handler6 handler = new Handler6(streamFilter);
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
-            client.subscribe(SERVER, PORT, "outTables", "mutiSchema", handler, 0, true);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10226);
+            client.subscribe(SERVER, PORT, "outTables2pool", "mutiSchema", handler, 0, true);
 
             List<BasicMessage> msg1 = handler.getMsg1();
             List<BasicMessage> msg2 = handler.getMsg2();
@@ -1592,9 +1592,9 @@ namespace dolphindb_csharp_api_test.stream_test
             //        Assert.AreEqual(tableCol.get(j), msg2[j].getEntity(i));
             //    }
             //}
-            client.unsubscribe(SERVER, PORT, "outTables", "mutiSchema");
+            client.unsubscribe(SERVER, PORT, "outTables2pool", "mutiSchema");
             client.close();
-            conn.run("undef(`outTables, SHARED)");
+       //     conn.run("undef(`outTables2pool, SHARED)");
             conn.close();
             streamConn.close();
         }
@@ -1608,7 +1608,7 @@ namespace dolphindb_csharp_api_test.stream_test
             streamConn.connect(SERVER, PORT, "admin", "123456");
             try
             {
-                conn.run("dropStreamTable(`outTables)");
+                conn.run("dropStreamTable(`outTables3pool)");
             }
             catch (Exception e)
             {
@@ -1616,15 +1616,15 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             try
             {
-                conn.run("dropStreamTable(`st1)");
+                conn.run("dropStreamTable(`st1pool)");
             }
             catch (Exception e)
             {
                 Console.Out.WriteLine(e.Message);
             }
 
-            String script = "st1 = streamTable(100:0, `timestampv`sym`blob`price1,[TIMESTAMP,SYMBOL,BLOB,DOUBLE])\n" +
-                    "enableTableShareAndPersistence(table=st1, tableName=`outTables, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
+            String script = "st1pool = streamTable(100:0, `timestampv`sym`blob`price1,[TIMESTAMP,SYMBOL,BLOB,DOUBLE])\n" +
+                    "enableTableShareAndPersistence(table=st1pool, tableName=`outTables3pool, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
             conn.run(script);
 
             string replayScript = "n = 10000;table1 = table(100:0, `datetimev`timestampv`sym`price1`price2, [DATETIME, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE]);" +
@@ -1632,7 +1632,7 @@ namespace dolphindb_csharp_api_test.stream_test
                 "tableInsert(table1, 2012.01.01T01:21:23 + 1..n, 2018.12.01T01:21:23.000 + 1..n, take(`a`b`c,n), rand(100,n)+rand(1.0, n), rand(100,n)+rand(1.0, n));" +
                 "tableInsert(table2, 2012.01.01T01:21:23 + 1..n, 2018.12.01T01:21:23.000 + 1..n, take(`a`b`c,n), rand(100,n)+rand(1.0, n));" +
                 "d = dict(['msg1','msg2'], [table1, table2]);" +
-                "replay(inputTables=d, outputTables=`outTables, dateColumn=`timestampv, timeColumn=`timestampv)";
+                "replay(inputTables=d, outputTables=`outTables3pool, dateColumn=`timestampv, timeColumn=`timestampv)";
             conn.run(replayScript);
 
             BasicTable table1 = (BasicTable)conn.run("table1");
@@ -1644,8 +1644,8 @@ namespace dolphindb_csharp_api_test.stream_test
             tables["msg2"] = new Tuple<string, string>("", "table2");
             StreamDeserializer streamFilter = new StreamDeserializer(tables, conn);
             Handler6 handler = new Handler6(streamFilter);
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
-            client.subscribe(SERVER, PORT, "outTables", "mutiSchema", handler, 0, true);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10227);
+            client.subscribe(SERVER, PORT, "outTables3pool", "mutiSchema", handler, 0, true);
 
             List<BasicMessage> msg1 = handler.getMsg1();
             List<BasicMessage> msg2 = handler.getMsg2();
@@ -1668,9 +1668,9 @@ namespace dolphindb_csharp_api_test.stream_test
             //        Assert.AreEqual(tableCol.get(j), msg2[j].getEntity(i));
             //    }
             //}
-            client.unsubscribe(SERVER, PORT, "outTables", "mutiSchema");
+            client.unsubscribe(SERVER, PORT, "outTables3pool", "mutiSchema");
             client.close();
-            conn.run("undef(`outTables, SHARED)");
+            //conn.run("undef(`outTables3pool, SHARED)");
             conn.close();
             streamConn.close();
         }
@@ -1684,7 +1684,7 @@ namespace dolphindb_csharp_api_test.stream_test
             streamConn.connect(SERVER, PORT, "admin", "123456");
             try
             {
-                conn.run("dropStreamTable(`outTables)");
+                conn.run("dropStreamTable(`outTables4pool)");
             }
             catch (Exception e)
             {
@@ -1693,15 +1693,15 @@ namespace dolphindb_csharp_api_test.stream_test
 
             try
             {
-                conn.run("dropStreamTable(`st1)");
+                conn.run("dropStreamTable(`st1pool)");
             }
             catch (Exception e)
             {
                 Console.Out.WriteLine(e.Message);
             }
 
-            String script = "st1 = streamTable(100:0, `timestampv`sym`blob`price1,[TIMESTAMP,SYMBOL,BLOB,DOUBLE])\n" +
-                    "enableTableShareAndPersistence(table=st1, tableName=`outTables, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
+            String script = "st1pool = streamTable(100:0, `timestampv`sym`blob`price1,[TIMESTAMP,SYMBOL,BLOB,DOUBLE])\n" +
+                    "enableTableShareAndPersistence(table=st1pool, tableName=`outTables4pool, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
             conn.run(script);
 
             string replayScript = "n = 100000;table1 = table(100:0, `datetimev`timestampv`sym`price1`price2, [DATETIME, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE]);" +
@@ -1709,7 +1709,7 @@ namespace dolphindb_csharp_api_test.stream_test
                 "tableInsert(table1, 2012.01.01T01:21:23 + 1..n, 2018.12.01T01:21:23.000 + 1..n, take(`a`b`c,n), rand(100,n)+rand(1.0, n), rand(100,n)+rand(1.0, n));" +
                 "tableInsert(table2, 2012.01.01T01:21:23 + 1..n, 2018.12.01T01:21:23.000 + 1..n, take(`a`b`c,n), rand(100,n)+rand(1.0, n));" +
                 "d = dict(['msg1','msg2'], [table1, table2]);" +
-                "replay(inputTables=d, outputTables=`outTables, dateColumn=`timestampv, timeColumn=`timestampv)";
+                "replay(inputTables=d, outputTables=`outTables4pool, dateColumn=`timestampv, timeColumn=`timestampv)";
             conn.run(replayScript);
 
             BasicTable table1 = (BasicTable)conn.run("table1");
@@ -1723,8 +1723,8 @@ namespace dolphindb_csharp_api_test.stream_test
             StreamDeserializer streamFilter = new StreamDeserializer(filter);
 
             Handler7 handler = new Handler7();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 18250);
-            client.subscribe(SERVER, PORT, "outTables", "mutiSchema", handler, 0, true, null, streamFilter);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10228);
+            client.subscribe(SERVER, PORT, "outTables4pool", "mutiSchema", handler, 0, true, null, streamFilter);
 
             List<BasicMessage> msg1 = handler.getMsg1();
             List<BasicMessage> msg2 = handler.getMsg2();
@@ -1747,9 +1747,9 @@ namespace dolphindb_csharp_api_test.stream_test
             //        Assert.AreEqual(tableCol.get(j), msg2[j].getEntity(i));
             //    }
             //}
-            client.unsubscribe(SERVER, PORT, "outTables", "mutiSchema");
+            client.unsubscribe(SERVER, PORT, "outTables4pool", "mutiSchema");
             client.close();
-            conn.run("undef(`outTables, SHARED)");
+            //conn.run("undef(`outTables4pool, SHARED)");
             conn.close();
             streamConn.close();
         }
@@ -1764,7 +1764,7 @@ namespace dolphindb_csharp_api_test.stream_test
             Exception exception = null;
             try
             {
-                conn.run("dropStreamTable(`outTables)");
+                conn.run("dropStreamTable(`outTables5)");
             }
             catch (Exception e)
             {
@@ -1772,7 +1772,7 @@ namespace dolphindb_csharp_api_test.stream_test
             }
 
             //String script = "st1 = streamTable(100:0, `timestampv`sym`blob`price1,[TIMESTAMP,SYMBOL,BLOB,DOUBLE])\n" +
-            //       "enableTableShareAndPersistence(table=st1, tableName=`outTables, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
+            //       "enableTableShareAndPersistence(table=st1, tableName=`outTables5, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
             //conn.run(script);
 
             string replayScript = "n = 100000;t1 = table(100:0, `timestampv`sym`blob`price2, [TIMESTAMP, SYMBOL, BLOB, DOUBLE]);" +
@@ -1787,7 +1787,7 @@ namespace dolphindb_csharp_api_test.stream_test
             StreamDeserializer streamFilter = new StreamDeserializer(filter);
 
             Handler7 handler = new Handler7();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10229);
             try
             {
                 client.subscribe(SERVER, PORT, "table1", "mutiSchema", handler, 0, true,null, streamFilter);
@@ -1799,7 +1799,7 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             Assert.IsNotNull(exception);
             client.close();
-            conn.run("undef(`table1, SHARED)");
+            //conn.run("undef(`table1, SHARED)");
             conn.close();
             streamConn.close();
 
@@ -1815,7 +1815,7 @@ namespace dolphindb_csharp_api_test.stream_test
             Exception exception = null;
             try
             {
-                conn.run("dropStreamTable(`outTables)");
+                conn.run("dropStreamTable(`outTables6)");
             }
             catch (Exception e)
             {
@@ -1842,7 +1842,7 @@ namespace dolphindb_csharp_api_test.stream_test
             StreamDeserializer streamFilter = new StreamDeserializer(filter);
 
             Handler7 handler = new Handler7();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10230);
             try
             {
 
@@ -1857,7 +1857,7 @@ namespace dolphindb_csharp_api_test.stream_test
             Assert.IsNotNull(exception);
             //client.unsubscribe(SERVER, PORT, "st1", "mutiSchema");
             client.close();
-            conn.run("undef(`st1, SHARED)");
+            //conn.run("undef(`st1, SHARED)");
             conn.close();
             streamConn.close();
 
@@ -1873,7 +1873,7 @@ namespace dolphindb_csharp_api_test.stream_test
             Exception exception = null;
             try
             {
-                conn.run("dropStreamTable(`outTables)");
+                conn.run("dropStreamTable(`outTables7)");
             }
             catch (Exception e)
             {
@@ -1902,7 +1902,7 @@ namespace dolphindb_csharp_api_test.stream_test
             StreamDeserializer streamFilter = new StreamDeserializer(filter);
 
             Handler7 handler = new Handler7();
-            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, LOCALPORT);
+            ThreadPooledClient client = new ThreadPooledClient(LOCALHOST, 10231);
             try
             {
 
@@ -1917,7 +1917,7 @@ namespace dolphindb_csharp_api_test.stream_test
             Assert.IsNotNull(exception);
             //client.unsubscribe(SERVER, PORT, "st1", "mutiSchema");
             client.close();
-            conn.run("undef(`st1, SHARED)");
+            //conn.run("undef(`st1, SHARED)");
             conn.close();
             streamConn.close();
         }

@@ -13,6 +13,7 @@ using System.Collections;
 using System.Threading.Tasks;
 using dolphindb.route;
 using dolphindb_config;
+using dolphindb_csharpapi_net_core.src;
 
 namespace dolphindb_csharp_api_test.route_test
 {
@@ -951,6 +952,28 @@ namespace dolphindb_csharp_api_test.route_test
             conn.run("undef(`table1, SHARED)");
             conn.close();
         }
+        //[TestMethod] btw not support decimal
+        //public void Test_batchTableWriter_BasicDecimal64()
+        //{
+        //    DBConnection conn = new DBConnection();
+        //    conn.connect(SERVER, PORT, USER, PASSWORD);
+        //    String script = "";
+        //    script += "share table(100:0, [`col0], [DECIMAL64(4)]) as table1";
+        //    conn.run(script);
+        //    BatchTableWriter btw = new BatchTableWriter(SERVER, PORT, USER, PASSWORD);
+        //    btw.addTable("table1", "");
+        //    for (int i = 1; i < 1000001; i++)
+        //    {
+        //        List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicDecimal64(i, 4) });
+        //        btw.insert("table1", "", x);
+        //    }
+        //    BasicTable re = (BasicTable)conn.run("table1");
+        //    BasicTable expected = (BasicTable)conn.run("table(take(decimal64(1..1000000), 1000000) as col0)");
+        //    compareBasicTable16(re, expected);
+        //    btw.removeTable("table1");
+        //    conn.run("undef(`table1, SHARED)");
+        //    conn.close();
+        //}
 
         [TestMethod]
         public void Test_batchTableWriter_in_memory_table_huge_data()
@@ -1319,5 +1342,104 @@ namespace dolphindb_csharp_api_test.route_test
         //    int count = t.rows();
         //    Assert.AreEqual(count, errorIndex - fail.rows());
         //}
+
+        [TestMethod]
+        public void Test_BatchTableWriter_addTable()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            conn.run("if(existsDatabase(\"dfs://dataXdemo\")){dropDatabase(\"dfs://dataXdemo\")}\n" +
+                "db = database(\"dfs://dataXdemo\", VALUE, 1..10)\n" +
+                "t = table(take(1..10, 100) as id, take([`A, `B, `C], 100) as sym, 1..100 as qty, 100..1 as price)\n" +
+                "pt = db.createPartitionedTable(t, `pt, `id).append!(t)");
+            BatchTableWriter btw1 = new BatchTableWriter(SERVER, PORT, USER, PASSWORD);
+            btw1.addTable("dfs://dataXdemo", "pt", true);
+            try
+            {
+                btw1.addTable("dfs://dataXdemo", "pt", true);
+            }
+            catch(Exception e)
+            {
+                Assert.AreEqual("Failed to add table, the specified table has not been removed yet.", e.Message);
+                Console.WriteLine(e.Message);
+            }
+
+            BatchTableWriter btw2 = new BatchTableWriter("192.168.1.116", 51872, USER, PASSWORD);
+            try
+            {
+                btw2.addTable("dfs://dataXdemo", "pt", true);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Assert.AreEqual("Failed to connect to server.", e.Message);
+            }
+            conn.run("ss = table([1,2,3] as id);share ss as sst");
+            BatchTableWriter btw3 = new BatchTableWriter(SERVER, PORT, USER, PASSWORD);
+            try 
+            {
+                btw3.addTable("dfs://dataXdemo", "pt", false);
+            }catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Assert.AreEqual("The target table must be an in-memory table or a table in a distributed database.", e.Message);
+            }
+            btw3.addTable("sst", "", false);
+            List<IScalar> datas = new List<IScalar>();
+            datas.Add(new BasicInt(70));
+            datas.Add(new BasicInt(71));
+            try
+            {
+                btw3.insert("ghjsdb", "", datas);
+            }catch(Exception e)
+            {
+                Assert.AreEqual("failed to insert into table, please use addtable to add infomation of database and table first.", e.Message);
+                Console.WriteLine(e.Message);
+            }
+
+            try
+            {
+                btw3.insert("sst", "", datas);
+            }
+            catch(Exception e)
+            {
+                Assert.AreEqual("failed to insert into table, number of arguments must match the number of columns of table.", e.Message);
+                Console.WriteLine(e.Message);
+            }
+            List<IScalar> value1 = new List<IScalar>();
+            value1.Add(new BasicLong(4));
+            try
+            {
+                btw3.insert("sst", "", value1);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Assert.AreEqual("Failed to insert data, the type of argument does not match the type of column at column: 0", e.Message);
+            }
+
+            List<IScalar> value2 = new List<IScalar>();
+            value2.Add(new BasicInt(70));
+            btw3.insert("sst", "", value2);
+            try
+            {
+                btw3.getStatus("gjhagsja", "jhsgak");
+            }catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Assert.AreEqual("Failed to get queue depth. Please use addTable to add infomation of database and table first.", e.Message);
+            }
+            Console.WriteLine(btw3.getStatus("sst", ""));
+            BasicTable bt = btw3.getUnwrittenData("sst", "");
+            try
+            {
+                btw3.getUnwrittenData("gasgangkja", "skajhkjaf");
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Assert.AreEqual("Failed to get unwritten data.Please use addTable to add infomation of database and table first.", e.Message);
+            }
+        }
     }
 }

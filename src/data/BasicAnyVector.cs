@@ -16,13 +16,9 @@ namespace dolphindb.data
             values = new IEntity[size];
         }
 
-        protected BasicAnyVector(IEntity[] array, bool copy): base(DATA_FORM.DF_VECTOR)
+        protected BasicAnyVector(IEntity[] array): base(DATA_FORM.DF_VECTOR)
         {
-            
-            if (copy)
-                values = (IEntity[])array.Clone();
-            else
-                values = array;
+            values = array;
         }
 
         protected internal BasicAnyVector(ExtendedDataInput @in) : base(DATA_FORM.DF_VECTOR)
@@ -158,7 +154,7 @@ namespace dolphindb.data
             IEntity[] sub = new IEntity[length];
             for (int i = 0; i < length; ++i)
                 sub[i] = values[indices[i]];
-            return new BasicAnyVector(sub, false);
+            return new BasicAnyVector(sub);
         }
 
         public override int asof(IScalar value)
@@ -199,6 +195,11 @@ namespace dolphindb.data
         public override IEntity getEntity(int index)
         {
             return values[index];
+        }
+
+        public override int getExtraParamForType()
+        {
+            throw new NotImplementedException();
         }
     }
 

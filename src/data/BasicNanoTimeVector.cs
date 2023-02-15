@@ -106,12 +106,34 @@ namespace dolphindb.data
 
 
         public override void add(object value)
-        {
+        {   
             if (value is TimeSpan)
             {
                 BasicNanoTime.checkTimeSpanToNanoTime((TimeSpan)value);
                 base.add(Utils.countNanoseconds((TimeSpan)value));
                 return;
+            }else if(value is string)
+            {
+                TimeSpan ts = new TimeSpan();
+                long v = 0;
+                if (!long.TryParse((string)value, out v))
+                {
+                    var tmp = ((string)value).Split('.');
+                    if (tmp.Length >= 2)
+                    {
+                        long nano = 0;
+                        if (long.TryParse(tmp[1], out nano))
+                        {
+                            if (TimeSpan.TryParse(tmp[0], out ts))
+                            {
+                                BasicNanoTime.checkTimeSpanToNanoTime(ts);
+                                long data = new BasicLong(Utils.countNanoseconds(ts) + nano).getLong();
+                                base.add(data);
+                                return;
+                            }
+                        }
+                    }
+                }
             }
             base.add(value);
         }

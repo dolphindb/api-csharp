@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using dolphindb.data;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace dolphindb
 {
@@ -30,7 +31,7 @@ namespace dolphindb
         }
         class AsynWorker
         {
-            private DBConnection connection_;
+            public DBConnection connection_;
             public Thread workThread_;
             public WorkItem threadWorkItem;
 
@@ -97,7 +98,16 @@ namespace dolphindb
             }
         }
 
-        public ExclusiveDBConnectionPool(string host, int port, string uid,string pwd, int count, bool loadBalance,bool highAvailability, string[] highAvailabilitySites = null, string startup = "", bool compress = false, bool useSSL = false, bool usePython = false) {
+        private T[] newArray<T>(T[] source, int originLength, int newLength)
+        {
+            T[] newValue = new T[newLength];
+            Array.Copy(source, newValue, originLength);
+            return newValue;
+        }
+
+
+        public ExclusiveDBConnectionPool(string host, int port, string uid, string pwd, int count, bool loadBalance, bool highAvailability, string[] highAvailabilitySites = null, string startup = "", bool compress = false, bool useSSL = false, bool usePython = false)
+        {
             if (count <= 0)
                 throw new Exception("The thread count can not be less than 1");
             if (!loadBalance)
@@ -106,7 +116,7 @@ namespace dolphindb
                 {
                     DBConnection conn = new DBConnection(false, useSSL, compress, usePython);
                     conn.setLoadBalance(false);
-                    if (!conn.connect(host, port, uid, pwd, startup, highAvailability))
+                    if (!conn.connect(host, port, uid, pwd, startup, highAvailability, highAvailabilitySites))
                         throw new Exception("Cant't connect to the specified host.");
                     AsynWorker asyn = new AsynWorker(conn, workItem_);
                     asyn.workThread_ = new Thread(new ThreadStart(asyn.run));
@@ -124,7 +134,7 @@ namespace dolphindb
                 else
                 {
                     DBConnection entryPoint = new DBConnection();
-                    if (!entryPoint.connect(host, port, uid, pwd))
+                    if (!entryPoint.connect(host, port, uid, pwd, startup, highAvailability, highAvailabilitySites))
                         throw new Exception("Can't connect to the specified host.");
                     nodes = (BasicStringVector)entryPoint.run("rpc(getControllerAlias(), getClusterLiveDataNodes{false})");
                     entryPoint.close();
@@ -132,6 +142,7 @@ namespace dolphindb
                 int nodeCount = nodes.rows();
                 string[] hosts = new string[nodeCount];
                 int[] ports = new int[nodeCount];
+                string[] sites = new string[nodeCount];
                 for(int i = 0; i < nodeCount; i++)
                 {
                     string[] fields = nodes.getString(i).Split(':');
@@ -139,13 +150,33 @@ namespace dolphindb
                         throw new Exception("Invalid datanode adress: " + nodes.getString(i));
                     hosts[i] = fields[0];
                     ports[i] = int.Parse(fields[1]);
+                    sites[i] = hosts[i] + ":" + ports[i];
                 }
-                for(int i = 0; i < count; i++)
+                bool firstFound = false;
+                for (int i = 0; i < nodeCount; ++i)
+                {
+                    if (hosts[i] == host && ports[i] == port)
+                    {
+                        firstFound = true;
+                        break;
+                    }
+                }
+                if (!firstFound)
+                {
+                    hosts = newArray<string>(hosts, nodeCount, nodeCount + 1);
+                    ports = newArray<int>(ports, nodeCount, nodeCount + 1);
+                    sites = newArray<string>(sites, nodeCount, nodeCount + 1);
+                    hosts[nodeCount] = host;
+                    ports[nodeCount] = port;
+                    sites[nodeCount] = host + ":" + port;
+                    nodeCount++;
+                }
+                for (int i = 0; i < count; i++)
                 {
                     DBConnection conn = new DBConnection(false, useSSL, compress, usePython);
                     conn.setLoadBalance(false);
-                    if (!(conn.connect(hosts[i % nodeCount], ports[i % nodeCount], uid, pwd, startup, highAvailability)))
-                        throw new Exception("Can't connect to the host: " + nodes.getString(i%nodeCount));
+                    if (!(conn.connect(hosts[i % nodeCount], ports[i % nodeCount], uid, pwd, startup, highAvailability, sites)))
+                        throw new Exception("Can't connect to the specified host: ");
                     AsynWorker asyn = new AsynWorker(conn, workItem_);
                     asyn.workThread_ = new Thread(new ThreadStart(asyn.run));
                     asyn.workThread_.Start();
@@ -184,9 +215,23 @@ namespace dolphindb
             ((BasicDBTask)task).finish();
         }
 
-        public IEntity run(string function, IList<IEntity> arguments)
+#if NETCOREAPP
+        public async Task<IEntity> runAsync(string script, int priority = 4, int parallelism = 2, bool clearMemory = false)
         {
-            IDBTask task = new BasicDBTask(function, (List<IEntity>)arguments);
+            IEntity result = await Task.Run(() => run(script, priority, parallelism, clearMemory));
+            return result;
+        }
+
+        public async Task<IEntity> runAsync(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        {
+            IEntity result = await Task.Run(() => run(function, arguments, priority, parallelism, clearMemory));
+            return result;
+        }
+#endif
+
+        public IEntity run(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        {
+            IDBTask task = new BasicDBTask(function, (List<IEntity>)arguments, priority, parallelism, clearMemory);
             execute(task);
             if (!task.isSuccessful())
             {
@@ -195,9 +240,9 @@ namespace dolphindb
             return task.getResults();
         }
 
-        public IEntity run(string script)
+        public IEntity run(string script, int priority = 4, int parallelism = 2, bool clearMemory = false)
         {
-            IDBTask task = new BasicDBTask(script);
+            IDBTask task = new BasicDBTask(script, priority, parallelism, clearMemory);
             execute(task);
             if (!task.isSuccessful())
             {
@@ -245,5 +290,68 @@ namespace dolphindb
                 }
             }
         }
+
+        public List<IEntity> run(IList<string> sqlList, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        {
+            List<IDBTask> tasks = new List<IDBTask>();
+            foreach (string sql in sqlList)
+            {
+                BasicDBTask task = new BasicDBTask(sql, priority, parallelism, clearMemory);
+                tasks.Add(task);
+            }
+            execute(tasks);
+            List<IEntity> results = new List<IEntity>();
+            foreach(IDBTask dBTask in tasks)
+            {
+                if (!dBTask.isSuccessful())
+                {
+                    throw new Exception(dBTask.getErrorMsg());
+                }
+                results.Add(dBTask.getResults());
+            }
+            return results;
+        }
+
+#if NETCOREAPP
+        public async Task<List<IEntity>> runAsync(IList<string> sqlList, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        {
+            List<IEntity> result = await Task.Run(() => run(sqlList, priority, parallelism, clearMemory));
+            return result;
+        }
+#endif
+
+        public List<IEntity> run(IList<string> sqlList, IList<IList<IEntity>> argumentsList, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        {
+            if (sqlList.Count != argumentsList.Count)
+            {
+                throw new Exception("The length of sqlList and argumentsList are not equal");
+            }
+            List<IDBTask> tasks = new List<IDBTask>();
+            for (int i = 0; i < sqlList.Count; i++)
+            {
+                BasicDBTask task = new BasicDBTask(sqlList[i], (List<IEntity>)argumentsList[i], priority, parallelism, clearMemory);
+                tasks.Add(task);
+            }
+            execute(tasks);
+
+            List<IEntity> results = new List<IEntity>();
+            foreach (IDBTask dBTask in tasks)
+            {
+                if (!dBTask.isSuccessful())
+                {
+                    throw new Exception(dBTask.getErrorMsg());
+                }
+                results.Add(dBTask.getResults());
+            }
+            return results;
+        }
+
+#if NETCOREAPP
+        public async Task<List<IEntity>> runAsync(IList<string> sqlList, IList<IList<IEntity>> argumentsList, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        {
+            List<IEntity> result = await Task.Run(() => run(sqlList, argumentsList, priority, parallelism, clearMemory));
+            return result;
+        }
+#endif
     }
 }

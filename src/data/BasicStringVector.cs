@@ -74,14 +74,11 @@ namespace dolphindb.data
             isBlob = true;
         }
 
-        protected internal BasicStringVector(DATA_FORM df, int size, bool isSymbol) : base(df)
+        protected internal BasicStringVector(DATA_FORM df, int size, bool isSymbol) : this(df, size, isSymbol, false)
         {
-            values = new List<string>(size);
-            values.AddRange(new string[size]);
-            this.isSymbol = isSymbol;
         }
         //2021.01.19 cwj
-        protected internal BasicStringVector(DATA_FORM df, int size, bool isSymbol, bool blob) : base(df)
+        protected internal BasicStringVector(DATA_FORM df, int size, bool isSymbol, bool blob = false) : base(df)
         {
             if (blob)
             {
@@ -412,26 +409,6 @@ namespace dolphindb.data
                 return end;
             }
         }
-        
-        protected override void writeVectorToBuffer(ByteBuffer buffer){
-            if (isBlob)
-            {
-                foreach (byte[] val in blobValues)
-                {
-                    buffer.WriteInt(val.Length);
-                    buffer.WriteBytes(val);
-                }
-            }
-            else
-            {
-                foreach (String val in values)
-                {
-                    byte[] tmp = System.Text.Encoding.Default.GetBytes(val);
-                    buffer.WriteBytes(tmp, 0, tmp.Length);
-                    buffer.WriteByte((byte)0);
-                }
-            }
-        }
 
         public override void deserialize(int start, int count, ExtendedDataInput @in)
         {
@@ -534,6 +511,11 @@ namespace dolphindb.data
         public override IEntity getEntity(int index)
         {
             return get(index);
+        }
+
+        public override int getExtraParamForType()
+        {
+            throw new NotImplementedException();
         }
     }
 

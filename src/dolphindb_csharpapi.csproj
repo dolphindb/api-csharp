@@ -50,6 +50,7 @@
     <Compile Include="data\BasicDateHour.cs" />
     <Compile Include="data\BasicDateHourMatrix.cs" />
     <Compile Include="data\BasicDateHourVector.cs" />
+    <Compile Include="route\AutoFitTableUpsert.cs" />
     <Compile Include="route\ByteBuffer.cs" />
     <Compile Include="compression\Decoder.cs" />
     <Compile Include="compression\DecoderFactory.cs" />
@@ -149,7 +150,6 @@
     <Compile Include="data\IDictionary.cs" />
     <Compile Include="data\IEntity.cs" />
     <Compile Include="data\IEntityFactory.cs" />
-    <Compile Include="data\EntityUtil.cs" />
     <Compile Include="data\IMatrix.cs" />
     <Compile Include="data\IScalar.cs" />
     <Compile Include="data\ISet.cs" />

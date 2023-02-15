@@ -9,6 +9,6 @@ namespace dolphindb.compression
 {
     public interface Decoder
     {
-        ExtendedDataInput Decompress(ExtendedDataInput input, int length, int unitLength, int elementCount, int extra, bool isLittleEndian);
+        ExtendedDataInput Decompress(ExtendedDataInput input, int length, int unitLength, int elementCount, int extra, bool isLittleEndian, int type, short scale);
     }
 }

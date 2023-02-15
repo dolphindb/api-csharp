@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
+using System.IO;
 
 namespace dolphindb.streaming
 {
@@ -18,8 +20,13 @@ namespace dolphindb.streaming
         protected ConcurrentDictionary<string, string> HATopicToTrueTopic_ = new ConcurrentDictionary<string, string>();
 
         protected ConcurrentDictionary<string, SubscribeInfo> subscribeInfos_ = new ConcurrentDictionary<string, SubscribeInfo>();
-        Deamon deamon_;
+        
+      
+        private Deamon deamon_ = null;
         bool isClose_ = false;
+        private BlockingCollection<DBConnection> connList = new BlockingCollection<DBConnection>();
+
+       
 
         public ConcurrentDictionary<string, SubscribeInfo> getSubscribeInfos()
         {
@@ -131,10 +138,6 @@ namespace dolphindb.streaming
         {
             listeningHost_ = subscribeHost;
             listeningPort_ = subscribePort;
-            deamon_ = new Deamon(subscribePort, this);
-            pThread_ = new Thread(new ThreadStart(deamon_.run));
-            deamon_.setThread(pThread_);
-            pThread_.Start();
         }
 
         public BlockingCollection<List<IMessage>> getQueue(string HATopic)
@@ -207,15 +210,41 @@ namespace dolphindb.streaming
             return subscribeInternal(host, port, tableName, actionName, handler, offset, reconnect, filter, null, "", "", true);
         }
 
+        private int getVersionNumber(string ver)
+        {
+            try
+            {
+                string[] s = ver.Split(' ');
+                if (s.Length >= 2)
+                {
+                    string vernum = s[0].Replace(".", "");
+                    return int.Parse(vernum);
+                }
+            }
+            catch (Exception)
+            {
+            }
+            return 0;
+        }
 
         protected BlockingCollection<List<IMessage>> subscribeInternal(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, 
         StreamDeserializer deserializer, string user, string password, bool createSubInfo)
         {
+            checkServerVersion(host, port);
             string topic = "";
             IEntity re;
             BlockingCollection<List<IMessage>> queue;
 
-            DBConnection dbConn = new DBConnection();
+            DBConnection dbConn;
+            if( listeningPort_ > 0)
+            {
+                dbConn = new DBConnection();
+            }
+            else
+            {
+                dbConn = new DBConnection(false, false, false,false, true);
+            }
+
             if(user != "" && password != "")
                 dbConn.connect(host, port, user, password);
             else
@@ -229,15 +258,29 @@ namespace dolphindb.streaming
             }
             try
             {
+                BasicString version = (BasicString)dbConn.run("version()");
+                int verNum = getVersionNumber(version.getString());
                 string localIP = listeningHost_;
                 if (localIP == null || localIP.Equals(String.Empty))
                     localIP = dbConn.LocalAddress;
 
                 List<IEntity> @params = new List<IEntity>
                 {
+                    new BasicString(localIP),
+                    new BasicInt(listeningPort_)
+                };
+                if (verNum >= 995)
+                {
+                    @params.Add(new BasicBoolean(true));
+                }
+                dbConn.run("activeClosePublishConnection", @params);
+                @params.Clear();
+                @params = new List<IEntity>
+                {
                     new BasicString(tableName),
                     new BasicString(actionName)
                 };
+
                 re = dbConn.run("getSubscriptionTopic", @params);
                 topic = ((BasicAnyVector)re).getEntity(0).getString();
                 @params.Clear();
@@ -250,6 +293,7 @@ namespace dolphindb.streaming
                 if (filter != null)
                     @params.Add(filter);
                 re = dbConn.run("publishTable", @params);
+                connList.Add(dbConn);
                 lock (subscribeInfos_)
                 {
                     if (createSubInfo)
@@ -280,7 +324,7 @@ namespace dolphindb.streaming
                                 HATopicToTrueTopic_[topic] = topic;
                             }
                         }
-                        SubscribeInfo subscribeInfo = new SubscribeInfo(DateTime.Now, new BlockingCollection<List<IMessage>>(), sites, topic, offset, reconnect, filter, handler, tableName, actionName, deserializer, user, password);
+                        SubscribeInfo subscribeInfo = new SubscribeInfo(DateTime.Now, new BlockingCollection<List<IMessage>>(), sites, topic, offset-1, reconnect, filter, handler, tableName, actionName, deserializer, user, password);
                         subscribeInfo.setConnectState(ConnectState.REQUEST);
                         queue = subscribeInfo.getQueue();
                         if (subscribeInfos_.ContainsKey(topic))
@@ -315,7 +359,8 @@ namespace dolphindb.streaming
             }
             finally
             {
-                dbConn.close();
+                if( listeningPort_ > 0 )
+                    dbConn.close();
             }
 
             return queue;
@@ -379,6 +424,45 @@ namespace dolphindb.streaming
             unsubscribeInternal(host, port, tableName, DEFAULT_ACTION_NAME);
         }
 
+        private void checkServerVersion(string host, int port)
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(host, port);
+            string version = conn.run("version()").getString();
+
+            string[] parts = version.Split(' ')[0].Split('.');
+            int v0 = int.Parse(parts[0]);
+            int v1 = int.Parse(parts[1]);
+            int v2 = int.Parse(parts[2]);
+
+            if ((v0 == 2 && v1 == 0 && v2 >= 9) || (v0 == 2 && v1 == 10))
+            {
+                // server only support reverse connection
+                listeningPort_ = 0;
+            }
+            else
+            {
+                // server Not support reverse connection
+                if (listeningPort_ == 0)
+                {
+                    throw new IOException("The server does not support subscription through reverse connection (connection initiated by the subscriber). Specify a valid port parameter.");
+                }
+            }
+            if( deamon_ == null)
+            {
+                lock (connList)
+                {
+                    if(deamon_ == null)
+                    {
+                        deamon_ = new Deamon(this.listeningPort_, this, connList);
+                        pThread_ = new Thread(new ThreadStart(deamon_.run));
+                        deamon_.setThread(pThread_);
+                        pThread_.Start();
+                    }
+                }
+            }
+           
+        }
         public void close()
         {
             isClose_ = true;

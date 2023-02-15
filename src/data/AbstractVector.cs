@@ -19,6 +19,7 @@ namespace dolphindb.data
         public abstract IScalar get(int index);
         public abstract void setNull(int index);
         public abstract bool isNull(int index);
+        public abstract int getExtraParamForType();
 
         private DATA_FORM df_;
 
@@ -66,12 +67,12 @@ namespace dolphindb.data
             int size = Math.Min(Vector_Fields.DISPLAY_ROWS, rows());
             if (size > 0)
             {
-                sb.Append(get(0).ToString());
+                sb.Append(get(0).getString());
             }
             for (int i = 1; i < size; ++i)
             {
                 sb.Append(',');
-                sb.Append(get(i).ToString());
+                sb.Append(get(i).getString());
             }
             if (size < rows())
             {
@@ -192,6 +193,8 @@ namespace dolphindb.data
                             case DATA_TYPE.DT_STRING:
                             case DATA_TYPE.DT_SYMBOL:
                             case DATA_TYPE.DT_BLOB:
+                            case DATA_TYPE.DT_DECIMAL32:
+                            case DATA_TYPE.DT_DECIMAL64:
                                 break;
                             default:
                                 throw new InvalidOperationException("The data type of " + type + " does not support lz4 compression");
@@ -240,6 +243,7 @@ namespace dolphindb.data
                 case DATA_TYPE.DT_DATEHOUR:
                 case DATA_TYPE.DT_DATEMINUTE:
                 case DATA_TYPE.DT_SYMBOL:
+                case DATA_TYPE.DT_DECIMAL32:
                     unitLength = 4;
                     break;
                 case DATA_TYPE.DT_LONG:
@@ -247,6 +251,7 @@ namespace dolphindb.data
                 case DATA_TYPE.DT_NANOTIME:
                 case DATA_TYPE.DT_TIMESTAMP:
                 case DATA_TYPE.DT_NANOTIMESTAMP:
+                case DATA_TYPE.DT_DECIMAL64:
                     unitLength = 8;
                     break;
                 case DATA_TYPE.DT_INT128:
@@ -258,10 +263,6 @@ namespace dolphindb.data
                     throw new InvalidOperationException("Type " + type + " is an unsupported Dolphindb data type");
             }
             return unitLength;
-        }
-
-        protected virtual void writeVectorToBuffer(ByteBuffer buffer) {
-		throw new InvalidOperationException("Invalid datatype to write to buffer");
         }
         
         public virtual void writeCompressed(ExtendedDataOutput output) {
@@ -283,8 +284,10 @@ namespace dolphindb.data
             outBuffer.WriteByte((byte) compressedMethod);
             outBuffer.WriteByte((byte) dataType);
             outBuffer.WriteByte((byte) unitLength);
-            outBuffer.WriteByte((byte)0);
-            outBuffer.WriteByte((byte)0);
+            if ((DATA_TYPE)dataType == DATA_TYPE.DT_DECIMAL32 || (DATA_TYPE)dataType == DATA_TYPE.DT_DECIMAL64)
+                outBuffer.WriteShort((short)getExtraParamForType());
+            else
+                outBuffer.WriteShort((short)-1); 
             outBuffer.WriteInt(-1); //extra
             outBuffer.WriteInt(elementCount);
             outBuffer.WriteInt(-1); //TODO: checkSum

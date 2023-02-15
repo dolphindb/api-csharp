@@ -104,6 +104,20 @@ namespace dolphindb.data
                 BasicSecond.checkTimeSpanToSecond((TimeSpan)value);
                 base.add(Utils.countSeconds((TimeSpan)value));
                 return;
+            }else if (value is string)
+            {
+                TimeSpan ts = new TimeSpan();
+                long v = 0;
+                if (!long.TryParse((string)value, out v))
+                {
+                    if (TimeSpan.TryParse((string)value, out ts))
+                    {
+                        BasicSecond.checkTimeSpanToSecond(ts);
+                        long data = new BasicLong(Utils.countSeconds(ts)).getLong();
+                        base.add(data);
+                        return;
+                    }
+                }
             }
             base.add(value);
         }

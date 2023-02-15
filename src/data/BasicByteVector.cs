@@ -32,24 +32,6 @@ namespace dolphindb.data
             values.AddRange(array);
             //values = array.Clone() as byte[];
         }
-
-        protected BasicByteVector(byte[] array, bool copy) : base(DATA_FORM.DF_VECTOR)
-        {
-
-            if (copy)
-            {
-                values = new List<byte>(array.Length);
-                values.AddRange(array);
-            }
-
-            else
-            {
-                values = new List<byte>(array.Length);
-                values.AddRange(array);
-            }
-                
-        }
-
         protected internal BasicByteVector(DATA_FORM df, int size) : base(df)
         {
            
@@ -82,7 +64,7 @@ namespace dolphindb.data
 
         public override void set(int index, IScalar value)
         {
-            if (value.getString() == null|| value.getString()=="")
+            if (value.getString()=="")
             {
                 values[index] = (byte)0;
             }
@@ -100,12 +82,12 @@ namespace dolphindb.data
 
         public override bool isNull(int index)
         {
-            return values[index] == byte.MinValue;
+            return values[index] == 128;
         }
 
         public override void setNull(int index)
         {
-            values[index] = byte.MinValue;
+            values[index] = 128;
         }
 
         public override DATA_CATEGORY getDataCategory()
@@ -165,15 +147,10 @@ namespace dolphindb.data
         public override int hashBucket(int index, int buckets)
         {
             int value = values[index];
-            if (value >= 0)
+            if (value > 0)
                 return value % buckets;
-
-            else if (value == Byte.MinValue)
-                return -1;
             else
-            {
-                return (int)((4294967296l + value) % buckets);
-            }
+                return -1;
         }
 
         public override IVector getSubVector(int[] indices)
@@ -182,7 +159,7 @@ namespace dolphindb.data
             byte[] sub = new byte[length];
             for (int i = 0; i < length; ++i)
                 sub[i] = values[indices[i]];
-            return new BasicByteVector(sub, false);
+            return new BasicByteVector(sub);
         }
 
 
@@ -210,14 +187,6 @@ namespace dolphindb.data
                     end = mid - 1;
             }
             return end;
-        }
-
-        protected override void writeVectorToBuffer(ByteBuffer buffer)
-        {
-            foreach (byte val in values)
-            {
-                buffer.WriteByte(val);
-            }
         }
 
         public override void deserialize(int start, int count, ExtendedDataInput @in)
@@ -275,6 +244,11 @@ namespace dolphindb.data
         public override IEntity getEntity(int index)
         {
             return new BasicByte(values[index]);
+        }
+
+        public override int getExtraParamForType()
+        {
+            throw new NotImplementedException();
         }
     }
 

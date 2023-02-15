@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1293,7 +1293,7 @@ namespace dolphindb_csharp_api_test.stream_test
             String script = "";
             script += "try{undef(`trades, SHARED)}catch(ex){}";
             conn.run(script);
-            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
+            PollingClient client = new PollingClient(LOCALHOST, 10001);
             Exception exception = null;
             Handler1 handler1 = new Handler1();
             BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
@@ -1325,7 +1325,7 @@ namespace dolphindb_csharp_api_test.stream_test
             String script = "";
             script += "try{undef(`trades, SHARED)}catch(ex){}";
             conn.run(script);
-            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
+            PollingClient client = new PollingClient(LOCALHOST, 10002);
             Exception exception = null;
             Handler1 handler1 = new Handler1();
             BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
@@ -1360,7 +1360,7 @@ namespace dolphindb_csharp_api_test.stream_test
             String script = "";
             script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..1000), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub.append!(tmp); ";
             conn.run(script);
-            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
+            PollingClient client = new PollingClient(LOCALHOST, 10003);
             TopicPoller pool = client.subscribe(SERVER, PORT, "pub", "sub1", 0, true, filter, null, "admin", "123456");
             Thread.Sleep(500);
             List<IMessage> messages = pool.poll(TIMEOUT);
@@ -1394,7 +1394,7 @@ namespace dolphindb_csharp_api_test.stream_test
             String script = "";
             script += "batch=1000;tmp = table(batch:batch,  `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);tmp[`permno] = take(1..100, batch);tmp[`timestamp] = take(now(), batch);tmp[`ticker] = rand(\"A\" + string(1..1000), batch);tmp[`price1] = rand(100, batch);tmp[`price2] = rand(100, batch);tmp[`price3] = rand(100, batch);tmp[`price4] = rand(100, batch);tmp[`price5] = rand(100, batch);tmp[`vol1] = rand(100, batch);tmp[`vol2] = rand(100, batch);tmp[`vol3] = rand(100, batch);tmp[`vol4] = rand(100, batch);tmp[`vol5] = rand(100, batch);pub2.append!(tmp); ";
             conn.run(script);
-            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
+            PollingClient client = new PollingClient(LOCALHOST, 10004);
             TopicPoller pool = client.subscribe(SERVER, PORT, "pub2", "sub1", 0, true, filter, null, "testuser1", "123456");
             Thread.Sleep(500);
             List<IMessage> messages = pool.poll(TIMEOUT);
@@ -1459,7 +1459,7 @@ namespace dolphindb_csharp_api_test.stream_test
             streamConn.connect(SERVER, PORT, "admin", "123456");
             try
             {
-                conn.run("dropStreamTable(`outTables)");
+                conn.run("dropStreamTable(`outTables1)");
             }
             catch (Exception e)
             {
@@ -1475,7 +1475,7 @@ namespace dolphindb_csharp_api_test.stream_test
             }
 
             String script = "st1 = streamTable(100:0, `timestampv`sym`blob`price1,[TIMESTAMP,SYMBOL,BLOB,DOUBLE])\n" +
-                    "enableTableShareAndPersistence(table=st1, tableName=`outTables, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
+                    "enableTableShareAndPersistence(table=st1, tableName=`outTables1, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
             conn.run(script);
 
             string replayScript = "n = 10000;table1 = table(100:0, `datetimev`timestampv`sym`price1`price2, [DATETIME, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE]);" +
@@ -1483,7 +1483,7 @@ namespace dolphindb_csharp_api_test.stream_test
                 "tableInsert(table1, 2012.01.01T01:21:23 + 1..n, 2018.12.01T01:21:23.000 + 1..n, take(`a`b`c,n), rand(100,n)+rand(1.0, n), rand(100,n)+rand(1.0, n));" +
                 "tableInsert(table2, 2012.01.01T01:21:23 + 1..n, 2018.12.01T01:21:23.000 + 1..n, take(`a`b`c,n), rand(100,n)+rand(1.0, n));" +
                 "d = dict(['msg1','msg2'], [table1, table2]);" +
-                "replay(inputTables=d, outputTables=`outTables, dateColumn=`timestampv, timeColumn=`timestampv)";
+                "replay(inputTables=d, outputTables=`outTables1, dateColumn=`timestampv, timeColumn=`timestampv)";
             conn.run(replayScript);
 
             BasicTable table1 = (BasicTable)conn.run("table1");
@@ -1496,8 +1496,8 @@ namespace dolphindb_csharp_api_test.stream_test
             schemas["msg1"] = outSharedTables1Schema;
             schemas["msg2"] = outSharedTables2Schema;
             StreamDeserializer streamFilter = new StreamDeserializer(schemas);
-            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
-            TopicPoller poller = client.subscribe(SERVER, PORT, "outTables", "mutiSchema", 0, true, null, streamFilter);
+            PollingClient client = new PollingClient(LOCALHOST, 10005);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "outTables1", "mutiSchema", 0, true, null, streamFilter);
             Thread.Sleep(5000);
             List<IMessage> messages = poller.poll(TIMEOUT);
             List<BasicMessage> msg1 = new List<BasicMessage>();
@@ -1520,9 +1520,9 @@ namespace dolphindb_csharp_api_test.stream_test
             Assert.AreEqual(table2.rows(), msg2count);
             int messageCount = messages.Count;
             Assert.AreEqual(table1.rows() + table2.rows(), messageCount);
-            client.unsubscribe(SERVER, PORT, "outTables", "mutiSchema");
+            client.unsubscribe(SERVER, PORT, "outTables1", "mutiSchema");
             client.close();
-            conn.run("undef(`outTables, SHARED)");
+            //conn.run("undef(`outTables1, SHARED)");
             conn.close();
             streamConn.close();
         }
@@ -1536,7 +1536,7 @@ namespace dolphindb_csharp_api_test.stream_test
             streamConn.connect(SERVER, PORT, "admin", "123456");
             try
             {
-                conn.run("dropStreamTable(`outTables)");
+                conn.run("dropStreamTable(`outTables2)");
             }
             catch (Exception e)
             {
@@ -1551,7 +1551,7 @@ namespace dolphindb_csharp_api_test.stream_test
                 Console.Out.WriteLine(e.Message);
             }
             String script = "st1 = streamTable(100:0, `timestampv`sym`blob`price1,[TIMESTAMP,SYMBOL,BLOB,DOUBLE])\n" +
-                    "enableTableShareAndPersistence(table=st1, tableName=`outTables, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
+                    "enableTableShareAndPersistence(table=st1, tableName=`outTables2, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
             conn.run(script);
 
             string replayScript = "n = 10000;table1 = table(100:0, `datetimev`timestampv`sym`price1`price2, [DATETIME, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE]);" +
@@ -1559,7 +1559,7 @@ namespace dolphindb_csharp_api_test.stream_test
                 "tableInsert(table1, 2012.01.01T01:21:23 + 1..n, 2018.12.01T01:21:23.000 + 1..n, take(`a`b`c,n), rand(100,n)+rand(1.0, n), rand(100,n)+rand(1.0, n));" +
                 "tableInsert(table2, 2012.01.01T01:21:23 + 1..n, 2018.12.01T01:21:23.000 + 1..n, take(`a`b`c,n), rand(100,n)+rand(1.0, n));" +
                 "d = dict(['msg1','msg2'], [table1, table2]);" +
-                "replay(inputTables=d, outputTables=`outTables, dateColumn=`timestampv, timeColumn=`timestampv)";
+                "replay(inputTables=d, outputTables=`outTables2, dateColumn=`timestampv, timeColumn=`timestampv)";
             conn.run(replayScript);
 
             BasicTable table1 = (BasicTable)conn.run("table1");
@@ -1572,8 +1572,8 @@ namespace dolphindb_csharp_api_test.stream_test
             List<DATA_TYPE> table2ColTypes = new List<DATA_TYPE> { DATA_TYPE.DT_DATETIME, DATA_TYPE.DT_TIMESTAMP, DATA_TYPE.DT_SYMBOL, DATA_TYPE.DT_DOUBLE };
             colTypes["msg2"] = table2ColTypes;
             StreamDeserializer streamFilter = new StreamDeserializer(colTypes);
-            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
-            TopicPoller poller = client.subscribe(SERVER, PORT, "outTables", "mutiSchema", 0, true, null, streamFilter);
+            PollingClient client = new PollingClient(LOCALHOST, 10006);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "outTables2", "mutiSchema", 0, true, null, streamFilter);
             Thread.Sleep(5000);
             List<IMessage> messages = poller.poll(TIMEOUT);
             List<BasicMessage> msg1 = new List<BasicMessage>();
@@ -1596,9 +1596,9 @@ namespace dolphindb_csharp_api_test.stream_test
             Assert.AreEqual(table2.rows(), msg2count);
             int messageCount = messages.Count;
             Assert.AreEqual(table1.rows() + table2.rows(), messageCount);
-            client.unsubscribe(SERVER, PORT, "outTables", "mutiSchema");
+            client.unsubscribe(SERVER, PORT, "outTables2", "mutiSchema");
             client.close();
-            conn.run("undef(`outTables, SHARED)");
+            //conn.run("undef(`outTables2, SHARED)");
             conn.close();
             streamConn.close();
         }
@@ -1612,7 +1612,7 @@ namespace dolphindb_csharp_api_test.stream_test
             streamConn.connect(SERVER, PORT, "admin", "123456");
             try
             {
-                conn.run("dropStreamTable(`outTables)");
+                conn.run("dropStreamTable(`outTables3)");
             }
             catch (Exception e)
             {
@@ -1628,7 +1628,7 @@ namespace dolphindb_csharp_api_test.stream_test
             }
 
             String script = "st1 = streamTable(100:0, `timestampv`sym`blob`price1,[TIMESTAMP,SYMBOL,BLOB,DOUBLE])\n" +
-                    "enableTableShareAndPersistence(table=st1, tableName=`outTables, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
+                    "enableTableShareAndPersistence(table=st1, tableName=`outTables3, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
             conn.run(script);
 
             string replayScript = "n = 10000;table1 = table(100:0, `datetimev`timestampv`sym`price1`price2, [DATETIME, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE]);" +
@@ -1636,7 +1636,7 @@ namespace dolphindb_csharp_api_test.stream_test
                 "tableInsert(table1, 2012.01.01T01:21:23 + 1..n, 2018.12.01T01:21:23.000 + 1..n, take(`a`b`c,n), rand(100,n)+rand(1.0, n), rand(100,n)+rand(1.0, n));" +
                 "tableInsert(table2, 2012.01.01T01:21:23 + 1..n, 2018.12.01T01:21:23.000 + 1..n, take(`a`b`c,n), rand(100,n)+rand(1.0, n));" +
                 "d = dict(['msg1','msg2'], [table1, table2]);" +
-                "replay(inputTables=d, outputTables=`outTables, dateColumn=`timestampv, timeColumn=`timestampv)";
+                "replay(inputTables=d, outputTables=`outTables3, dateColumn=`timestampv, timeColumn=`timestampv)";
             conn.run(replayScript);
 
             BasicTable table1 = (BasicTable)conn.run("table1");
@@ -1648,8 +1648,8 @@ namespace dolphindb_csharp_api_test.stream_test
             tables["msg1"] = new Tuple<string, string>("", "table1");
             tables["msg2"] = new Tuple<string, string>("", "table2");
             StreamDeserializer streamFilter = new StreamDeserializer(tables, conn);
-            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
-            TopicPoller poller = client.subscribe(SERVER, PORT, "outTables", "mutiSchema", 0, true, null, streamFilter);
+            PollingClient client = new PollingClient(LOCALHOST, 10007);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "outTables3", "mutiSchema", 0, true, null, streamFilter);
             Thread.Sleep(5000);
             List<IMessage> messages = poller.poll(TIMEOUT);
             List<BasicMessage> msg1 = new List<BasicMessage>();
@@ -1672,9 +1672,9 @@ namespace dolphindb_csharp_api_test.stream_test
             Assert.AreEqual(table2.rows(), msg2count);
             int messageCount = messages.Count;
             Assert.AreEqual(table1.rows() + table2.rows(), messageCount);
-            client.unsubscribe(SERVER, PORT, "outTables", "mutiSchema");
+            client.unsubscribe(SERVER, PORT, "outTables3", "mutiSchema");
             client.close();
-            conn.run("undef(`outTables, SHARED)");
+            //conn.run("undef(`outTables3, SHARED)");
             conn.close();
             streamConn.close();
         }
@@ -1688,7 +1688,7 @@ namespace dolphindb_csharp_api_test.stream_test
             streamConn.connect(SERVER, PORT, "admin", "123456");
             try
             {
-                conn.run("dropStreamTable(`outTables)");
+                conn.run("dropStreamTable(`outTables4)");
             }
             catch (Exception e)
             {
@@ -1705,7 +1705,7 @@ namespace dolphindb_csharp_api_test.stream_test
             }
 
             String script = "st1 = streamTable(100:0, `timestampv`sym`blob`price1,[TIMESTAMP,SYMBOL,BLOB,DOUBLE])\n" +
-                    "enableTableShareAndPersistence(table=st1, tableName=`outTables, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
+                    "enableTableShareAndPersistence(table=st1, tableName=`outTables4, asynWrite=true, compress=true, cacheSize=200000, retentionMinutes=180, preCache = 0)\t\n";
             conn.run(script);
 
             string replayScript = "n = 100000;table1 = table(100:0, `datetimev`timestampv`sym`price1`price2, [DATETIME, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE]);" +
@@ -1713,7 +1713,7 @@ namespace dolphindb_csharp_api_test.stream_test
                 "tableInsert(table1, 2012.01.01T01:21:23 + 1..n, 2018.12.01T01:21:23.000 + 1..n, take(`a`b`c,n), rand(100,n)+rand(1.0, n), rand(100,n)+rand(1.0, n));" +
                 "tableInsert(table2, 2012.01.01T01:21:23 + 1..n, 2018.12.01T01:21:23.000 + 1..n, take(`a`b`c,n), rand(100,n)+rand(1.0, n));" +
                 "d = dict(['msg1','msg2'], [table1, table2]);" +
-                "replay(inputTables=d, outputTables=`outTables, dateColumn=`timestampv, timeColumn=`timestampv)";
+                "replay(inputTables=d, outputTables=`outTables4, dateColumn=`timestampv, timeColumn=`timestampv)";
             conn.run(replayScript);
 
             BasicTable table1 = (BasicTable)conn.run("table1");
@@ -1727,9 +1727,9 @@ namespace dolphindb_csharp_api_test.stream_test
             StreamDeserializer streamFilter = new StreamDeserializer(filter);
 
             Handler7 handler = new Handler7();
-            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
+            PollingClient client = new PollingClient(LOCALHOST, 10008);
             //TopicPoller poller = client.subscribe(SERVER, PORT, "outTables", "mutiSchema", 0, true, null);
-            TopicPoller poller = client.subscribe(SERVER, PORT, "outTables", "mutiSchema", 0, true, null, streamFilter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "outTables4", "mutiSchema", 0, true, null, streamFilter);
             Thread.Sleep(5000);
             List<IMessage> messages = poller.poll(TIMEOUT);
             List<BasicMessage> msg1 = new List<BasicMessage>();
@@ -1752,9 +1752,9 @@ namespace dolphindb_csharp_api_test.stream_test
             Assert.AreEqual(table2.rows(), msg2count);
             int messageCount = messages.Count;
             Assert.AreEqual(table1.rows()+ table2.rows(), messageCount);
-            client.unsubscribe(SERVER, PORT, "outTables", "mutiSchema");
+            client.unsubscribe(SERVER, PORT, "outTables4", "mutiSchema");
             client.close();
-            conn.run("undef(`outTables, SHARED)");
+            //conn.run("undef(`outTables4, SHARED)");
             conn.close();
             streamConn.close();
         }
@@ -1769,7 +1769,7 @@ namespace dolphindb_csharp_api_test.stream_test
             Exception exception = null;
             try
             {
-                conn.run("dropStreamTable(`outTables)");
+                conn.run("dropStreamTable(`outTables5)");
             }
             catch (Exception e)
             {
@@ -1787,7 +1787,7 @@ namespace dolphindb_csharp_api_test.stream_test
             StreamDeserializer streamFilter = new StreamDeserializer(filter);
 
             Handler7 handler = new Handler7();
-            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
+            PollingClient client = new PollingClient(LOCALHOST, 10009);
             try
             {
                 client.subscribe(SERVER, PORT, "table1", "mutiSchema", 0, true, null, streamFilter);
@@ -1799,7 +1799,7 @@ namespace dolphindb_csharp_api_test.stream_test
             }
             Assert.IsNotNull(exception);
             client.close();
-            conn.run("undef(`table1, SHARED)");
+            //conn.run("undef(`table1, SHARED)");
             conn.close();
             streamConn.close();
 
@@ -1815,7 +1815,7 @@ namespace dolphindb_csharp_api_test.stream_test
             Exception exception = null;
             try
             {
-                conn.run("dropStreamTable(`outTables)");
+                conn.run("dropStreamTable(`outTables6)");
             }
             catch (Exception e)
             {
@@ -1842,7 +1842,7 @@ namespace dolphindb_csharp_api_test.stream_test
             StreamDeserializer streamFilter = new StreamDeserializer(filter);
 
             Handler7 handler = new Handler7();
-            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
+            PollingClient client = new PollingClient(LOCALHOST, 10010);
             try
             {
 
@@ -1857,7 +1857,7 @@ namespace dolphindb_csharp_api_test.stream_test
             Assert.IsNotNull(exception);
             //client.unsubscribe(SERVER, PORT, "st1", "mutiSchema");
             client.close();
-            conn.run("undef(`st1, SHARED)");
+            //conn.run("undef(`st1, SHARED)");
             conn.close();
             streamConn.close();
 
@@ -1873,7 +1873,7 @@ namespace dolphindb_csharp_api_test.stream_test
             Exception exception = null;
             try
             {
-                conn.run("dropStreamTable(`outTables)");
+                conn.run("dropStreamTable(`outTables7)");
             }
             catch (Exception e)
             {
@@ -1902,7 +1902,7 @@ namespace dolphindb_csharp_api_test.stream_test
             StreamDeserializer streamFilter = new StreamDeserializer(filter);
 
             Handler7 handler = new Handler7();
-            PollingClient client = new PollingClient(LOCALHOST, LOCALPORT);
+            PollingClient client = new PollingClient(LOCALHOST, 10011);
             try
             {
 
@@ -1917,7 +1917,7 @@ namespace dolphindb_csharp_api_test.stream_test
             Assert.IsNotNull(exception);
             //client.unsubscribe(SERVER, PORT, "st1", "mutiSchema");
             client.close();
-            conn.run("undef(`st1, SHARED)");
+            //conn.run("undef(`st1, SHARED)");
             conn.close();
             streamConn.close();
         }

@@ -23,11 +23,13 @@ namespace dolphindb.streaming
         BufferedStream bis_ = null;
         string topics;
         HashSet<string> successTopics = new HashSet<string>();
+        int listeningPort;
 
-        public MessageParser(Socket socket, MessageDispatcher dispatcher)
+        public MessageParser(Socket socket, MessageDispatcher dispatcher, int listeningPort)
         {
             this.socket_ = socket;
             this.dispatcher_ = dispatcher;
+            this.listeningPort = listeningPort;
         }
 
         private static readonly char[] hexArray = "0123456789ABCDEF".ToCharArray();
@@ -41,6 +43,11 @@ namespace dolphindb.streaming
                 hexChars[j * 2 + 1] = hexArray[v & 0x0f];
             }
             return new string(hexChars);
+        }
+
+        private bool isListenMode()
+        {
+            return listeningPort > 0;
         }
 
         public void run()
@@ -146,33 +153,38 @@ namespace dolphindb.streaming
 
                             int colSize = dTable.rows();
                             int rowSize = dTable.getEntity(0).rows();
-                            if (rowSize == 1)
+                            if( rowSize >= 1)
                             {
-                                BasicMessage rec = new BasicMessage(msgid, topic, dTable);
-                                if (subscribeInfo.getDeseriaLizer() != null)
-                                    rec = subscribeInfo.getDeseriaLizer().parse(rec);
-                                dispatcher_.dispatch(rec);
-                            }
-                            else if (rowSize > 1)
-                            {
-                                List<IMessage> messages = new List<IMessage>(rowSize);
-                                for (int i = 0; i < rowSize; i++)
+                                if ( isListenMode() && rowSize == 1)
                                 {
-                                    BasicAnyVector row = new BasicAnyVector(colSize);
-
-                                    for (int j = 0; j < colSize; j++)
-                                    {
-                                        AbstractVector vector = (AbstractVector)dTable.getEntity(j);
-                                        IEntity entity = vector.get(i);
-                                        row.setEntity(j, entity);
-                                    }
-                                    BasicMessage rec = new BasicMessage(msgid, topic, row);
+                                    BasicMessage rec = new BasicMessage(msgid, topic, dTable);
                                     if (subscribeInfo.getDeseriaLizer() != null)
                                         rec = subscribeInfo.getDeseriaLizer().parse(rec);
-                                    messages.Add(rec);
+                                    dispatcher_.dispatch(rec);
                                 }
-                                dispatcher_.batchDispatch(messages);
+                                else if (rowSize > 1)
+                                {
+                                    List<IMessage> messages = new List<IMessage>(rowSize);
+                                    for (int i = 0; i < rowSize; i++)
+                                    {
+                                        BasicAnyVector row = new BasicAnyVector(colSize);
+
+                                        for (int j = 0; j < colSize; j++)
+                                        {
+                                            AbstractVector vector = (AbstractVector)dTable.getEntity(j);
+                                            IEntity entity = vector.get(i);
+                                            row.setEntity(j, entity);
+                                        }
+                                        BasicMessage rec = new BasicMessage(msgid, topic, row);
+                                        if (subscribeInfo.getDeseriaLizer() != null)
+                                            rec = subscribeInfo.getDeseriaLizer().parse(rec);
+                                        messages.Add(rec);
+                                    }
+                                    dispatcher_.batchDispatch(messages);
+                                }
                             }
+
+                           
                             lock (subscribeInfo)
                             {
                                 subscribeInfo.setMsgId(msgid);

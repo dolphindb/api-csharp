@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading;
 using dolphindb.data;
@@ -164,9 +166,35 @@ namespace dolphindb.route
         }
     }
 
+    public interface Callback
+    {
+        void writeCompletion(ITable callbackTable);
+    }
+
     public class MultithreadedTableWriter
     {
+        public Action<IVector> notifyOnSuccess_ { get; set; }
 
+        public void setNotifyOnSuccess(Action<IVector> notifyOnSuccess, DATA_TYPE type)
+        {
+            if (notifyOnSuccess_ != null)
+                throw new Exception("NotifyOnSuccess has been set");
+            if (ifCallback_)
+                throw new Exception("MultithreadedTableWriter has already open callback");
+            notifyOnSuccess_ = notifyOnSuccess; 
+            colInfos_.Add(new ColInfo());
+            colInfos_[colInfos_.Count-1].dataType_ = type;
+            int size = threads_.Count;
+            for (int i = 0; i < size; ++i)
+            {
+                lock (threads_[i].writeQueue_)
+                {
+                    threads_[i].writeQueue_.Clear();
+                    threads_[i].writeQueue_.Add(createListVector());
+                }
+            }
+        }
+        
         public class ThreadStatus
         {
             public long threadId;
@@ -193,13 +221,39 @@ namespace dolphindb.route
             }
         };
 
+        public class ColInfo
+        {
+            public DATA_TYPE dataType_;
+            public string name_;
+            public int extra_;
+
+            public ColInfo()
+            {
+                dataType_ = DATA_TYPE.DT_OBJECT;
+                name_ = "";
+                extra_ = 0;
+            }
+        }
+
+        public enum Mode
+        {
+            M_Append = 0,
+            M_Upsert = 1
+        }
         List<IVector> createListVector()
         {
-            int cols = colTypes_.Count;
+            int cols = colInfos_.Count;
             BasicEntityFactory basicEntityFactory = (BasicEntityFactory)BasicEntityFactory.instance();
             List<IVector> tmp = new List<IVector>();
             for (int i = 0; i < cols; ++i)
-                tmp.Add(basicEntityFactory.createVectorWithDefaultValue(colTypes_[i], 0));
+            {
+                IVector data = basicEntityFactory.createVectorWithDefaultValue(colInfos_[i].dataType_, 0);
+                if (colInfos_[i].dataType_ == DATA_TYPE.DT_DECIMAL32)
+                    throw new Exception("decimal is not supported");
+                else if (colInfos_[i].dataType_ == DATA_TYPE.DT_DECIMAL64)
+                    throw new Exception("decimal is not supported");
+                tmp.Add(data);
+            }
             return tmp;
         }
 
@@ -218,12 +272,14 @@ namespace dolphindb.route
             public MultithreadedTableWriter tableWriter_;
             public Mutex writeAllDataLock_;
             public static int vectorSize = 65536;
+            public Callback callbackHandler_;
 
-            public WriterThread(MultithreadedTableWriter tableWriter, DBConnection conn)
+            public WriterThread(MultithreadedTableWriter tableWriter, DBConnection conn, Callback callbackHandler)
             {
                 tableWriter_ = tableWriter;
                 sentRows_ = 0;
                 conn_ = conn;
+                callbackHandler_ = callbackHandler;
                 exit_ = false;
                 isFinished_ = false;
                 writeQueue_ = new List<List<IVector>>();
@@ -270,10 +326,40 @@ namespace dolphindb.route
                         while (!isExiting() && writeAllData()) ;
                     }
                     while (tableWriter_.hasError_ == false && writeAllData()) ;
+                    if (tableWriter_.ifCallback_ && tableWriter_.hasError_)
+                    {
+                        List<IVector> callbackList = new List<IVector>();
+                        BasicStringVector bs = new BasicStringVector(0);
+                        callbackList.Add(bs);
+                        int allLength = 0;
+                        lock(writeQueue_){
+                            for (int i = 0; i < writeQueue_.Count; i++)
+                            {
+                                List<IVector> notInsertV = writeQueue_[i];
+                                IVector id = notInsertV[0];
+                                callbackList[0].append(id);
+                                allLength += id.rows();
+                            }
+                        }
+                        byte[] bArray = new byte[allLength];
+                        for (int i = 0; i < allLength; i++)
+                        {
+                            bArray[i] = 0;
+                        }
+                        BasicBooleanVector bv = new BasicBooleanVector(bArray);
+                        callbackList.Add(bv);
+                        List<string> callbackColNames = new List<string>
+                        {
+                            "id",
+                            "isSuccess"
+                        };
+                        callbackHandler_.writeCompletion(new BasicTable(callbackColNames, callbackList));
+                    }
                 }
                 catch (Exception e)
                 {
-                    System.Console.Out.WriteLine(e.Message);
+                    Console.Out.WriteLine("threadid= {0}, Insert Table error: {1}", threadId_, e.Message);
+                    Console.Out.WriteLine(e.StackTrace);
                     tableWriter_.setError(ErrorCodeInfo.Code.EC_None, e.Message);
 
                 }
@@ -282,14 +368,40 @@ namespace dolphindb.route
             }
             private bool init()
             {
-                if (tableWriter_.dbName_ == "")
+                if(tableWriter_.mode_ == Mode.M_Append)
                 {
-                    scriptTableInsert_ = "tableInsert{\"" + tableWriter_.tableName_ + "\"}";
+                    if (tableWriter_.dbName_ == "")
+                    {
+                        scriptTableInsert_ = "tableInsert{\"" + tableWriter_.tableName_ + "\"}";
+                    }
+                    else
+                    {
+                        scriptTableInsert_ = "tableInsert{loadTable(\"" + tableWriter_.dbName_ + "\",\"" + tableWriter_.tableName_ + "\")}";
+                    }
                 }
-                else
+                else if(tableWriter_.mode_ == Mode.M_Upsert)
                 {
-                    scriptTableInsert_ = "tableInsert{loadTable(\"" + tableWriter_.dbName_ + "\",\"" + tableWriter_.tableName_ + "\")}";
+                    StringBuilder sb = new StringBuilder();
+                    if (tableWriter_.dbName_ == "")
+                    {
+                        sb.Append("upsert!{" + tableWriter_.tableName_);
+                    }
+                    else
+                    {
+                        sb.Append("upsert!{loadTable(\"" + tableWriter_.dbName_ + "\",\"" + tableWriter_.tableName_ + "\")");
+                    }
+                    sb.Append(",");
+                    if (tableWriter_.pModeOption_ != null && tableWriter_.pModeOption_.Length != 0)
+                    {
+                        foreach (string one in tableWriter_.pModeOption_)
+                        {
+                            sb.Append("," + one);
+                        }
+                    }
+                    sb.Append("}");
+                    scriptTableInsert_ = sb.ToString();
                 }
+                
                 //else
                 //{
                 //    //string tempTableName = "tmp" + tableWriter_.tableName_;
@@ -323,6 +435,8 @@ namespace dolphindb.route
                 {
                     List<IVector> items;
                     int addRowCount;
+                    int callbackRows = 0;
+                    List<IVector> callbackList = new List<IVector>();
                     lock (writeQueue_)
                     {
                         items = writeQueue_[0];
@@ -338,8 +452,31 @@ namespace dolphindb.route
                     bool isWriteDone = true;
                     string runscript = "";
                     BasicTable writeTable = null;
+                    List<string> colNames = new List<string>();
+                    for (int i = 0; i < tableWriter_.colInfos_.Count; i++)
+                    {
+                        colNames.Add(tableWriter_.colInfos_[i].name_);
+                    }
+                    if (tableWriter_.ifCallback_)
+                    {
+                        callbackList.Add(items[0]);
+                        items.RemoveAt(0);
+                        colNames.RemoveAt(0);
+                    }
+                    if (tableWriter_.notifyOnSuccess_ == null)
+                    {
+                        writeTable = new BasicTable(colNames, items);
+                    }
+                    else
+                    {
+                        List<IVector> insertItems = new List<IVector>();
+                        int size = items.Count - 1;
+                        for (int i = 0; i < size; ++i)
+                            insertItems.Add(items[i]);
+                        colNames.RemoveAt(colNames.Count-1);
+                        writeTable = new BasicTable(colNames, insertItems);
+                    }
 
-                    writeTable = new BasicTable(tableWriter_.colNames_, items);
                     if (writeTable != null && addRowCount > 0)
                     {
                         runscript = "";
@@ -348,17 +485,23 @@ namespace dolphindb.route
                             List<IEntity> args = new List<IEntity>();
                             args.Add(writeTable);
                             runscript = scriptTableInsert_;
-                            BasicInt result = (BasicInt)conn_.run(runscript, args);
+                            conn_.run(runscript, args);
+                            if (tableWriter_.notifyOnSuccess_ != null)
+                            {
+                                tableWriter_.notifyOnSuccess_(items[items.Count - 1]);
+                            }
                             sentRows_ += addRowCount;
                         }
                         catch (Exception e)
                         {
                             Console.Out.WriteLine("threadid= {0}, Save Table error: {1}, script: {2}", threadId_, e.Message, runscript);
+                            Console.Out.WriteLine(e.StackTrace);
                             //System.Console.Out.WriteLine(e.Message);
                             //System.Console.Out.WriteLine(e.StackTrace);
                             //tableWriter_.logger_.warning("threadid=" + writeThread_.getId() + " sendindex=" + sentRows_ + " Save table error: " + e + " script:" + runscript);
                             tableWriter_.setError(ErrorCodeInfo.Code.EC_Server, "Save table error: " + e + " script: " + runscript);
                             isWriteDone = false;
+                            tableWriter_.hasError_ = true;
                             //std::cerr << Util::createTimestamp(Util::getEpochTime())->getString() << " Backgroud thread of table (" << tableWriter_.dbName_ << " " << tableWriter_.tableName_ << "). Failed to send data to server, with exception: " << e.what() << std::endl;
                         }
                     }
@@ -372,17 +515,45 @@ namespace dolphindb.route
                             for (int i = 0; i < rows; ++i)
                             {
                                 List<IEntity> tmp = new List<IEntity>();
-
+                                if (tableWriter_.ifCallback_)
+                                    tmp.Add(callbackList[0].get(i));
+                                int startIndex = 1;
                                 for (int j = 0; j < cols; ++j)
                                 {
-                                    if ((int)tableWriter_.colTypes_[j] < AbstractVector.ARRAY_VECTOR_BASE)
+                                    if ((int)tableWriter_.colInfos_[startIndex].dataType_ < AbstractVector.ARRAY_VECTOR_BASE)
                                         tmp.Add(items[j].get(i));
                                     else
                                         tmp.Add(((BasicArrayVector)items[j]).getSubVector(i));
+                                    startIndex++;
                                 }
                                 failedQueue_.Enqueue(tmp);
                             }
                         }
+                    }
+                    if (tableWriter_.ifCallback_)
+                    {
+                        callbackRows = callbackList[0].rows();
+                        byte[] bArray = new byte[callbackRows]; ;
+                        if (!isWriteDone)
+                        {
+                            for (int i = 0; i < callbackRows; i++)
+                            {
+                                bArray[i] = 0;
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < callbackRows; i++)
+                            {
+                                bArray[i] = 1;
+                            }
+                        }
+                        BasicBooleanVector bv = new BasicBooleanVector(bArray);
+                        callbackList.Add(bv);
+                        List<string> callbackColNames = new List<string>();
+                        callbackColNames.Add("id");
+                        callbackColNames.Add("isSuccess");
+                        callbackHandler_.writeCompletion(new BasicTable(callbackColNames, callbackList));
                     }
                 }
                 return true;
@@ -416,7 +587,8 @@ namespace dolphindb.route
          */
         public MultithreadedTableWriter(string hostName, int port, string userId, string password,
                                 string dbName, string tableName, bool useSSL, bool enableHighAvailability = false, string[] pHighAvailabilitySites = null,
-                                int batchSize = 1, float throttle = 0.01f, int threadCount = 5, string partitionCol = "", int[] pCompressMethods = null)
+                                int batchSize = 1, float throttle = 0.01f, int threadCount = 5, string partitionCol = "", int[] pCompressMethods = null, 
+                                Mode mode = Mode.M_Append, string[] pModeOption = null, Callback callbackHandler = null)
         {
             hostName_ = hostName;
             port_ = port;
@@ -428,6 +600,8 @@ namespace dolphindb.route
             batchSize_ = batchSize;
             throttleMilsecond_ = (int)throttle * 1000;
             isExiting_ = false;
+            mode_ = mode;
+            pModeOption_ = pModeOption;
             if (threadCount < 1)
             {
                 throw new Exception("The parameter threadCount must be greater than or equal to 1.");
@@ -481,11 +655,27 @@ namespace dolphindb.route
             BasicIntVector colDefsTypeInt = (BasicIntVector)colDefs.getColumn("typeInt");
 
             BasicStringVector colDefsName = (BasicStringVector)colDefs.getColumn("name");
-            BasicStringVector colDefsTypeString = (BasicStringVector)colDefs.getColumn("typeString");
-            colTypes_ = new List<DATA_TYPE>();
-            colNames_ = new List<string>();
-            colTypeString_ = new List<string>();
+            BasicIntVector colExtras = (BasicIntVector)colDefs.getColumn("extra");
             int columnSize = colDefsName.rows();
+            if (callbackHandler != null)
+            {
+                ifCallback_ = true;
+                colInfos_ = new List<ColInfo>(columnSize+1);
+                for (int i = 0; i < columnSize+1; i++)
+                {
+                    ColInfo colInfo = new ColInfo();
+                    colInfos_.Add(colInfo);
+                }
+            }
+            else
+            {
+                colInfos_ = new List<ColInfo>(columnSize);
+                for (int i = 0; i < columnSize; i++)
+                {
+                    ColInfo colInfo = new ColInfo();
+                    colInfos_.Add(colInfo);
+                }
+            }
             if (pCompressMethods != null)
             {
                 if (columnSize != pCompressMethods.Length)
@@ -495,13 +685,27 @@ namespace dolphindb.route
                 this.compressTypes_ = new int[columnSize];
                 Array.Copy(pCompressMethods, this.compressTypes_, columnSize);
             }
-            for (int i = 0; i < columnSize; i++)
+            int colDefsIndex = 0;
+            for (int i = 0; i < colInfos_.Count; i++)
             {
-                colNames_.Add(colDefsName.getString(i));
-                colTypes_.Add((DATA_TYPE)colDefsTypeInt.getInt(i));
-                colTypeString_.Add(colDefsTypeString.getString(i));
-                if (compressTypes_ != null)
-                    AbstractVector.checkCompressedMethod(colTypes_[i], compressTypes_[i]);
+                if(i==0 && ifCallback_)
+                {
+                    colInfos_[i].dataType_ = DATA_TYPE.DT_STRING;
+                    colInfos_[i].name_ = colDefsName.getString(0) + "_id";
+                    colInfos_[i].extra_ = -1;
+                }
+                else
+                {
+                    colInfos_[i].name_ = colDefsName.getString(colDefsIndex);
+                    if (colExtras != null)
+                    {
+                        colInfos_[i].extra_ = colExtras.getInt(colDefsIndex);
+                    }
+                    colInfos_[i].dataType_ = (DATA_TYPE)colDefsTypeInt.getInt(colDefsIndex);
+                    if (compressTypes_ != null)
+                        AbstractVector.checkCompressedMethod(colInfos_[colDefsIndex].dataType_, compressTypes_[colDefsIndex]);
+                    colDefsIndex++;
+                }
             }
 
             if (threadCount > 1)
@@ -542,7 +746,9 @@ namespace dolphindb.route
                         partitionSchema = ((BasicAnyVector)schema.get("partitionSchema")).get(index);
                         partitionType = ((BasicIntVector)schema.get("partitionType")).getInt(index);
                     }
-                    DATA_TYPE partitionColType = colTypes_[partitionColumnIdx_];
+                    if (ifCallback_)
+                        partitionColumnIdx_++;
+                    DATA_TYPE partitionColType = colInfos_[partitionColumnIdx_].dataType_;
                     partitionDomain_ = DomainFactory.createDomain((PARTITION_TYPE)partitionType, partitionColType, partitionSchema);
                 }
                 else
@@ -550,9 +756,9 @@ namespace dolphindb.route
                     if (partitionCol != "")
                     {
                         int threadcolindex = -1;
-                        for (int i = 0; i < colNames_.Count; i++)
+                        for (int i = 0; i < colInfos_.Count; i++)
                         {
-                            if (colNames_[i] == partitionCol)
+                            if (colInfos_[i].name_ == partitionCol)
                             {
                                 threadcolindex = i;
                                 break;
@@ -560,7 +766,7 @@ namespace dolphindb.route
                         }
                         if (threadcolindex < 0)
                         {
-                            throw new Exception(string.Format("No match found for {0}. ", partitionCol));
+                            throw new Exception(string.Format("The column {0} does not belong to table {1}", partitionCol, tableName_));
                         }
                         threadByColIndexForNonPartion_ = threadcolindex;
                     }
@@ -572,7 +778,7 @@ namespace dolphindb.route
             threads_ = new List<WriterThread>(threadCount);
             for (int i = 0; i < threadCount; i++)
             {
-                WriterThread writerThread = new WriterThread(this, pConn);
+                WriterThread writerThread = new WriterThread(this, pConn, callbackHandler);
                 if (i == 0)
                 {
                     writerThread.conn_ = pConn;
@@ -596,12 +802,12 @@ namespace dolphindb.route
                 throw new Exception("Thread is exiting. ");
             }
             List<IEntity> convert = new List<IEntity>();
-            int size = colTypes_.Count;
+            int size = colInfos_.Count;
             for (int i = 0; i < size; ++i)
             {
                 try
                 {
-                    convert.Add(Utils.createObject(colTypes_[i], args[i]));
+                    convert.Add(Utils.createObject(colInfos_[i].dataType_, args[i], colInfos_[i].extra_));
                 }
                 catch (Exception e)
                 {
@@ -634,9 +840,9 @@ namespace dolphindb.route
 
         bool suitableType(ErrorCodeInfo errorCodeInfo, List<IEntity> args)
         {
-            if (args.Count != colTypes_.Count)
+            if (args.Count != colInfos_.Count)
             {
-                errorCodeInfo.set(ErrorCodeInfo.Code.EC_InvalidObject, string.Format("Column counts don't match {0}.", colTypes_.Count));
+                errorCodeInfo.set(ErrorCodeInfo.Code.EC_InvalidObject, string.Format("Column counts don't match {0}.", colInfos_.Count));
                 return false;
             }
             int cols = args.Count();
@@ -651,7 +857,7 @@ namespace dolphindb.route
                 {
                     argsType = args[i].getDataType();
                 }
-                DATA_TYPE colType = args[i] is IVector ? colTypes_[i] - 64 : colTypes_[i];
+                DATA_TYPE colType = args[i] is IVector ? colInfos_[i].dataType_ - 64 : colInfos_[i].dataType_;
                 if ((int)argsType != (int)colType)
                 {
                     if (!((argsType == DATA_TYPE.DT_STRING && (int)colType == (int)DATA_TYPE.DT_SYMBOL) || (argsType == DATA_TYPE.DT_STRING && (int)colType == (int)DATA_TYPE.DT_BLOB)))
@@ -719,7 +925,7 @@ namespace dolphindb.route
                 int size = row.Count;
                 for (int i = 0; i < size; ++i)
                 {
-                    if ((int)colTypes_[i] < AbstractVector.ARRAY_VECTOR_BASE)
+                    if ((int)colInfos_[i].dataType_ < AbstractVector.ARRAY_VECTOR_BASE)
                     {
                         writerThread.writeQueue_[writerThread.writeQueue_.Count - 1][i].append((IScalar)row[i]);
                     }
@@ -740,7 +946,7 @@ namespace dolphindb.route
                 {
                     lock (thread.writeQueue_)
                     {
-                        int cols = colTypes_.Count;
+                        int cols = colInfos_.Count;
                         int size = thread.writeQueue_.Count;
                         for (int i = 0; i < size; ++i)
                         {
@@ -771,7 +977,7 @@ namespace dolphindb.route
                 throw new Exception("Thread is exiting. ");
             BasicEntityFactory basicEntityFactory = (BasicEntityFactory)BasicEntityFactory.instance();
             ErrorCodeInfo errorCodeInfo = new ErrorCodeInfo();
-            IVector partitionCol = basicEntityFactory.createVectorWithDefaultValue(colTypes_[partitionColumnIdx_], data.Count);
+            IVector partitionCol = basicEntityFactory.createVectorWithDefaultValue(colInfos_[partitionColumnIdx_].dataType_, data.Count);
             int rows = data.Count;
             for (int i = 0; i < rows; ++i)
                 partitionCol.set(i, (IScalar)data[i][partitionColumnIdx_]);
@@ -865,14 +1071,16 @@ namespace dolphindb.route
         public int throttleMilsecond_;
         bool isPartionedTable_, isExiting_ = false;
         public bool hasError_ = false;
-        List<string> colNames_, colTypeString_;
-        List<DATA_TYPE> colTypes_;
         Domain partitionDomain_;
         int partitionColumnIdx_;
         int threadByColIndexForNonPartion_;
         List<WriterThread> threads_;
         Mutex tableMutex_;
         public int[] compressTypes_;
+        private Mode mode_;
+        private List<ColInfo> colInfos_;
+        private string[] pModeOption_;
+        private bool ifCallback_ = false;
     }
 
 }

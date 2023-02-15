@@ -231,9 +231,14 @@ namespace dolphindb.data
                 {
                     case 3:
                         h ^= (cc[(bytes & ~3) + 2] & 0xff) << 16;
+                        h ^= (cc[(bytes & ~3) + 1] & 0xff) << 8;
+                        h ^= cc[bytes & ~3] & 0xff;
+                        h *= 0x5bd1e995;
                         break;
                     case 2:
                         h ^= (cc[(bytes & ~3) + 1] & 0xff) << 8;
+                        h ^= cc[bytes & ~3] & 0xff;
+                        h *= 0x5bd1e995;
                         break;
                     case 1:
                         h ^= cc[bytes & ~3] & 0xff;

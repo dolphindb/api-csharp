@@ -68,7 +68,7 @@ namespace dolphindb.data
 
         public virtual DATA_CATEGORY getDataCategory()
         {
-            return getDataCategory(keyType);
+            return Utils.typeToCategory(keyType);
         }
 
         public virtual DATA_TYPE getDataType()

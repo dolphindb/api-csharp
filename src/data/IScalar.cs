@@ -12,6 +12,7 @@ namespace dolphindb.data
         Number getNumber();
         object getTemporal();
         int hashBucket(int buckets);
+        int getScale();
     }
 
 }

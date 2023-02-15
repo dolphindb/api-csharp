@@ -35,19 +35,6 @@ namespace dolphindb.data
             //array.Clone() as byte[];
         }
 
-        protected BasicBooleanVector(byte[] array, bool copy) : base(DATA_FORM.DF_VECTOR)
-        {
-           
-            if (copy)
-                values = (List<byte>)array.Clone();
-            else
-            {
-                values = new List<byte>(array.Length);
-                values.AddRange(array);
-            }
-                
-        }
-
         protected internal BasicBooleanVector(DATA_FORM df, int size) : base(df)
         {
            
@@ -95,12 +82,12 @@ namespace dolphindb.data
 
         public override bool isNull(int index)
         {
-            return values[index] == byte.MinValue;
+            return values[index] == 128;
         }
 
         public override void setNull(int index)
         {
-            values[index] = byte.MinValue;
+            values[index] = 128;
         }
 
         public override DATA_CATEGORY getDataCategory()
@@ -130,14 +117,18 @@ namespace dolphindb.data
 
         public override void set(int index, string value)
         {
-            bool v;
-            if(bool.TryParse(value, out v))
+            bool v1;
+            long v2;
+            if (bool.TryParse(value, out v1))
             {
-                values[index] = v ? (byte)1 : (byte)0; ;
+                values[index] = v1 ? (byte)1 : (byte)0;
+            }else if(long.TryParse(value, out v2))
+            {
+                values[index] = v2 > 0 ? (byte)1 : (byte)0;
             }
             else
             {
-                setNull(index);
+                values[index] = (byte)0;
             }
         }
 
@@ -158,20 +149,12 @@ namespace dolphindb.data
             byte[] sub = new byte[length];
             for (int i = 0; i < length; ++i)
                 sub[i] = values[indices[i]];
-            return new BasicBooleanVector(sub, false);
+            return new BasicBooleanVector(sub);
         }
 
         public override int asof(IScalar value)
         {
             throw new Exception("BasicBooleanVector.asof not supported.");
-        }
-
-        protected override void writeVectorToBuffer(ByteBuffer buffer)
-        {
-            foreach (byte val in values)
-            {
-                buffer.WriteByte(val);
-            }
         }
 
         public override void deserialize(int start, int count, ExtendedDataInput @in)
@@ -230,6 +213,11 @@ namespace dolphindb.data
         public override IEntity getEntity(int index)
         {
             return new BasicBoolean(values[index]);
+        }
+
+        public override int getExtraParamForType()
+        {
+            throw new NotImplementedException();
         }
     }
 

@@ -65,7 +65,9 @@ namespace dolphindb.data
             }
             else
             {
-                return getValue().ToString(format);
+                int hours = (base.getValue() / 60) % 24;
+                TimeSpan ts = new TimeSpan(hours, base.getValue() % 60, 0);
+                return ts.ToString(format);
             }
         }
 
