@@ -187,7 +187,7 @@ namespace dolphindb.data
 
         public override DATA_CATEGORY getDataCategory()
         {
-            throw new NotImplementedException();
+            return DATA_CATEGORY.ARRAY;
         }
 
         public override Type getElementClass()
@@ -417,6 +417,11 @@ namespace dolphindb.data
         public override IEntity getEntity(int index)
         {
             return getSubVector(index);
+        }
+
+        public override int getExtraParamForType()
+        {
+            throw new NotImplementedException();
         }
     }
 }

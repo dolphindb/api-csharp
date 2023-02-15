@@ -33,22 +33,6 @@ namespace dolphindb.data
             values.AddRange(array);
         }
 
-        protected BasicIntVector(int[] array, bool copy) : base(DATA_FORM.DF_VECTOR)
-        {
-            
-            if (copy)
-            {
-                values = new List<int>(array.Length);
-                values.AddRange(array);
-            }
-           
-            else
-            {
-                values = new List<int>(array.Length);
-                values.AddRange(array);
-            }
-        }
-
         protected internal BasicIntVector(DATA_FORM df, int size) : base(df)
         {
             values = new List<int>(size);
@@ -176,7 +160,7 @@ namespace dolphindb.data
             int[] sub = new int[length];
             for (int i = 0; i < length; ++i)
                 sub[i] = values[indices[i]];
-            return new BasicIntVector(sub, false);
+            return new BasicIntVector(sub);
         }
 
         protected int[] getSubArray(int[] indices)
@@ -213,14 +197,6 @@ namespace dolphindb.data
                     end = mid - 1;
             }
             return end;
-        }
-        
-        protected override void writeVectorToBuffer(ByteBuffer buffer)
-        {
-            foreach (int val in values)
-            {
-                buffer.WriteInt(val);
-            }
         }
 
         public override void deserialize(int start, int count, ExtendedDataInput @in)
@@ -278,6 +254,11 @@ namespace dolphindb.data
         public override IEntity getEntity(int index)
         {
             return new BasicInt(values[index]);
+        }
+
+        public override int getExtraParamForType()
+        {
+            throw new NotImplementedException();
         }
     }
 }

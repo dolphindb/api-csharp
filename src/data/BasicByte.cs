@@ -117,15 +117,11 @@ namespace dolphindb.data
 
         public override int hashBucket(int buckets)
         {
-            if (value >= 0)
+            if (value > 0)
                 return value % buckets;
-
-            else if (value == Byte.MinValue)
-                return -1;
             else
-            {
-                return (int)((4294967296l + value) % buckets);
-            }
+                return -1;
+            
         }
     }
 

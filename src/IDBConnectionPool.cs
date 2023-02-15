@@ -16,8 +16,8 @@ namespace dolphindb
         void shutdown();
         void waitForThreadCompletion();
 
-        IEntity run(string function, IList<IEntity> arguments);
+        IEntity run(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 2, bool clearMemory = false);
 
-        IEntity run(string script);
+        IEntity run(string script, int priority = 4, int parallelism = 2, bool clearMemory = false);
     }
 }

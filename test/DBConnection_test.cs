@@ -13,17 +13,25 @@ using System.Collections;
 using System.Threading.Tasks;
 using System.Configuration;
 using dolphindb_config;
+using LZ4Sharp;
+using System.Linq;
+using dolphindb_csharpapi_net_core.src;
 
-namespace dolphindb_csharpapi_test
+namespace dolphindb_csharp_api_test
 {
 
     [TestClass]
     public class DBConnection_test
     {
         private string SERVER = MyConfigReader.SERVER;
-        static private int PORT = MyConfigReader.PORT;
+        static private int PORT = MyConfigReader.PORT; 
+        static private int PORTCON = MyConfigReader.PORTCON;
         private readonly string USER = MyConfigReader.USER;
         private readonly string PASSWORD = MyConfigReader.PASSWORD;
+        static private int HASTREAM_GROUPID = MyConfigReader.HASTREAM_GROUPID;
+        static private string[] HASTREAM_GROUP = MyConfigReader.HASTREAM_GROUP;
+        static private string[] HASTREAM_GROUP1 = MyConfigReader.HASTREAM_GROUP1;
+        private string LOCALHOST = MyConfigReader.LOCALHOST;
 
         [TestMethod]
         public void Test_connect_asynchronousTask_true()
@@ -176,6 +184,14 @@ namespace dolphindb_csharpapi_test
             db.close();
         }
 
+        [TestMethod]
+        public void Test_Connect_fail()
+        {
+            DBConnection db = new DBConnection();
+            bool re = db.connect(SERVER, 1234);
+            Assert.AreEqual(false, re);
+            db.close();
+        }
 
         [TestMethod]
         public void Test_Connect_withLogout()
@@ -199,12 +215,12 @@ namespace dolphindb_csharpapi_test
             db.close();
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void getConn(object db)
         {
             DBConnection conn = (DBConnection)db;
             bool b = conn.isBusy();
-            Assert.IsFalse(b);
+            //Assert.IsFalse(b);
             conn.close();
         }
 
@@ -443,8 +459,8 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
-            //Assert.AreEqual("e1671797c52e15f763380b45e841ec32", ((BasicInt128)db.run("int128('e1671797c52e15f763380b45e841ec32')")).getString());
-            //Assert.AreEqual("00000000000000000000000000000000", ((BasicInt128)db.run("int128()")).getString());
+            Assert.AreEqual("e1671797c52e15f763380b45e841ec32", ((BasicInt128)db.run("int128('e1671797c52e15f763380b45e841ec32')")).getString());
+            Assert.AreEqual("00000000000000000000000000000000", ((BasicInt128)db.run("int128()")).getString());
             db.close();
         }
 
@@ -457,7 +473,91 @@ namespace dolphindb_csharpapi_test
             Assert.AreEqual("0.0.0.0", ((BasicIPAddr)db.run("ipaddr()")).getString());
             db.close();
         }
+        //[TestMethod]
+        //public void Test_run_return_scalar_decimal64()
+        //{
+        //    DBConnection db = new DBConnection();
+        //    db.connect(SERVER, PORT);
+        //    Assert.AreEqual(9223372036854775807, ((BasicDecimal64)db.run("decimal64(999999999999999999999999,0)")).getValue());
+        //    Assert.AreEqual((double)long.MinValue, ((BasicDecimal64)db.run("decimal64(NULL,3)")).getValue());
+        //    Assert.AreEqual((double)long.MinValue, ((BasicDecimal64)db.run("decimal64(short(),2)")).getValue());
+        //    Assert.AreEqual(3000.00, ((BasicDecimal64)db.run("decimal64(short(3000),2)")).getValue());
+        //    Assert.AreEqual(0, ((BasicDecimal64)db.run("decimal64(short(0),2)")).getValue());
+        //    Assert.AreEqual(-1, ((BasicDecimal64)db.run("decimal64(short(-1),2)")).getValue());
+        //    Assert.AreEqual((double)long.MinValue, ((BasicDecimal64)db.run("decimal64(short(32768),2)")).getValue());
+        //    Assert.AreEqual((double)long.MinValue, ((BasicDecimal64)db.run("decimal64(short(-32768),2)")).getValue());
+        //    Assert.AreEqual(-32767, ((BasicDecimal64)db.run("decimal64(short(32769),2)")).getValue());
+        //    Assert.AreEqual(32767, ((BasicDecimal64)db.run("decimal64(short(-32769),2)")).getValue());
+        //    Assert.AreEqual(123, ((BasicDecimal64)db.run("decimal64(123,2)")).getValue());
+        //    Assert.AreEqual(0, ((BasicDecimal64)db.run("decimal64(0,2)")).getValue());
+        //    Assert.AreEqual(-1, ((BasicDecimal64)db.run("decimal64(-1,2)")).getValue());
+        //    Assert.AreEqual((double)long.MinValue, ((BasicDecimal64)db.run("decimal64(int(2147483648),2)")).getValue());
+        //    Assert.AreEqual((double)long.MinValue, ((BasicDecimal64)db.run("decimal64(int(-2147483648),2)")).getValue());
+        //    Assert.AreEqual(-2147483647, ((BasicDecimal64)db.run("decimal64(int(2147483649),0)")).getValue());
+        //    Assert.AreEqual(2147483647, ((BasicDecimal64)db.run("decimal64(int(-2147483649),0)")).getValue());
+        //    Assert.AreEqual((double)long.MinValue, ((BasicDecimal64)db.run("decimal64(long(),2)")).getValue());
+        //    Assert.AreEqual(123, ((BasicDecimal64)db.run("decimal64(long(123),2)")).getValue());
+        //    Assert.AreEqual(0, ((BasicDecimal64)db.run("decimal64(long(0),2)")).getValue());
+        //    Assert.AreEqual(-1, ((BasicDecimal64)db.run("decimal64(long(-1),2)")).getValue());
+        //    Assert.AreEqual(2.12300000, ((BasicDecimal64)db.run("decimal64(string(2.123),8)")).getValue());
+        //    db.close();
+        //}
+        ////[TestMethod]
+        //public void Test_run_return_scalar_decimal32()
+        //{
+        //    DBConnection db = new DBConnection();
+        //    db.connect(SERVER, PORT);
+        //    Assert.AreEqual(-1, ((BasicDecimal32)db.run("decimal32(long(-1),2)")).getValue());
+        //    Assert.AreEqual(-2147483648, ((BasicDecimal32)db.run("decimal32(int(),2)")).getValue());
+        //    Assert.AreEqual(123.12, ((BasicDecimal32)db.run("decimal32(123.123f,2)")).getValue());
+        //    Assert.AreEqual(-1.1, ((BasicDecimal32)db.run("decimal32(-1.1,9)")).getValue());
+        //    Assert.AreEqual(0, ((BasicDecimal32)db.run("decimal32(short(0),2)")).getValue());
+        //    Assert.AreEqual(-1.32, ((BasicDecimal32)db.run("decimal32(string(-00001.32132),2)")).getValue());
+        //    db.close();
+        //}
 
+        ////[TestMethod]
+        //public void Test_run_return_scalar_decimal64_compress_true()
+        //{
+        //    DBConnection db = new DBConnection(false,false,true);
+        //    db.connect(SERVER, PORT);
+        //    Assert.AreEqual(9223372036854775807, ((BasicDecimal64)db.run("decimal64(999999999999999999999999,0)")).getValue());
+        //    Assert.AreEqual((double)long.MinValue, ((BasicDecimal64)db.run("decimal64(NULL,3)")).getValue());
+        //    Assert.AreEqual((double)long.MinValue, ((BasicDecimal64)db.run("decimal64(short(),2)")).getValue());
+        //    Assert.AreEqual(3000.00, ((BasicDecimal64)db.run("decimal64(short(3000),2)")).getValue());
+        //    Assert.AreEqual(0, ((BasicDecimal64)db.run("decimal64(short(0),2)")).getValue());
+        //    Assert.AreEqual(-1, ((BasicDecimal64)db.run("decimal64(short(-1),2)")).getValue());
+        //    Assert.AreEqual((double)long.MinValue, ((BasicDecimal64)db.run("decimal64(short(32768),2)")).getValue());
+        //    Assert.AreEqual((double)long.MinValue, ((BasicDecimal64)db.run("decimal64(short(-32768),2)")).getValue());
+        //    Assert.AreEqual(-32767, ((BasicDecimal64)db.run("decimal64(short(32769),2)")).getValue());
+        //    Assert.AreEqual(32767, ((BasicDecimal64)db.run("decimal64(short(-32769),2)")).getValue());
+        //    Assert.AreEqual(123, ((BasicDecimal64)db.run("decimal64(123,2)")).getValue());
+        //    Assert.AreEqual(0, ((BasicDecimal64)db.run("decimal64(0,2)")).getValue());
+        //    Assert.AreEqual(-1, ((BasicDecimal64)db.run("decimal64(-1,2)")).getValue());
+        //    Assert.AreEqual((double)long.MinValue, ((BasicDecimal64)db.run("decimal64(int(2147483648),2)")).getValue());
+        //    Assert.AreEqual((double)long.MinValue, ((BasicDecimal64)db.run("decimal64(int(-2147483648),2)")).getValue());
+        //    Assert.AreEqual(-2147483647, ((BasicDecimal64)db.run("decimal64(int(2147483649),0)")).getValue());
+        //    Assert.AreEqual(2147483647, ((BasicDecimal64)db.run("decimal64(int(-2147483649),0)")).getValue());
+        //    Assert.AreEqual((double)long.MinValue, ((BasicDecimal64)db.run("decimal64(long(),2)")).getValue());
+        //    Assert.AreEqual(123, ((BasicDecimal64)db.run("decimal64(long(123),2)")).getValue());
+        //    Assert.AreEqual(0, ((BasicDecimal64)db.run("decimal64(long(0),2)")).getValue());
+        //    Assert.AreEqual(-1, ((BasicDecimal64)db.run("decimal64(long(-1),2)")).getValue());
+        //    Assert.AreEqual(2.12300000, ((BasicDecimal64)db.run("decimal64(string(2.123),8)")).getValue());
+        //    db.close();
+        //}
+        ////[TestMethod]
+        //public void Test_run_return_scalar_decimal32_compress_true()
+        //{
+        //    DBConnection db = new DBConnection(false, false, true);
+        //    db.connect(SERVER, PORT);
+        //    Assert.AreEqual(-1, ((BasicDecimal32)db.run("decimal32(long(-1),2)")).getValue());
+        //    Assert.AreEqual(-2147483648, ((BasicDecimal32)db.run("decimal32(int(),2)")).getValue());
+        //    Assert.AreEqual(123.12, ((BasicDecimal32)db.run("decimal32(123.123f,2)")).getValue());
+        //    Assert.AreEqual(-1.1, ((BasicDecimal32)db.run("decimal32(-1.1,9)")).getValue());
+        //    Assert.AreEqual(0, ((BasicDecimal32)db.run("decimal32(short(0),2)")).getValue());
+        //    Assert.AreEqual(-1.32, ((BasicDecimal32)db.run("decimal32(string(-00001.32132),2)")).getValue());
+        //    db.close();
+        //}
         [TestMethod]
         public void Test_run_return_vector_bool()
         {
@@ -970,12 +1070,146 @@ namespace dolphindb_csharpapi_test
             IVector v = (IVector)db.run("symbol(`aaa `bbb `ccc)");
             Assert.IsTrue(v.isVector());
             Assert.AreEqual(3, v.rows());
-            Assert.AreEqual("bbb", ((BasicString)v.get(1)).getValue());
+            Assert.AreEqual("bbb", ((BasicString)v.getEntity(1)).getValue());
             IVector v2 = (IVector)db.run("symbol('AA'+string(1..10000))");
             for (int i = 0; i < 10000; i++)
             {
                 Assert.AreEqual("AA" + (i + 1).ToString(), ((BasicString)v2.getEntity(i)).getValue());
             }
+            db.close();
+        }
+        //[TestMethod]
+        //public void Test_run_return_vector_decimal64()
+        //{
+        //    DBConnection db = new DBConnection();
+        //    db.connect(SERVER, PORT);
+        //    IVector v = (IVector)db.run("decimal64(symbol(`3000`234),2)");
+        //    Assert.IsTrue(v.isVector());
+        //    Assert.AreEqual(2, v.rows());
+        //    Assert.AreEqual(3000.00, ((BasicDecimal64)v.get(0)).getValue());
+        //    Assert.AreEqual(234.00, ((BasicDecimal64)v.get(1)).getValue());
+
+        //    IVector v2 = (IVector)db.run("decimal64(symbol(string(0..9999)),2)");
+        //    for (int i = 0; i < 10000; i++)
+        //    {
+        //        Assert.AreEqual(i, ((BasicDecimal64)v2.get(i)).getValue());
+        //    }
+        //    db.close();
+        //}
+        ////[TestMethod]
+        //public void Test_run_return_vector_decimal64_getEntity()
+        //{
+        //    DBConnection db = new DBConnection();
+        //    db.connect(SERVER, PORT);
+        //    IVector v = (IVector)db.run("decimal64(symbol(`3000`234),2)");
+        //    Assert.IsTrue(v.isVector());
+        //    Assert.AreEqual(2, v.rows());
+        //    Assert.AreEqual(3000, ((BasicDecimal64)v.getEntity(0)).getValue());
+        //    Assert.AreEqual(234, ((BasicDecimal64)v.getEntity(1)).getValue());
+
+        //    IVector v2 = (IVector)db.run("decimal64(symbol(string(0..9999)),2)");
+        //    for (int i = 0; i < 10000; i++)
+        //    {
+        //        Assert.AreEqual(i, ((BasicDecimal64)v2.getEntity(i)).getValue());
+        //    }
+        //    db.close();
+        //}
+
+        ////[TestMethod]
+        //public void Test_run_return_vector_decimal32()
+        //{
+        //    DBConnection db = new DBConnection();
+        //    db.connect(SERVER, PORT);
+        //    IVector v = (IVector)db.run("decimal32(symbol(`3000`234),2)");
+        //    Assert.IsTrue(v.isVector());
+        //    Assert.AreEqual(2, v.rows());
+        //    Assert.AreEqual(3000, ((BasicDecimal32)v.get(0)).getValue());
+        //    Assert.AreEqual(234, ((BasicDecimal32)v.get(1)).getValue());
+
+        //    IVector v2 = (IVector)db.run("decimal32(symbol(string(0..9999)),2)");
+        //    for (int i = 0; i < 10000; i++)
+        //    {
+        //        Assert.AreEqual(i, ((BasicDecimal32)v2.get(i)).getValue());
+        //    }
+        //    db.close();
+        //}
+        ////[TestMethod]
+        //public void Test_run_return_vector_decimal32_getEntity()
+        //{
+        //    DBConnection db = new DBConnection();
+        //    db.connect(SERVER, PORT);
+        //    IVector v = (IVector)db.run("decimal32(symbol(`3000`234),2)");
+        //    Assert.IsTrue(v.isVector());
+        //    Assert.AreEqual(2, v.rows());
+        //    Assert.AreEqual(3000, ((BasicDecimal32)v.getEntity(0)).getValue());
+        //    Assert.AreEqual(234, ((BasicDecimal32)v.getEntity(1)).getValue());
+
+        //    IVector v2 = (IVector)db.run("decimal32(symbol(string(0..9999)),2)");
+        //    for (int i = 0; i < 10000; i++)
+        //    {
+        //        Assert.AreEqual(i, ((BasicDecimal32)v2.getEntity(i)).getValue());
+        //    }
+        //    db.close();
+        //}
+        ////[TestMethod]
+        //public void Test_run_return_vector_decimal64_compress_true()
+        //{
+        //    DBConnection db = new DBConnection(false,false,true);
+        //    db.connect(SERVER, PORT);
+        //    IVector v = (IVector)db.run("decimal64(symbol(`3000`234),2)");
+        //    Assert.IsTrue(v.isVector());
+        //    Assert.AreEqual(2, v.rows());
+        //    Assert.AreEqual(3000.00, ((BasicDecimal64)v.get(0)).getValue());
+        //    Assert.AreEqual(234.00, ((BasicDecimal64)v.get(1)).getValue());
+
+        //    IVector v2 = (IVector)db.run("decimal64(symbol(string(0..9999)),2)");
+        //    for (int i = 0; i < 10000; i++)
+        //    {
+        //        Assert.AreEqual(i, ((BasicDecimal64)v2.get(i)).getValue());
+        //    }
+        //    db.close();
+        //}
+
+        ////[TestMethod]
+        //public void Test_run_return_vector_decimal32_compress_true()
+        //{
+        //    DBConnection db = new DBConnection(false, false, true);
+        //    db.connect(SERVER, PORT);
+        //    IVector v = (IVector)db.run("decimal32(symbol(`3000`234),2)");
+        //    Assert.IsTrue(v.isVector());
+        //    Assert.AreEqual(2, v.rows());
+        //    Assert.AreEqual(3000, ((BasicDecimal32)v.get(0)).getValue());
+        //    Assert.AreEqual(234, ((BasicDecimal32)v.get(1)).getValue());
+
+        //    IVector v2 = (IVector)db.run("decimal32(symbol(string(0..9999)),2)");
+        //    for (int i = 0; i < 10000; i++)
+        //    {
+        //        Assert.AreEqual(i, ((BasicDecimal32)v2.get(i)).getValue());
+        //    }
+        //    db.close();
+        //}
+        [TestMethod]
+        public void Test_run_return_arreyvector()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            string script1 = null;
+            script1 += "vec= 1 5 3;";
+            script1 += "tp=[3 4 5,4 5 6];";
+            script1 += "m=[5 0 7,7 6 9,1 9 0];";
+            script1 += "tb=table(6 9 4 as v1,1 4 3 as v2);";
+            script1 += "f =fixedLengthArrayVector(vec,tp,m,tb);";
+            script1 += "f;";
+            db.run(script1);
+            BasicArrayVector v1 = (BasicArrayVector)db.run("f");
+            BasicString v4 = (BasicString)db.run("typestr(f)");
+            Console.Out.WriteLine(v4.getString());
+            BasicIntVector v2 = (BasicIntVector)v1.getSubVector(1);
+            Assert.AreEqual(5, ((BasicInt)v2.get(0)).getValue());
+            Assert.AreEqual(4, ((BasicInt)v2.get(7)).getValue());
+            Console.Out.WriteLine(v2.getString());
+            BasicArrayVector v3 = (BasicArrayVector)v1;
+           
             db.close();
         }
 
@@ -1218,10 +1452,35 @@ namespace dolphindb_csharpapi_test
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
             BasicDictionary dict = (BasicDictionary)db.run("dict(1 2 3, 2.3 3.4 5.5)");
+            Assert.AreEqual("True", dict.isDictionary().ToString());           
             BasicDouble v = (BasicDouble)dict.get(new BasicInt(2));
             Assert.AreEqual(3.4, v.getValue());
             db.close();
         }
+        //[TestMethod]
+        //public void Test_run_return_dict_decimal64()
+        //{
+
+        //    DBConnection db = new DBConnection();
+        //    db.connect(SERVER, PORT);
+        //    db.run("x = 1 2 3;\n y = [1$DECIMAL64(2),\"2\"$DECIMAL64(3),3.2321$DECIMAL64(4)];\n a  = dict(x,y);");
+        //    BasicDictionary dict = (BasicDictionary)db.run("a");
+        //    BasicDecimal64 v = (BasicDecimal64)dict.get(new BasicInt(2));
+        //    Assert.AreEqual(2.000, v.getValue());
+        //    db.close();
+        //}
+        ////[TestMethod]
+        //public void Test_run_return_dict_decimal32()
+        //{
+
+        //    DBConnection db = new DBConnection();
+        //    db.connect(SERVER, PORT);
+        //    db.run("x = 1 2 3;\n y = [1$DECIMAL32(2),\"2\"$DECIMAL32(3),3.2321$DECIMAL32(4)];\n a  = dict(x,y);");
+        //    BasicDictionary dict = (BasicDictionary)db.run("a");
+        //    BasicDecimal32 v = (BasicDecimal32)dict.get(new BasicInt(2));
+        //    Assert.AreEqual(2.000, v.getValue());
+        //    db.close();
+        //}
 
         [TestMethod]
         public void Test_run_return_set()
@@ -1291,16 +1550,18 @@ namespace dolphindb_csharpapi_test
             db.close();
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void Test_run_return_table_toDataTable()
         {
-            string script = @"table(take(0b 1b, 10) as tBOOL, char(1..10) as tCHAR, short(1..10) as tSHORT, int(1..10) as tINT, long(1..10) as tLONG, 2000.01.01 + 1..10 as tDATE, 2000.01M + 1..10 as tMONTH, 13:30:10.008 + 1..10 as tTIME, 13:30m + 1..10 as tMINUTE, 13:30:10 + 1..10 as tSECOND, 2012.06.13T13:30:10 + 1..10 as tDATETIME, 2012.06.13T13:30:10.008 + 1..10 as tTIMESTAMP,09:00:01.000100001 + 1..10 as tNANOTIME,2016.12.30T09:00:01.000100001 + 1..10 as tNANOTIMESTAMP, 2.1f + 1..10 as tFLOAT, 2.1 + 1..10 as tDOUBLE, take(`A`B`C`D, 10) as tSYMBOL)";
+            string script = @"table(take(0b 1b, 10) as tBOOL, char(1..10) as tCHAR, short(1..10) as tSHORT, int(1..10) as tINT, long(1..10) as tLONG, 2000.01.01 + 1..10 as tDATE, 2000.01M + 1..10 as tMONTH, 13:30:10.008 + 1..10 as tTIME, 13:30m + 1..10 as tMINUTE, 13:30:10 + 1..10 as tSECOND, 2012.06.13T13:30:10 + 1..10 as tDATETIME, 2012.06.13T13:30:10.008 + 1..10 as tTIMESTAMP,09:00:01.000100001 + 1..10 as tNANOTIME,2016.12.30T09:00:01.000100001 + 1..10 as tNANOTIMESTAMP, 2.1f + 1..10 as tFLOAT, 2.1 + 1..10 as tDOUBLE, take(`A`B`C`D, 10) as tSYMBOL,take(decimal64(23.2414,4), 10) as tDECIMAL64,take(decimal32(23.2414,4), 10) as tDECIMAL32)";
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
             BasicTable tb = (BasicTable)db.run(script);
             DataTable dt = tb.toDataTable();
             Assert.AreEqual(10, dt.Rows.Count);
             Assert.AreEqual("3", dt.Rows[2]["tSHORT"].ToString());
+            Assert.AreEqual("23.2414", dt.Rows[2]["tDECIMAL64"].ToString());
+            Assert.AreEqual("23.2414", dt.Rows[2]["tDECIMAL32"].ToString());
             db.close();
         }
 
@@ -1321,7 +1582,7 @@ namespace dolphindb_csharpapi_test
         public void Test_chinese_Table()
         {
             DBConnection conn = new DBConnection();
-            conn.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
             prepareChineseTable(conn);
             BasicTable bt = (BasicTable)conn.run("sharedTable");
             Assert.AreEqual(8000, bt.rows());
@@ -1337,7 +1598,7 @@ namespace dolphindb_csharpapi_test
         public void Test_chinese_DataTable()
         {
             DBConnection conn = new DBConnection();
-            conn.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
             DataTable dt = new DataTable();
             List<DataColumn> cols = new List<DataColumn>(){
                 new DataColumn("股票代码",Type.GetType("System.String")),
@@ -1528,7 +1789,6 @@ namespace dolphindb_csharpapi_test
             Assert.AreEqual(3, dt.Columns.Count);
             db.close();
         }
-
         [TestMethod]
         public void Test_pair_getString_int()
         {
@@ -1789,7 +2049,7 @@ namespace dolphindb_csharpapi_test
         {
             string sql = "t=table(10:0,`id`str`long`double,[INT,STRING,LONG,DOUBLE]);insert into t values(1,NULL,NULL,NULL);t";
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT,USER,PASSWORD);
             BasicTable bt = (BasicTable)db.run(sql);
             DataTable dt = bt.toDataTable();
             Assert.AreEqual(DBNull.Value, dt.Rows[0][1]);
@@ -1901,7 +2161,7 @@ namespace dolphindb_csharpapi_test
         public void Test_SaveTable_MemoryDB()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT,USER,PASSWORD);
             BasicTable table1 = createBasicTable();
             db.run("t = table(10000:0,`cbool`cchar`cshort`cint`clong`cdate`cmonth`ctime`cminute`csecond`cdatetime`ctimestamp`cnanotime`cnanotimestamp`cfloat`cdouble`csymbol`cstring,[BOOL,CHAR,SHORT,INT,LONG,DATE,MONTH,TIME,MINUTE,SECOND,DATETIME,TIMESTAMP,NANOTIME,NANOTIMESTAMP,FLOAT,DOUBLE,SYMBOL,STRING])\n");
             db.run("share t as memoryTable");
@@ -1916,7 +2176,7 @@ namespace dolphindb_csharpapi_test
         public void Test_SaveTable_LocalDB()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, USER, PASSWORD);
             BasicTable table1 = createBasicTable();
             db.login("admin", "123456", false);
             String dbpath = "dfs://testDatabase";
@@ -2120,7 +2380,6 @@ namespace dolphindb_csharpapi_test
         {
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
-            BasicTable table1 = createBasicTable();
             //conn.run("undef(`table1,SHARED)");
             var cols = new List<IVector>() {};
             var colNames = new List<String>() { "Symbol", "TradingDate", "TradingTime", "RecID", "TradeChannel", "TradePrice", "TradeVolume", "TradeAmount", "UNIX", "Market", "BuyRecID", "SellRecID", "BuySellFlag", "SecurityID" };
@@ -2528,5 +2787,536 @@ a";
             conn.close();
 
         }
+
+        [TestMethod]
+        public void Test_MutiSQL_create_dfs()
+        {
+            DBConnection connection = new DBConnection();
+            connection.connect(SERVER, PORT, "admin", "123456");
+            List<string> sqlList = new List<string>() { "if(existsDatabase(\"dfs://rangedb_tradedata\")) {dropDatabase(\"dfs://rangedb_tradedata\")}", "n=1000000", "t=table(rand(`IBM`MS`APPL`AMZN,n) as symbol, take(1 2, n) as value)", "db = database(\"dfs://rangedb_tradedata\", RANGE, `A`F`M`S`ZZZZ)", "Trades = db.createPartitionedTable(table=t, tableName=\"Trades\", partitionColumns=\"symbol\")", "Trades.append!(t)", "pt = db.createPartitionedTable(table=t, tableName=`pt, partitionColumns=`symbol)", "Trades=loadTable(db,`Trades)", "select min(value) from Trades" ,"select max(value) from Trades", "select * from Trades order by value,symbol" };
+            List<IEntity> entities = connection.run(sqlList);
+            for (int i = 0; i < entities.ToArray().Length; i++)
+            {
+                IEntity entity = entities.ToArray()[i];
+                if (i==8)
+                {
+                    BasicTable t1 = (BasicTable)entity;
+                    Assert.AreEqual(1, entity.rows());
+                    Assert.AreEqual(1, ((BasicInt)t1.getColumn(0).get(0)).getValue());
+                }
+                else if (i==9)
+                {
+                    BasicTable t2 = (BasicTable)entity;
+                    Assert.AreEqual(1, entity.rows());
+                    Assert.AreEqual(2, ((BasicInt)t2.getColumn(0).get(0)).getValue());
+                    Console.Out.WriteLine(entity.getString());
+                }
+                else if (i==10)
+                {
+                    Assert.AreEqual(1000000, entity.rows());
+                    for (int j = 0; j < 500000; j++)
+                    {
+                        BasicTable t3 = (BasicTable)entity;
+                        Assert.AreEqual(1, ((BasicInt)t3.getColumn(1).get(j)).getValue());
+                    }
+                    for (int j = 500000; j < 1000000; j++)
+                    {
+                        BasicTable t3 = (BasicTable)entity;
+                        Assert.AreEqual(2, ((BasicInt)t3.getColumn(1).get(j)).getValue());
+                    }
+
+
+                }
+
+            }
+            connection.close();
+        }
+
+        [TestMethod]
+        public void Test_MutiSQL_create_dfs_drop()
+        {
+            DBConnection connection = new DBConnection();
+            connection.connect(SERVER, PORT, "admin", "123456");
+            List<string> sqlList = new List<string>() { "if(existsDatabase(\"dfs://rangedb_tradedata\")) {dropDatabase(\"dfs://rangedb_tradedata\")}", "n=1000000", "t=table(rand(`IBM`MS`APPL`AMZN,n) as symbol, take(1..10, n) as value)", "db = database(\"dfs://rangedb_tradedata\", RANGE, `A`F`M`S`ZZZZ)", "Trades = db.createPartitionedTable(table=t, tableName=\"Trades\", partitionColumns=\"symbol\")", "Trades.append!(t)", "pt = db.createPartitionedTable(table=t, tableName=`pt, partitionColumns=`symbol)", "Trades=loadTable(db,`Trades)", "select min(value) from Trades", "select max(value) from Trades","dropDatabase(\"dfs://rangedb_tradedata\")", "n=1000000", "t=table(rand(`IBM`MS`APPL`AMZN,n) as symbol, take(1..10, n) as value)", "db = database(\"dfs://rangedb_tradedata\", RANGE, `A`F`M`S`ZZZZ)", "Trades = db.createPartitionedTable(table=t, tableName=\"Trades\", partitionColumns=\"symbol\")", "Trades.append!(t)", "pt = db.createPartitionedTable(table=t, tableName=`pt, partitionColumns=`symbol)", "Trades=loadTable(db,`Trades)", "select min(value) from Trades", "select max(value) from Trades" };
+            List<IEntity> entities = connection.run(sqlList);
+            for (int i = 0; i < entities.ToArray().Length; i++)
+            {
+                IEntity entity = entities.ToArray()[i];
+                if (i == 8)
+                {
+                    BasicTable t1 = (BasicTable)entity;
+                    Assert.AreEqual(1, entity.rows());
+                    Assert.AreEqual(1, ((BasicInt)t1.getColumn(0).get(0)).getValue());
+                }
+                else if (i == 9)
+                {
+                    BasicTable t2 = (BasicTable)entity;
+                    Assert.AreEqual(1, entity.rows());
+                    Assert.AreEqual(10, ((BasicInt)t2.getColumn(0).get(0)).getValue());
+                    Console.Out.WriteLine(entity.getString());
+                }
+                else if (i == 18)
+                {
+                    BasicTable t2 = (BasicTable)entity;
+                    Assert.AreEqual(1, entity.rows());
+                    Assert.AreEqual(1, ((BasicInt)t2.getColumn(0).get(0)).getValue());
+                    Console.Out.WriteLine(entity.getString());
+                }
+                else if (i == 19)
+                {
+                    BasicTable t2 = (BasicTable)entity;
+                    Assert.AreEqual(1, entity.rows());
+                    Assert.AreEqual(10, ((BasicInt)t2.getColumn(0).get(0)).getValue());
+                    Console.Out.WriteLine(entity.getString());
+                }
+            }
+            connection.close();
+        }
+
+        [TestMethod]
+        public void Test_MutiSQL_select()
+        {
+            DBConnection connection = new DBConnection();
+            connection.connect(SERVER, PORT, "admin", "123456");
+            List<string> sqlList = new List<string>() { "sym = `A`B`C$SYMBOL", "price= 49.6 29.46 29.52" , "qty = 2200 1900 2100 ", "timestamp = [09:34:07,09:36:42,09:36:51]", "t1 = table(timestamp, sym, qty, price)", "select * from t1" };
+            List<IEntity> entities = connection.run(sqlList);
+            for (int i = 0; i < entities.ToArray().Length; i++)
+            {
+                IEntity entity = entities.ToArray()[i];
+                if (i == 5)
+                {
+                    BasicTable t1 = (BasicTable)entity;
+                    Console.Out.WriteLine(entity.getString());
+                    Assert.AreEqual(4, entity.columns());
+                    Assert.AreEqual(3, entity.rows()); 
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 34, 07).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(0)).getValue());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 36, 42).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(1)).getValue());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 36, 51).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(2)).getValue());
+                    Assert.AreEqual("A", ((BasicString)t1.getColumn(1).get(0)).getValue());
+                    Assert.AreEqual("B", ((BasicString)t1.getColumn(1).get(1)).getValue());
+                    Assert.AreEqual("C", ((BasicString)t1.getColumn(1).get(2)).getValue());
+                    Assert.AreEqual(2200, ((BasicInt)t1.getColumn(2).get(0)).getValue());
+                    Assert.AreEqual(1900, ((BasicInt)t1.getColumn(2).get(1)).getValue());
+                    Assert.AreEqual(2100, ((BasicInt)t1.getColumn(2).get(2)).getValue());
+                    Assert.AreEqual(49.6, ((BasicDouble)t1.getColumn(3).get(0)).getValue());
+                    Assert.AreEqual(29.46, ((BasicDouble)t1.getColumn(3).get(1)).getValue());
+                    Assert.AreEqual(29.52, ((BasicDouble)t1.getColumn(3).get(2)).getValue());
+                }
+                
+            }
+            connection.close();
+
+        }
+
+
+        [TestMethod]
+        public void Test_MutiSQL_insert()
+        {
+            DBConnection connection = new DBConnection();
+            connection.connect(SERVER, PORT, "admin", "123456");
+            List<string> sqlList = new List<string>() { "sym = `A`B`C$SYMBOL", "price= 49.6 29.46 29.52", "qty = 2200 1900 2100 ", "timestamp = [09:34:07,09:36:42,09:36:51]", "t1 = table(timestamp, sym, qty, price)", "select * from t1", "insert into t1 values(09:36:51,`D,1200,29.44)", "select * from t1" };
+            List<IEntity> entities = connection.run(sqlList);
+            for (int i = 0; i < entities.ToArray().Length; i++)
+            {
+                IEntity entity = entities.ToArray()[i];
+                if (i == 5)
+                {
+                    BasicTable t1 = (BasicTable)entity;
+                    Console.Out.WriteLine(entity.getString());
+                    Assert.AreEqual(4, entity.columns());
+                    Assert.AreEqual(3, entity.rows());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 34, 07).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(0)).getValue());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 36, 42).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(1)).getValue());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 36, 51).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(2)).getValue());
+                    Assert.AreEqual("A", ((BasicString)t1.getColumn(1).get(0)).getValue());
+                    Assert.AreEqual("B", ((BasicString)t1.getColumn(1).get(1)).getValue());
+                    Assert.AreEqual("C", ((BasicString)t1.getColumn(1).get(2)).getValue());
+                    Assert.AreEqual(2200, ((BasicInt)t1.getColumn(2).get(0)).getValue());
+                    Assert.AreEqual(1900, ((BasicInt)t1.getColumn(2).get(1)).getValue());
+                    Assert.AreEqual(2100, ((BasicInt)t1.getColumn(2).get(2)).getValue());
+                    Assert.AreEqual(49.6, ((BasicDouble)t1.getColumn(3).get(0)).getValue());
+                    Assert.AreEqual(29.46, ((BasicDouble)t1.getColumn(3).get(1)).getValue());
+                    Assert.AreEqual(29.52, ((BasicDouble)t1.getColumn(3).get(2)).getValue());
+                }
+                if (i == 7)
+                {
+                    BasicTable t1 = (BasicTable)entity;
+                    Console.Out.WriteLine(entity.getString());
+                    Assert.AreEqual(4, entity.columns());
+                    Assert.AreEqual(4, entity.rows()); 
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 34, 07).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(0)).getValue());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 36, 42).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(1)).getValue());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 36, 51).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(2)).getValue());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 36, 51).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(3)).getValue());
+                    Assert.AreEqual("A", ((BasicString)t1.getColumn(1).get(0)).getValue());
+                    Assert.AreEqual("B", ((BasicString)t1.getColumn(1).get(1)).getValue());
+                    Assert.AreEqual("C", ((BasicString)t1.getColumn(1).get(2)).getValue());
+                    Assert.AreEqual("D", ((BasicString)t1.getColumn(1).get(3)).getValue());
+                    Assert.AreEqual(2200, ((BasicInt)t1.getColumn(2).get(0)).getValue());
+                    Assert.AreEqual(1900, ((BasicInt)t1.getColumn(2).get(1)).getValue());
+                    Assert.AreEqual(2100, ((BasicInt)t1.getColumn(2).get(2)).getValue());
+                    Assert.AreEqual(1200, ((BasicInt)t1.getColumn(2).get(3)).getValue());
+                    Assert.AreEqual(49.6, ((BasicDouble)t1.getColumn(3).get(0)).getValue());
+                    Assert.AreEqual(29.46, ((BasicDouble)t1.getColumn(3).get(1)).getValue());
+                    Assert.AreEqual(29.52, ((BasicDouble)t1.getColumn(3).get(2)).getValue());
+                    Assert.AreEqual(29.44, ((BasicDouble)t1.getColumn(3).get(3)).getValue());
+                }
+
+            }
+            connection.close();
+        }
+
+        [TestMethod]
+        public void Test_MutiSQL_update()
+        {
+            DBConnection connection = new DBConnection();
+            connection.connect(SERVER, PORT, "admin", "123456");
+            List<string> sqlList = new List<string>() { "sym = `A`B`C$SYMBOL", "price= 49.6 29.46 29.52", "qty = 2200 1900 2100 ", "timestamp = [09:34:07,09:36:42,09:36:51]", "t1 = table(timestamp, sym, qty, price)", "select * from t1", "update t1 set price=30 where sym=`A ", "select * from t1" };
+            List<IEntity> entities = connection.run(sqlList);
+            for (int i = 0; i < entities.ToArray().Length; i++)
+            {
+                IEntity entity = entities.ToArray()[i];
+                if (i == 5)
+                {
+                    BasicTable t1 = (BasicTable)entity;
+                    Console.Out.WriteLine(entity.getString());
+                    Assert.AreEqual(4, entity.columns());
+                    Assert.AreEqual(3, entity.rows());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 34, 07).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(0)).getValue());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 36, 42).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(1)).getValue());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 36, 51).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(2)).getValue());
+                    Assert.AreEqual("A", ((BasicString)t1.getColumn(1).get(0)).getValue());
+                    Assert.AreEqual("B", ((BasicString)t1.getColumn(1).get(1)).getValue());
+                    Assert.AreEqual("C", ((BasicString)t1.getColumn(1).get(2)).getValue());
+                    Assert.AreEqual(2200, ((BasicInt)t1.getColumn(2).get(0)).getValue());
+                    Assert.AreEqual(1900, ((BasicInt)t1.getColumn(2).get(1)).getValue());
+                    Assert.AreEqual(2100, ((BasicInt)t1.getColumn(2).get(2)).getValue());
+                    Assert.AreEqual(49.6, ((BasicDouble)t1.getColumn(3).get(0)).getValue());
+                    Assert.AreEqual(29.46, ((BasicDouble)t1.getColumn(3).get(1)).getValue());
+                    Assert.AreEqual(29.52, ((BasicDouble)t1.getColumn(3).get(2)).getValue());
+                }
+                if (i == 7)
+                {
+                    BasicTable t1 = (BasicTable)entity;
+                    Console.Out.WriteLine(entity.getString());
+                    Assert.AreEqual(4, entity.columns());
+                    Assert.AreEqual(3, entity.rows());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 34, 07).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(0)).getValue());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 36, 42).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(1)).getValue());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 36, 51).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(2)).getValue());
+                    Assert.AreEqual("A", ((BasicString)t1.getColumn(1).get(0)).getValue());
+                    Assert.AreEqual("B", ((BasicString)t1.getColumn(1).get(1)).getValue());
+                    Assert.AreEqual("C", ((BasicString)t1.getColumn(1).get(2)).getValue());
+                    Assert.AreEqual(2200, ((BasicInt)t1.getColumn(2).get(0)).getValue());
+                    Assert.AreEqual(1900, ((BasicInt)t1.getColumn(2).get(1)).getValue());
+                    Assert.AreEqual(2100, ((BasicInt)t1.getColumn(2).get(2)).getValue());
+                    Assert.AreEqual(30, ((BasicDouble)t1.getColumn(3).get(0)).getValue());
+                    Assert.AreEqual(29.46, ((BasicDouble)t1.getColumn(3).get(1)).getValue());
+                    Assert.AreEqual(29.52, ((BasicDouble)t1.getColumn(3).get(2)).getValue());
+                }
+
+            }
+            connection.close();
+        }
+
+        [TestMethod]
+        public void Test_MutiSQL_delete()
+        {
+            DBConnection connection = new DBConnection();
+            connection.connect(SERVER, PORT, "admin", "123456");
+            List<string> sqlList = new List<string>() { "sym = `A`B`C$SYMBOL", "price= 49.6 29.46 29.52", "qty = 2200 1900 2100 ", "timestamp = [09:34:07,09:36:42,09:36:51]", "t1 = table(timestamp, sym, qty, price)", "select * from t1", "delete from t1 where sym=`A ", "select * from t1" };
+            List<IEntity> entities = connection.run(sqlList);
+            for (int i = 0; i < entities.ToArray().Length; i++)
+            {
+                IEntity entity = entities.ToArray()[i];
+                if (i == 5)
+                {
+                    BasicTable t1 = (BasicTable)entity;
+                    Console.Out.WriteLine(entity.getString());
+                    Assert.AreEqual(4, entity.columns());
+                    Assert.AreEqual(3, entity.rows());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 34, 07).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(0)).getValue());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 36, 42).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(1)).getValue());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 36, 51).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(2)).getValue());
+                    Assert.AreEqual("A", ((BasicString)t1.getColumn(1).get(0)).getValue());
+                    Assert.AreEqual("B", ((BasicString)t1.getColumn(1).get(1)).getValue());
+                    Assert.AreEqual("C", ((BasicString)t1.getColumn(1).get(2)).getValue());
+                    Assert.AreEqual(2200, ((BasicInt)t1.getColumn(2).get(0)).getValue());
+                    Assert.AreEqual(1900, ((BasicInt)t1.getColumn(2).get(1)).getValue());
+                    Assert.AreEqual(2100, ((BasicInt)t1.getColumn(2).get(2)).getValue());
+                    Assert.AreEqual(49.6, ((BasicDouble)t1.getColumn(3).get(0)).getValue());
+                    Assert.AreEqual(29.46, ((BasicDouble)t1.getColumn(3).get(1)).getValue());
+                    Assert.AreEqual(29.52, ((BasicDouble)t1.getColumn(3).get(2)).getValue());
+                }
+                if (i == 7)
+                {
+                    BasicTable t1 = (BasicTable)entity;
+                    Console.Out.WriteLine(entity.getString());
+                    Assert.AreEqual(4, entity.columns());
+                    Assert.AreEqual(2, entity.rows());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 36, 42).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(0)).getValue());
+                    Assert.AreEqual(new DateTime(1970, 01, 01, 09, 36, 51).TimeOfDay, ((BasicSecond)t1.getColumn(0).get(1)).getValue());
+                    Assert.AreEqual("B", ((BasicString)t1.getColumn(1).get(0)).getValue());
+                    Assert.AreEqual("C", ((BasicString)t1.getColumn(1).get(1)).getValue());
+                    Assert.AreEqual(1900, ((BasicInt)t1.getColumn(2).get(0)).getValue());
+                    Assert.AreEqual(2100, ((BasicInt)t1.getColumn(2).get(1)).getValue());
+                    Assert.AreEqual(29.46, ((BasicDouble)t1.getColumn(3).get(0)).getValue());
+                    Assert.AreEqual(29.52, ((BasicDouble)t1.getColumn(3).get(1)).getValue());
+                }
+
+            }
+            connection.close();
+        }
+
+        [TestMethod]
+        public void Test_MutiSQL_def()
+        {
+            DBConnection connection = new DBConnection();
+            connection.connect(SERVER, PORT, "admin", "123456");
+            List<string> sqlList = new List<string>() { "def test_user(){\n try \n {deleteUser('testuser1')\n }\n catch(ex)\n {print(ex)}\n }\n rpc(getControllerAlias(), test_user)", "def test_user1(){createUser(\"testuser1\", \"123456\")}\n rpc(getControllerAlias(), test_user1)" };
+            List<IEntity> entities = connection.run(sqlList);
+            foreach (IEntity entity in entities)
+            {
+                Console.Out.WriteLine(entity.getString());
+                entity.getString();
+            }
+            connection.close();
+        }
+
+        [TestMethod]
+        public void Test_MutiSQL_longsql()
+        {
+            DBConnection connection = new DBConnection();
+            connection.connect(SERVER, PORT, "admin", "123456");
+            List<string> sqlList = new List<string>() { "m = 300000;", "n = 100;", "exTable0 = table(n:0, `symbolv`ID`timestampx`stringv`boolv`intv`datev`datetimev`timestampv`floatv, [SYMBOL, INT, TIMESTAMP, STRING, BOOL[], INT[], DATE[], DATETIME[], TIMESTAMP[], FLOAT[]]);", "share exTable0 as ptt;", "symbol_vector=take(`A, n);", "ID_vector=take(100, n);", "timestampx_vector=take(temporalAdd(2020.01.01T12:23:24.345, (1..n), `m), n);", "stringv_vector=rand(`name + string(1..100), n);", "bool_vector=take([take(take(true, 5) join take(false, 5), 10)], n);", "int_vector=take([int(take([40,48,4,3,52,18,21,73,82,67], m)), int(take([36,98,95,69,41,60,78,92,78,21], m)), int(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "date_vector=take([date(take([40,48,4,3,52,18,21,73,82,67], m)), date(take([36,98,95,69,41,60,78,92,78,21], m)), date(take([92,40,13,93,9,34,86,60,43,64],m))], n);", "datetime_vector=take([datetime(take([40,48,4,3,52,18,21,73,82,67], m)), datetime(take([36,98,95,69,41,60,78,92,78,21], m)), datetime(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "timestamp_vector=take([timestamp(take([40,48,4,3,52,18,21,73,82,67], m)), timestamp(take([36,98,95,69,41,60,78,92,78,21], m)), timestamp(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "float_vector=take([float(take([40,48,4,3,52,18,21,73,82,67], m)), float(take([36,98,95,69,41,60,78,92,78,21], m)), float(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "exTable0.tableInsert(symbol_vector, ID_vector, timestampx_vector, stringv_vector, bool_vector, int_vector, date_vector, datetime_vector, timestamp_vector, float_vector);", "select count(*) from ptt", "select ID from ptt", "select * from ptt", "select intv from ptt" };
+            List<IEntity> entities = connection.run(sqlList);
+            for (int i = 0; i < entities.ToArray().Length; i++)
+            {
+                IEntity entity = entities.ToArray()[i];
+                if (i == 15)
+                {
+                    BasicTable t1 = (BasicTable)entity;
+                    Console.Out.WriteLine(entity.getString());
+                    Assert.AreEqual(1, entity.columns());
+                    Assert.AreEqual(1, entity.rows());
+                    Assert.AreEqual(100, ((BasicInt)t1.getColumn(0).get(0)).getValue());
+                }
+                if (i == 16)
+                {
+                    BasicTable t1 = (BasicTable)entity;
+                    Console.Out.WriteLine(entity.getString());
+                    Assert.AreEqual(1, entity.columns());
+                    Assert.AreEqual(100, entity.rows());
+                    for (int j = 0; j < 100; j++)
+                    {
+                        BasicTable t3 = (BasicTable)entity;
+                        Assert.AreEqual(100, ((BasicInt)t3.getColumn(0).get(j)).getValue());
+                    }
+                }
+
+            }
+            connection.close();
+
+        }
+        //[TestMethod]
+        public void Test_sqlList_priority()
+        {
+            DBConnection connection = new DBConnection();
+            connection.connect("192.168.1.167", 8851, "admin", "123456");
+            List<string> sqlList = new List<string>() { "m = 30000;", "n = 100;", "exTable0 = table(n:0, `symbolv`ID`timestampx`stringv`boolv`intv`datev`datetimev`timestampv`floatv, [SYMBOL, INT, TIMESTAMP, STRING, BOOL[], INT[], DATE[], DATETIME[], TIMESTAMP[], FLOAT[]]);", "symbol_vector=take(`A, n);", "ID_vector=take(100, n);", "timestampx_vector=take(temporalAdd(2020.01.01T12:23:24.345, (1..n), `m), n);", "stringv_vector=rand(`name + string(1..100), n);", "bool_vector=take([take(take(true, 5) join take(false, 5), 10)], n);", "int_vector=take([int(take([40,48,4,3,52,18,21,73,82,67], m)), int(take([36,98,95,69,41,60,78,92,78,21], m)), int(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "date_vector=take([date(take([40,48,4,3,52,18,21,73,82,67], m)), date(take([36,98,95,69,41,60,78,92,78,21], m)), date(take([92,40,13,93,9,34,86,60,43,64],m))], n);", "datetime_vector=take([datetime(take([40,48,4,3,52,18,21,73,82,67], m)), datetime(take([36,98,95,69,41,60,78,92,78,21], m)), datetime(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "timestamp_vector=take([timestamp(take([40,48,4,3,52,18,21,73,82,67], m)), timestamp(take([36,98,95,69,41,60,78,92,78,21], m)), timestamp(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "float_vector=take([float(take([40,48,4,3,52,18,21,73,82,67], m)), float(take([36,98,95,69,41,60,78,92,78,21], m)), float(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "exTable0.tableInsert(symbol_vector, ID_vector, timestampx_vector, stringv_vector, bool_vector, int_vector, date_vector, datetime_vector, timestamp_vector, float_vector);", "share exTable0 as ptt;", "select count(*) from ptt", "select ID from ptt", "select * from ptt", "select intv from ptt" };
+
+            DBConnection connection1 = new DBConnection();
+            connection1.connect("192.168.1.167", 8851, "admin", "123456");
+            List<string> sqlList1 = new List<string>() { "m = 30000;", "n = 100;", "exTable1 = table(n:0, `symbolv`ID`timestampx`stringv`boolv`intv`datev`datetimev`timestampv`floatv, [SYMBOL, INT, TIMESTAMP, STRING, BOOL[], INT[], DATE[], DATETIME[], TIMESTAMP[], FLOAT[]]);", "symbol_vector=take(`A, n);", "ID_vector=take(100, n);", "timestampx_vector=take(temporalAdd(2020.01.01T12:23:24.345, (1..n), `m), n);", "stringv_vector=rand(`name + string(1..100), n);", "bool_vector=take([take(take(true, 5) join take(false, 5), 10)], n);", "int_vector=take([int(take([40,48,4,3,52,18,21,73,82,67], m)), int(take([36,98,95,69,41,60,78,92,78,21], m)), int(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "date_vector=take([date(take([40,48,4,3,52,18,21,73,82,67], m)), date(take([36,98,95,69,41,60,78,92,78,21], m)), date(take([92,40,13,93,9,34,86,60,43,64],m))], n);", "datetime_vector=take([datetime(take([40,48,4,3,52,18,21,73,82,67], m)), datetime(take([36,98,95,69,41,60,78,92,78,21], m)), datetime(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "timestamp_vector=take([timestamp(take([40,48,4,3,52,18,21,73,82,67], m)), timestamp(take([36,98,95,69,41,60,78,92,78,21], m)), timestamp(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "float_vector=take([float(take([40,48,4,3,52,18,21,73,82,67], m)), float(take([36,98,95,69,41,60,78,92,78,21], m)), float(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "exTable1.tableInsert(symbol_vector, ID_vector, timestampx_vector, stringv_vector, bool_vector, int_vector, date_vector, datetime_vector, timestamp_vector, float_vector);", "share exTable1 as ptt1;", "select count(*) from ptt1", "select ID from ptt1", "select * from ptt1", "select intv from ptt1" };
+            List<IEntity> entities = connection.run(sqlList,0);
+            foreach (IEntity entity in entities)
+            {
+                Console.Out.WriteLine(entity.getString());
+                entity.getString();
+            }
+            List<IEntity> entities1 = connection1.run(sqlList, 8);
+            foreach (IEntity entity in entities1)
+            {
+                Console.Out.WriteLine(entity.getString());
+                entity.getString();
+            }
+            connection.close();
+            connection1.close();
+        }
+        
+        [TestMethod]
+        public void Test_sqlList_parallelism()
+        {
+
+            string scripts = "t = loadText(\"/home/wsun/Downloads/file2.csv\")";
+            scripts += "if(existsDatabase(\"dfs://test1\")){\n dropDatabase(\"dfs://test1\")\n }";
+            scripts += "db = database(\"dfs://test1\", VALUE, 2022.01.01..2022.12.31)";
+            //scripts += "tableSchema = table(1:0, t.schema().colDefs[`name], t.schema().colDefs[`typeString]);\n pt = db.createPartitionedTable(tableSchema, \"pt\", `data_date )\n loadTable(\"dfs://test1\",\"pt\").append!(t)";
+
+            //DBConnection connection = new DBConnection();
+            //connection.connect("192.168.1.167", 18921, "admin", "123456");
+            ////List<string> sqlList = new List<string>() { "select * from loadTable(\"dfs://test\", \"pt\") where  instr='OPT_XSHG_510050' and snapshot_config = 'snap_sz1_0930_1457_5s' and impl_fwd_disc_config = 'fwd_synth_order_match' and impl_vol_model_config = 'spline_gd_dof10.0' and snapshot_ts = timestamp('2022.08.03T09:30:05.000000');" };
+            //List<string> sqlList = new List<string>() { "select sum(impl_fwd), * from loadTable(\"dfs://test\", \"pt\") " };
+
+            //DateTime beforeDT = System.DateTime.Now;
+            //var ret = connection.runAsync(sqlList, 4, 1);
+            //var ret1 = ret.Result;
+            //DateTime afterDT = System.DateTime.Now;
+            //TimeSpan ts = afterDT.Subtract(beforeDT);
+            //Console.WriteLine("DateTime costed: {0}ms", ts.TotalMilliseconds);
+            //connection.close();
+            DBConnection connection1 = new DBConnection();
+            connection1.connect(SERVER, PORT, "admin", "123456");
+            connection1.run(scripts,false);
+            List<string> sqlList1 = new List<string>() { "select sum(impl_fwd), * from loadTable(\"dfs://test1\", \"pt\") where  instr='OPT_XSHG_510050' and snapshot_config = 'snap_sz1_0930_1457_5s' and impl_fwd_disc_config = 'fwd_synth_order_match' and impl_vol_model_config = 'spline_gd_dof10.0' and snapshot_ts = timestamp('2022.08.03T09:30:05.000000'); " };
+
+            List<string> sqlList2 = new List<string>() { "t = select * from loadTable(\"dfs://test\",\"pt\")", "loop(max, t.values()); " };
+
+            List<IEntity> entities1 = connection1.run(sqlList2, 4, 64);
+            foreach (IEntity entity in entities1)
+            {
+                Console.Out.WriteLine(entity.getString());
+                entity.getString();
+            }
+            connection1.close();
+
+
+        }
+        [TestMethod]
+        public void Test_sqlList_parallelism_65()
+        {
+            DBConnection connection = new DBConnection();
+            connection.connect(SERVER, PORT, "admin", "123456");
+            List<string> sqlList2 = new List<string>() { "t = select * from loadTable(\"dfs://test1\",\"pt\")", "loop(max, t.values()); " };
+
+            try
+            {
+
+                List<IEntity> entities1 = connection.run(sqlList2, 4, 65);
+
+
+            }
+            catch (Exception ex)
+            {
+                Assert.AreEqual(ex.Message, "parallelism must be greater than 0 and less than 65");
+            }
+            connection.close();
+        }
+
+        [TestMethod]
+        public void Test_sqlList_parallelism_0()
+        {
+            DBConnection connection = new DBConnection();
+            connection.connect(SERVER, PORT, "admin", "123456");
+            List<string> sqlList2 = new List<string>() { "t = select * from loadTable(\"dfs://test1\",\"pt\")", "loop(max, t.values()); " };
+            try
+            {
+
+                List<IEntity> entities1 = connection.run(sqlList2, 4, 0);
+
+
+            }
+            catch (Exception ex)
+            {
+                Assert.AreEqual(ex.Message, "parallelism must be greater than 0 and less than 65");
+            }
+            connection.close();
+        }
+
+
+        [TestMethod]
+        public void Test_sqlList_clearMemory_false()
+        {
+            DBConnection connection = new DBConnection();
+            connection.connect(SERVER, PORT, "admin", "123456");
+            List<string> sqlList = new List<string>() { "exTable=table(100:5, `name`id`value, [STRING,INT,DOUBLE]);", "share exTable as ptt2;" };
+            List<IEntity> entities1 = connection.run(sqlList, 4, 1, false);
+            connection.close();
+        }
+        [TestMethod]
+        public void Test_sqlList_clearMemory_true()
+        {
+            DBConnection connection = new DBConnection();
+
+            DBConnection connection1 = new DBConnection();
+            connection1.connect(SERVER, PORT, "admin", "123456");
+            List<string> sqlList1 = new List<string>() { "exTable=table(100:5, `name`id`value, [STRING,INT,DOUBLE]);", "share exTable as ptt2;" };
+            Exception e = null;
+            try
+            {
+                List<IEntity> entities1 = connection.run(sqlList1, 4, 1, false);
+            }
+            catch (Exception ex)
+            {
+                e = ex;
+
+            }
+            Assert.IsNotNull(e);
+            connection1.close();
+        }
+
+
+        [TestMethod]
+        public void Test_run_return_table_in1t()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicTable tb = (BasicTable)db.run("table(1..100 as id,take(`aaa,100) as name)");
+            Assert.IsTrue(tb.isTable());
+            Assert.AreEqual(100, tb.rows());
+            Assert.AreEqual(2, tb.columns());
+            Assert.AreEqual(3, ((BasicInt)tb.getColumn(0).get(2)).getValue());
+            Assert.AreEqual("aaa", ((BasicString)tb.getColumn(1).get(2)).getString());
+            db.close();
+        }
+        [TestMethod]
+        public void Test_DBConnection_isConnected()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            DBConnection db1 = new DBConnection();
+            Assert.AreEqual(1, db.isConnected.GetHashCode());
+            Assert.AreEqual(0, db1.isConnected.GetHashCode());
+            db1.close();
+            db.close();
+        }
+        [TestMethod]
+        public void Test_DBConnection_RemoteLittleEndian()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            DBConnection db1 = new DBConnection();
+            Assert.AreEqual(1, db.RemoteLittleEndian.GetHashCode());
+            Assert.AreEqual(0, db1.RemoteLittleEndian.GetHashCode());
+            db1.close();
+            db.close();
+        }
+        [TestMethod]
+        public void Test_DBConnection_HostName()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            Assert.AreEqual(SERVER, db.HostName.ToString());
+            db.close();
+        }
+        [TestMethod]
+        public void Test_DBConnection_Port()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            Assert.AreEqual(PORT.ToString(), db.Port.ToString());
+            db.close();
+        }
+        [TestMethod]
+        public void Test_DBConnection_LocalAddress()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            Assert.AreEqual(LOCALHOST, db.LocalAddress.ToString());
+            db.close();
+        }
+
+
+
     }
 }

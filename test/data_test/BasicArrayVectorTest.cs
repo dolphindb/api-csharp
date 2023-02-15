@@ -753,6 +753,48 @@ namespace dolphindb_csharp_api_test.data_test
             //compareArrayVectorWithAnyVector(a7, ex7);
 
         }
+        //[TestMethod]//not support
+        public void Test_download_decimal64_array_vector()
+        {
+            //elements scalar null
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "admin", "123456");
+
+            BasicArrayVector a1 = (BasicArrayVector)conn.run("a = array(DECIMAL64(4)[], 0, 10); a.append!(arrayVector(1..20, take(decimal64(4,4), 20)));a;");
+            BasicAnyVector ex1 = (BasicAnyVector)conn.run("loop(def (x):x, a)");
+            compareArrayVectorWithAnyVector(a1, ex1);
+
+
+            //elements scalar not null
+            BasicArrayVector a2 = (BasicArrayVector)conn.run("a = array(UUID[], 0, 10); a.append!(arrayVector(1..20, rand(uuid(), 20)));a;");
+            BasicAnyVector ex2 = (BasicAnyVector)conn.run("loop(def (x):x, a)");
+            compareArrayVectorWithAnyVector(a2, ex2);
+
+            //array vector len 0
+            BasicArrayVector a3 = (BasicArrayVector)conn.run("a = array(UUID[], 0, 10); a;");
+            Assert.AreEqual(a3.rows(), 0);
+
+            //array vector len<256
+            BasicArrayVector a4 = (BasicArrayVector)conn.run("a = array(UUID[], 0, 10); a.append!(arrayVector(1..20 * 10, rand(uuid(), 200)));a;");
+            BasicAnyVector ex4 = (BasicAnyVector)conn.run("loop(def (x):x, a)");
+            compareArrayVectorWithAnyVector(a4, ex4);
+
+            //array vector 256<=len<65535
+            BasicArrayVector a5 = (BasicArrayVector)conn.run("a = array(UUID[], 0, 10); a.append!(arrayVector(1..20 * 10000, rand(uuid(), 200000)));a;");
+            BasicAnyVector ex5 = (BasicAnyVector)conn.run("loop(def (x):x, a)");
+            compareArrayVectorWithAnyVector(a5, ex5);
+
+            //array vector len>=65535
+            BasicArrayVector a6 = (BasicArrayVector)conn.run("a = array(UUID[], 0, 10); a.append!(arrayVector(1..20 * 100000, rand(uuid(), 2000000)));a;");
+            BasicAnyVector ex6 = (BasicAnyVector)conn.run("loop(def (x):x, a)");
+            compareArrayVectorWithAnyVector(a6, ex6);
+
+            //len inconsistent
+            //BasicArrayVector a7 = (BasicArrayVector)conn.run("index = int(cumsum(rand(1..10000, 10)));a = array(SHORT[], 0, 10); a.append!(arrayVector(index, rand(100, last(index))));a;");
+            //BasicAnyVector ex7 = (BasicAnyVector)conn.run("loop(def (x):x, a)");
+            //compareArrayVectorWithAnyVector(a7, ex7);
+
+        }
 
         [TestMethod]
         public void Test_download_ipaddr_array_vector()
@@ -1998,11 +2040,24 @@ namespace dolphindb_csharp_api_test.data_test
             }
             BasicArrayVector col4 = new BasicArrayVector(index2, new BasicIntVector(value2));
             List<IEntity> args = new List<IEntity>() { col1, col2, col3, col4 };
+            List<IVector> args1 = new List<IVector>() { col1, col2, col3, col4 };
             conn.run("tableInsert{st}", args);
             BasicInt total = (BasicInt)conn.run("exec count(*) from st");
             Assert.AreEqual(total.getValue(), 100);
             BasicTable re = (BasicTable)conn.run("st");
             BasicArrayVector x = (BasicArrayVector)re.getColumn(2);
+            int[] index3 = new int[100];
+            try
+            {
+                BasicArrayVector col5 = new BasicArrayVector(index3, new BasicIntVector(value2));
+
+            }
+            catch (Exception ex)
+            {
+                string s = ex.Message;
+                Assert.AreEqual("The last element of index must be equal to the length of value. ", s);
+
+            }
             conn.run("undef(`st, SHARED)");
 
         }
@@ -2089,5 +2144,23 @@ namespace dolphindb_csharp_api_test.data_test
             db.close();
         }
 
+        [TestMethod]
+        public void Test_BasicArrayVector_Remain()
+        {
+            try
+            {
+                BasicArrayVector bav1 = new BasicArrayVector(new int[0], new BasicIntVector(new int[] { 1, 2, 3, 4 }));
+            }
+            catch(Exception e)
+            {
+                Assert.AreEqual("Index must be an array of size greater than 0.", e.Message);
+                Console.WriteLine(e.Message);
+            }
+
+            BasicIntVector bi1 = new BasicIntVector(0);
+            List<IVector> value1 = new List<IVector>();
+            value1.Add(bi1);
+            BasicArrayVector ba2 = new BasicArrayVector(value1);
+        }
     }
 }

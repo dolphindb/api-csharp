@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 
 namespace dolphindb.data
 {
@@ -35,14 +36,20 @@ namespace dolphindb.data
 
         public static int countMonths(int year, int month)
         {
-            return year * 12 + month - 1;
+            return year * 12 + month-1;
         }
 
         public static DateTime parseMonth(int value)
         {
             try
             {
-                return new DateTime(value / 12, value % 12 + 1, 1);
+                int year = value / 12;
+                int month = value % 12+1;
+                if(value / 12 <= 0)
+                {
+                    year++;
+                };
+                return new DateTime(year, month, 1);
             }
             catch (Exception e)
             {
@@ -827,6 +834,8 @@ namespace dolphindb.data
                 return DATA_CATEGORY.MIXED;
             else if (type == DATA_TYPE.DT_VOID)
                 return DATA_CATEGORY.NOTHING;
+            else if (type == DATA_TYPE.DT_DECIMAL32 || type == DATA_TYPE.DT_DECIMAL64)
+                return DATA_CATEGORY.DENARY;
             else
                 return DATA_CATEGORY.SYSTEM;
         }
@@ -851,6 +860,8 @@ namespace dolphindb.data
                 return DATA_CATEGORY.MIXED;
             else if (type == DATA_TYPE.DT_VOID)
                 return DATA_CATEGORY.NOTHING;
+            else if (type == DATA_TYPE.DT_DECIMAL32 || type == DATA_TYPE.DT_DECIMAL64 || type == DATA_TYPE.DT_DECIMAL128)
+                return DATA_CATEGORY.DENARY;
             else
                 return DATA_CATEGORY.SYSTEM;
         }
@@ -1188,7 +1199,7 @@ namespace dolphindb.data
                     return "TIME";
                     break;
                 case DATA_TYPE.DT_SECOND:
-                    return "SECONDE";
+                    return "SECOND";
                     break;
                 case DATA_TYPE.DT_MINUTE:
                     return "MINUTE";
@@ -1211,12 +1222,18 @@ namespace dolphindb.data
                 case DATA_TYPE.DT_SYMBOL:
                     return "DT_SYMBOL";
                     break;
+                case DATA_TYPE.DT_DECIMAL32:
+                    return "DECIMAL32";
+                    break;
+                case DATA_TYPE.DT_DECIMAL64:
+                    return "DECIMAL64";
+                    break;
                 default:
                     return ((int)dt).ToString();
             }
         }
 
-        public static IEntity createObject(DATA_TYPE dt, Object value)
+        public static IEntity createObject(DATA_TYPE dt, Object value, int extraParam)
         {
             if(value == null){
                 return createNULLObject(dt);
@@ -1227,7 +1244,7 @@ namespace dolphindb.data
             }
             else if (value is bool[])
             {
-                return createObject(dt, (bool[])value);
+                return createObject(dt, (bool[])value, extraParam);
             }
             else if (value is byte)
             {
@@ -1235,7 +1252,7 @@ namespace dolphindb.data
             }
             else if (value is byte[])
             {
-                return createObject(dt, (byte[])value);
+                return createObject(dt, (byte[])value, extraParam);
             }
             else if (value is short)
             {
@@ -1243,39 +1260,39 @@ namespace dolphindb.data
             }
             else if (value is short[])
             {
-                return createObject(dt, (short[])value);
+                return createObject(dt, (short[])value, extraParam);
             }
             else if (value is int)
             {
-                return createObject(dt, (int)value);
+                return createObject(dt, (int)value, extraParam);
             }
             else if (value is int[])
             {
-                return createObject(dt, (int[])value);
+                return createObject(dt, (int[])value, extraParam);
             }
             else if(value is long)
             {
-                return createObject(dt, (long)value);
+                return createObject(dt, (long)value, extraParam);
             }
             else if (value is long[])
             {
-                return createObject(dt, (long[])value);
+                return createObject(dt, (long[])value, extraParam);
             }
             else if (value is float)
             {
-                return createObject(dt, (float)value);
+                return createObject(dt, (float)value, extraParam);
             }
             else if (value is float[])
             {
-                return createObject(dt, (float[])value);
+                return createObject(dt, (float[])value, extraParam);
             }
             else if (value is double)
             {
-                return createObject(dt, (double)value);
+                return createObject(dt, (double)value, extraParam);
             }
             else if (value is double[])
             {
-                return createObject(dt, (double[])value);
+                return createObject(dt, (double[])value, extraParam);
             }
             else if (value is string)
             {
@@ -1283,7 +1300,7 @@ namespace dolphindb.data
             }
             else if (value is string[])
             {
-                return createObject(dt, (string[])value);
+                return createObject(dt, (string[])value, extraParam);
             }
             else if (value is DateTime)
             {
@@ -1291,7 +1308,7 @@ namespace dolphindb.data
             }
             else if (value is DateTime[])
             {
-                return createObject(dt, (DateTime[])value);
+                return createObject(dt, (DateTime[])value, extraParam);
             }
             else if (value is TimeSpan)
             {
@@ -1299,7 +1316,7 @@ namespace dolphindb.data
             }
             else if (value is TimeSpan[])
             {
-                return createObject(dt, (TimeSpan[])value);
+                return createObject(dt, (TimeSpan[])value, extraParam);
             }
             else if(value is IEntity)
             {
@@ -1370,12 +1387,18 @@ namespace dolphindb.data
             return createObject(dt, (long)value, "short");
         }
 
-        public static IEntity createObject(DATA_TYPE dt, int value)
+        public static IEntity createObject(DATA_TYPE dt, int value, int extraParam)
         {
             switch (dt)
             {
                 case DATA_TYPE.DT_INT:
                     return new BasicInt(value);
+                    break;
+                case DATA_TYPE.DT_DECIMAL32:
+                    throw new Exception("decimal is not supported");
+                    break;
+                case DATA_TYPE.DT_DECIMAL64:
+                    throw new Exception("decimal is not supported");
                     break;
                 default:
                     return createObject(dt, (long)value, "int");
@@ -1408,12 +1431,26 @@ namespace dolphindb.data
             }
         }
 
-        public static IEntity createObject(DATA_TYPE dt, long value)
+        public static IEntity createObject(DATA_TYPE dt, long value, int extraParam)
         {
-            return createObject(dt, value, "long");
+            switch (dt)
+            {
+                case DATA_TYPE.DT_DECIMAL32:
+                    if(value >= int.MinValue && value <= int.MaxValue)
+                        throw new Exception("decimal is not supported");
+                    else
+                        throw new Exception("Failed to insert data. value cannot be converted because it exceeds the range of " + getDataTypeString(dt));
+                    break;
+                case DATA_TYPE.DT_DECIMAL64:
+                    throw new Exception("decimal is not supported");
+                    break;
+                default:
+                    return createObject(dt, value, "long");
+                    break;
+            }
         }
 
-        public static IEntity createObject(DATA_TYPE dt, float value)
+        public static IEntity createObject(DATA_TYPE dt, float value, int extraParam)
         {
             switch (dt)
             {
@@ -1423,13 +1460,19 @@ namespace dolphindb.data
                 case DATA_TYPE.DT_DOUBLE:
                     return new BasicDouble(value);
                     break;
+                case DATA_TYPE.DT_DECIMAL32:
+                    throw new Exception("decimal is not supported");
+                    break;
+                case DATA_TYPE.DT_DECIMAL64:
+                    throw new Exception("decimal is not supported");
+                    break;
                 default:
                     throw new Exception("Failed to insert data. Cannot convert float to " + getDataTypeString(dt));
                     break;
             }
         }
 
-        public static IEntity createObject(DATA_TYPE dt, double value)
+        public static IEntity createObject(DATA_TYPE dt, double value, int extraParam)
         {
             switch (dt)
             {
@@ -1439,6 +1482,12 @@ namespace dolphindb.data
                     break;
                 case DATA_TYPE.DT_DOUBLE:
                     return new BasicDouble(value);
+                    break;
+                case DATA_TYPE.DT_DECIMAL32:
+                    throw new Exception("decimal is not supported");
+                    break;
+                case DATA_TYPE.DT_DECIMAL64:
+                    throw new Exception("decimal is not supported");
                     break;
                 default:
                     throw new Exception("Failed to insert data. Cannot convert double to " + getDataTypeString(dt));
@@ -1498,7 +1547,7 @@ namespace dolphindb.data
             throw new Exception("Failed to insert data. Cannot convert TimeSpan to " + getDataTypeString(dt));
         }
 
-        public static IEntity createObject<T>(DATA_TYPE dt, T[] value)
+        public static IEntity createObject<T>(DATA_TYPE dt, T[] value, int extra)
         {
             if (dt < DATA_TYPE.DT_BOOL_ARRAY)
                 throw new Exception(value.GetType().ToString() + "must convert to array vector");
@@ -1507,7 +1556,7 @@ namespace dolphindb.data
             IVector ret = factory.createVectorWithDefaultValue(dt - 64, count);
             for(int i = 0; i < count; ++i)
             {
-                IScalar t = (IScalar)createObject(dt - 64, value[i]);
+                IScalar t = (IScalar)createObject(dt - 64, value[i], extra);
                 ret.set(i, t);
             }
             return ret;

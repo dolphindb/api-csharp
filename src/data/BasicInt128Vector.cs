@@ -180,20 +180,6 @@ public void setInt128(int index, long highValue, long lowValue)
     {
         throw new Exception("BasicInt128Vector.asof not supported.");
     }
-    
-    protected override void writeVectorToBuffer(ByteBuffer buffer){
-        bool isLittleEndian = buffer.isLittleEndian == true;
-		foreach (Long2 val in values) {
-			if(isLittleEndian){
-				buffer.WriteLong(val.low);
-				buffer.WriteLong(val.high);
-			}
-			else{
-				buffer.WriteLong(val.high);
-				buffer.WriteLong(val.low);
-			}
-		}
-    }
 
     public override void deserialize(int start, int count, ExtendedDataInput @in)
     {
@@ -292,6 +278,11 @@ public void setInt128(int index, long highValue, long lowValue)
     public override IEntity getEntity(int index)
     {
         return get(index);
+    }
+
+    public override int getExtraParamForType()
+    {
+        throw new NotImplementedException();
     }
 }
 

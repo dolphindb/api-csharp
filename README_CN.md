@@ -9,7 +9,7 @@ C# API遵循面向接口编程的原则。C# API使用接口类IEntity来表示D
 拓展的接口类|命名规则|例子
 ---|---|---
 scalar|Basic\<DataType\>|BasicInt, BasicDouble, BasicDate, etc.
-vector，matrix|Basic\<DataType\>\<DataForm\>|BasicIntVector, BasicDoubleMatrix, BasicAnyVector, BasicArrayVector, etc.
+vector，matrix|Basic\<DataType\>\<DataForm\>|BasicIntVector, BasicDoubleMatrix, BasicAnyVector, etc.
 set， dictionary和table|Basic\<DataForm\>|BasicSet, BasicDictionary, BasicTable.
 chart||BasicChart
 
@@ -444,7 +444,7 @@ BasicTable table1 = createTable();
 appender.append(table1);            
 ```
 
-<!--不推荐使用磁盘表了，删除
+<!--不推荐使用磁盘表，删除
 #### 7.3 保存数据到本地磁盘表
 
 通常本地磁盘表用于学习环境或者单机静态数据集测试，它不支持事务，不持支并发读写，不保证运行中的数据一致性，所以不建议在生产环境中使用。
@@ -496,7 +496,7 @@ DolphinDB C# API 提供 `MultithreadedTableWriter` 类对象支持多线程的�
 `MultithreadedTableWriter` 对象及主要方法介绍如下：
 
 ```cs
-MultithreadedTableWriter(string hostName, int port, string userId, string password,string dbName, string tableName, bool useSSL, bool enableHighAvailability = false, string[] pHighAvailabilitySites = null,int batchSize = 1, float throttle = 0.01f, int threadCount = 5, string partitionCol = "", int[] pCompressMethods = null);
+MultithreadedTableWriter(string hostName, int port, string userId, string password,string dbName, string tableName, bool useSSL, bool enableHighAvailability = false, string[] pHighAvailabilitySites = null,int batchSize = 1, float throttle = 0.01f, int threadCount = 5, string partitionCol = "", int[] pCompressMethods = null, Mode mode = Mode.M_Append, string[] pModeOption = null, Callback callbackHandler = null);
 ```
 
 参数说明：
@@ -516,6 +516,11 @@ MultithreadedTableWriter(string hostName, int port, string userId, string passwo
 * **pCompressMethods** 列表类型，用于指定每一列采用的压缩传输方式，为空表示不压缩。每一列可选的压缩方式包括：
   * Vector_Fields.COMPRESS_LZ4: LZ4 压缩
   * Vector_Fields.COMPRESS_DELTA: DELTAOFDELTA 压缩
+* **mode** 写入模式，用于指定 MultithreadedTableWriter 对象写入数据的方式，包括两种：
+   * Mode.M_Append：表示以 [tableInsert](https://www.dolphindb.cn/cn/help/FunctionsandCommands/FunctionReferences/t/tableInsert.html) 的方式向追加数据。
+   * Mode.M_Upsert：表示以 [upsert!](https://www.dolphindb.cn/cn/help/FunctionsandCommands/FunctionReferences/u/upsert!.html) 方式更新（或追加）数据。
+* **pModeOption**：字符串数组，表示不同模式下的扩展选项，目前，仅当 mode 指定为 Mode.M_Upsert 时有效，表示由 upsert! 可选参数组成的字符串数组。
+* **callbackHandler**：回调类，默认为空，表示不使用回调。开启回调后，将继承回调接口 Callback 并重载回调方法，将回调的接口对象传入 MultithreadedTableWriter。
 
 以下是 `MultithreadedTableWriter` 对象包含的函数方法介绍：
 
@@ -745,6 +750,123 @@ threadId : 12 sentRows : 1 unsentRows : 0 sendFailedRows : 0
       */
 ```
 
+MultithreadedTableWriter 回调的使用 <!-- omit in toc -->
+
+`MultithreadedTableWriter` 在开启回调后，用户会在回调的方法中获取到一个 BasicTable 类型的回调表，该表由两列构成：
+第一列（String类型），存放的是调用 `MultithreadedTableWriter.insert` 时增加的每一行的 id；第二列（布尔值），表示每一行写入成功与否，true 表示写入成功，false 表示写入失败。
+
+-继承 Callback 接口并重载 writeCompletion 方法用于获取回调数据
+
+示例：
+
+```cs
+public class CallbackHandler : Callback
+{
+    public void writeCompletion(ITable callbackTable)
+    {
+        List<String> failedIdList = new List<string>();
+        BasicStringVector idVec = (BasicStringVector)callbackTable.getColumn(0);
+        BasicBooleanVector successVec = (BasicBooleanVector)callbackTable.getColumn(1);
+        for (int i = 0; i < successVec.rows(); i++)
+        {
+            if (!successVec.getBoolean(i))
+            {
+                failedIdList.Add(idVec.getString(i));
+            }
+        }
+    }
+}
+```
+
+示例：
+
+```cs
+MultithreadedTableWriter mtw = new MultithreadedTableWriter(host, port, userName, password, dbName, tbName, useSSL,
+        enableHighAvailability, null, 10000, 1, 1, "price", null,MultithreadedTableWriter.Mode.M_Append,null, new CallbackHandler());
+```
+
+-调用 `MultithreadedTableWriter` 的 `insert` 方法并在第一列中为每一行写入 id
+
+```cs
+String theme = "theme1";
+for (int id = 0; id < 1000000; id++){
+    mtw.insert(theme + id, code, price); //theme+id 为每一行对应的 id，将在回调时返回
+}
+```
+
+
+
+### 7.5 更新并写入DolphinDB的数据表
+
+DolphinDB CSHARP API 提供 `AutoFitTableUpsert` 类对象来更新并写入 DolphinDB 的表。`AutoFitTableUpsert` 同 `MultithreadedTableWriter` 指定 mode 为 Mode.M_Upsert 时更新表数据的功能一样，区别在于 `AutoFitTableUpsert` 为单线程写入，而 `MultithreadedTableWriter` 为多线程写入。
+
+-AutoFitTableUpsert的主要方法如下：
+
+-构造方法：
+
+```cs
+AutoFitTableUpsert(string dbUrl, string tableName, DBConnection connection, bool ignoreNull, string[] pkeyColNames, string[] psortColumns)
+```
+
+参数说明：
+
+* dbUrl 字符串，表示分布式数据库地址。内存表时该参数为空。
+* tableName 字符串，表示分布式表或内存表的表名。
+* connection DBConnection 对象，用于连接 server 并 upsert 数据
+* ignoreNull 布尔值，表示 [upsert!](https://www.dolphindb.cn/cn/help/FunctionsandCommands/FunctionReferences/u/upsert!.html) 的一个参数，其含义为若 upsert! 的新数据表中某元素为 NULL 值，是否对目标表中的相应数据进行更新。
+* pkeyColNames 字符串数组，表示 upsert! 的一个参数，用于指定 DFS 表（目标表）的键值列。
+* psortColumns 字符串数组，表示 upsert! 的一个参数，设置该参数，更新的分区内的所有数据会根据指定的列进行排序。排序在每个分区内部进行，不会跨分区排序。
+
+-写入并更新数据的方法：
+
+```cs
+int upsert(BasicTable table)
+```
+
+函数说明：
+
+将一个 BasicTable 对象更新到目标表中，返回一个 int 类型，表示更新了多少行数据。
+
+`AutoFitTableUpsert` 使用示例如下：
+
+```cs
+DBConnection conn = new DBConnection(false, false, false);
+conn.connect("192.168.1.116", 18999, "admin", "123456");
+String dbName = "dfs://upsertTable";
+String tableName = "pt";
+String script = "dbName = \"dfs://upsertTable\"\n" +
+"if(exists(dbName)){\n" +
+"\tdropDatabase(dbName)\t\n" +
+"}\n" +
+"db  = database(dbName, RANGE,1 10000,,'TSDB')\n" +
+"t = table(1000:0, `id`value,[ INT, INT[]])\n" +
+"pt = db.createPartitionedTable(t,`pt,`id,,`id)";
+conn.run(script);
+
+BasicIntVector v1 = new BasicIntVector(3);
+v1.setInt(0, 1);
+v1.setInt(1, 100);
+v1.setInt(2, 9999);
+
+BasicArrayVector ba = new BasicArrayVector(DATA_TYPE.DT_INT_ARRAY);
+ba.append(v1);
+ba.append(v1);
+ba.append(v1);
+
+List<String> colNames = new List<string>();
+colNames.Add("id");
+colNames.Add("value");
+List<IVector> cols = new List<IVector>();
+cols.Add(v1);
+cols.Add(ba);
+BasicTable bt = new BasicTable(colNames, cols);
+String[] keyColName = new String[] { "id" };
+AutoFitTableUpsert aftu = new AutoFitTableUpsert(dbName, tableName, conn, false, keyColName, null);
+aftu.upsert(bt);
+BasicTable res = (BasicTable)conn.run("select * from pt;");
+System.Console.Out.WriteLine(res.getString());
+```
+
 ### 8. C#原生类型转换为DolphinDB数据类型
 
 C# API提供了一组以Basic+\<DataType\>方式命名的类，分别对应DolphinDB的数据类型，比如BasicInt，BasicDate等等。
@@ -797,32 +919,6 @@ long timestamp = Utils.countMilliseconds(dt);
 - Utils.countMilliseconds：计算给定时间到1970.01.01T00:00:00之间的毫秒数差，返回long
 
 需要注意，由于C#的DateTime和TimeSpan在精度上达不到纳秒级别，所以如果在对纳秒精度的时间数据进行操作并且需要保留纳秒精度时，可以通过 NanoTimestamp.getInternalValue()来获取内部保存的long值，不要通过DateTime和TimeSpan转换，否则会造成精度损失。
-
-数组向量（array vector）是 DolphinDB 一种特殊的数据形式。与常规的向量不同，它的每个元素是一个数组，具有相同的数据类型，但长度可以不同。目前支持的数据类型为 Logical, Integral（不包括 INT128, COMPRESS 类型）, Floating, Temporal。
-
-```cs
-//构造一个类型为int 类型的数组向量。
-BasicArrayVector result = new BasicArrayVector(DATA_TYPE.DT_INT_ARRAY);
-
-int[] data1 = new int[] { 1, 2 };
-int[] data2 = new int[] { 3, 4, 5 };
-//添加第1个元素
-result.append(new BasicIntVector(data1));
-//添加第2个元素
-result.append(new BasicIntVector(data2));
-
-//获取arrayvector中的第1个元素
-IVector dataVector1 = result.getSubVector(0);
-System.Console.Out.WriteLine(dataVector1.getString());
-//获取arrayvector中的第2个元素
-IVector dataVector2 = result.getSubVector(1);
-System.Console.Out.WriteLine(dataVector2.getString());
-```
-结果为:
-```cs
-[1,2]
-[3,4,5]
-```
 
 ### 9. C#流数据 API
 

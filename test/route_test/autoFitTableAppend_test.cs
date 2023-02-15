@@ -13,6 +13,7 @@ using System.Threading;
 using dolphindb_config;
 
 
+
 namespace dolphindb_csharp_api_test.route_test
 {
     [TestClass]
@@ -86,6 +87,116 @@ namespace dolphindb_csharp_api_test.route_test
             db.close();
 
 
+        }
+        //[TestMethod] not support
+        public void Test_autoFittableAppend_dfs_table_decimal64()
+        {
+            DBConnection conn = new DBConnection(false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "dbPath = \"dfs://tableAppend_test\"\n";
+            script += "if(existsDatabase(dbPath))\n";
+            script += "dropDatabase(dbPath)\n";
+            script += "t = table(1000:0,`id`col0`col1`col2`col3,[INT,DECIMAL64(0),DECIMAL64(2),DECIMAL64(7),DECIMAL64(8)])\n";
+            script += "db  = database(dbPath, RANGE,1 50 10000)\n";
+            script += "pt = db.createPartitionedTable(t,`pt,`id).append!(t)\n";
+            conn.run(script);
+            autoFitTableAppender aft = new autoFitTableAppender("dfs://tableAppend_test", "pt", false, conn);
+            BasicTable bt = (BasicTable)conn.run("t2 = table(int(0..10000) as id,decimal64(0..10000,0) as col0, decimal64(0..10000,2) as col1, decimal64(0..10000,7) as col2, decimal64(0..10000,8) as col3);t2;");
+            DataTable dt = bt.toDataTable();
+
+            IEntity res = aft.append(dt);//APICS-198
+            
+            BasicTable re = (BasicTable)conn.run("select * from loadTable(\"dfs://tableAppend_test\",`pt)");
+            for (int i = 0; i < re.columns(); i++)
+            {
+                for (int j = 0; j < re.rows(); j++)
+                {
+                    Assert.AreEqual(re.getColumn(i).get(j).getObject(), bt.getColumn(i).get(j).getObject());
+
+                }
+            }
+            conn.close();
+        }
+        //[TestMethod]APICS-199:autoFittableAppend not support memory table
+        public void Test_autoFittableAppend_imemory_table_decimal64()
+        {
+            DBConnection conn = new DBConnection(false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "share table(100:0, `id`col0`col1`col2`col3, [INT,DECIMAL64(0),DECIMAL64(2),DECIMAL64(7),DECIMAL64(8)]) as table1";
+            conn.run(script);
+            autoFitTableAppender aft = new autoFitTableAppender("", "table1", false, conn);   //APICS-199
+            BasicTable bt = (BasicTable)conn.run("t2 = table(int(0..10000) as id,decimal64(0..10000,0) as col0, decimal64(0..10000,2) as col1, decimal64(0..10000,7) as col2, decimal64(0..10000,8) as col3);t2;");
+            DataTable dt = bt.toDataTable();
+
+            IEntity res = aft.append(dt);//APICS-198
+
+            BasicTable re = (BasicTable)conn.run("select * from table1)");
+            for (int i = 0; i < re.columns(); i++)
+            {
+                for (int j = 0; j < re.rows(); j++)
+                {
+                    Assert.AreEqual(re.getColumn(i).get(j).getObject(), bt.getColumn(i).get(j).getObject());
+
+                }
+            }
+            conn.close();
+        }
+        //[TestMethod]not support
+        public void Test_autoFittableAppend_dfs_table_decimal32()
+        {
+            DBConnection conn = new DBConnection(false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            string script = null;
+            script += "dbPath = \"dfs://tableAppend_test\"\n";
+            script += "if(existsDatabase(dbPath))\n";
+            script += "dropDatabase(dbPath)\n";
+            script += "t = table(1000:0,`id`col0`col1`col2`col3,[INT,DECIMAL32(0),DECIMAL32(2),DECIMAL32(3),DECIMAL32(4)])\n";
+            script += "db  = database(dbPath, RANGE,1 50 10000)\n";
+            script += "pt = db.createPartitionedTable(t,`pt,`id).append!(t)\n";
+            conn.run(script);
+            autoFitTableAppender aft = new autoFitTableAppender("dfs://tableAppend_test", "pt", false, conn);
+            BasicTable bt = (BasicTable)conn.run("t2 = table(int(0..10000) as id,decimal32(0..10000%99,0) as col0, decimal32(0..10000%99,2) as col1, decimal32(0..10000%99,6) as col2, decimal32(0..10000%99,7) as col3);t2;");
+            DataTable dt = bt.toDataTable();
+
+            IEntity res = aft.append(dt);//APICS-198
+
+            BasicTable re = (BasicTable)conn.run("select * from loadTable(\"dfs://tableAppend_test\",`pt)");
+            for (int i = 0; i < re.columns(); i++)
+            {
+                for (int j = 0; j < re.rows(); j++)
+                {
+                    Assert.AreEqual(re.getColumn(i).get(j).getObject(), bt.getColumn(i).get(j).getObject());
+
+                }
+            }
+            conn.close();
+        }
+        //[TestMethod]APICS-199:autoFittableAppend not support memory table
+        public void Test_autoFittableAppend_imemory_table_decimal32()
+        {
+            DBConnection conn = new DBConnection(false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "share table(100:0, `col0`col1`col2`col3, [DECIMAL32(0),DECIMAL32(2),DECIMAL32(3),DECIMAL32(4)]) as table1";
+            conn.run(script);
+            autoFitTableAppender aft = new autoFitTableAppender("", "table1", false, conn);   //APICS-199
+            BasicTable bt = (BasicTable)conn.run("t2 = table(int(0..10000) as id,decimal32(0..10000%99,0) as col0, decimal32(0..10000%99,2) as col1, decimal32(0..10000%99,6) as col2, decimal32(0..10000%99,7) as col3);t2;");
+            DataTable dt = bt.toDataTable();
+
+            IEntity res = aft.append(dt);//APICS-198
+
+            BasicTable re = (BasicTable)conn.run("select * from table1)");
+            for (int i = 0; i < re.columns(); i++)
+            {
+                for (int j = 0; j < re.rows(); j++)
+                {
+                    Assert.AreEqual(re.getColumn(i).get(j).getObject(), bt.getColumn(i).get(j).getObject());
+
+                }
+            }
+            conn.close();
         }
     }
 }

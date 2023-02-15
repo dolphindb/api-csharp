@@ -16,6 +16,7 @@ using System.Collections;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace dolphindb
 {
@@ -73,6 +74,7 @@ namespace dolphindb
         //===================================================================
         private bool compress_ = false;
         private bool loadBalance_ = true;
+        private bool isReverseStreaming_ = false;
 
         List<Node> nodes_ = new List<Node>();
         DBConnectionImpl conn_;
@@ -94,6 +96,7 @@ namespace dolphindb
             bool sslEnable_ = false;
             bool asynTask_ = false;
             bool compress_ = false;
+            bool isReverseStreaming_ = false;
             static bool initialized_ = false;
             private string startup_;
             private bool usePython_ = false;
@@ -104,6 +107,11 @@ namespace dolphindb
             public string getSessionID()
             {
                 return sessionID_;
+            }
+
+            public Socket getSocket()
+            {
+                return socket_;
             }
 
             private int generateRequestFlag(bool clearSessionMemory)
@@ -117,15 +125,18 @@ namespace dolphindb
                     flag += 64;
                 if (usePython_)
                     flag += 2048;
+                if (isReverseStreaming_)
+                    flag += 131072;
                 return flag;
             }
 
-            public DBConnectionImpl(bool sslEnable = false, bool asynTask = false, bool compress = false, bool usePython = false)
+            public DBConnectionImpl(bool sslEnable = false, bool asynTask = false, bool compress = false, bool usePython = false,bool isReverseStreaming = false)
             {
                 sslEnable_ = sslEnable;
                 asynTask_ = asynTask;
                 compress_ = compress;
                 usePython_ = usePython;
+                isReverseStreaming_ = isReverseStreaming;
             }
 
             public bool connect(string hostName, int port, string userId, string password, bool sslEnable,
@@ -173,6 +184,7 @@ namespace dolphindb
                         socket_.NoDelay = true;
                         @in = new LittleEndianDataInputStream(new BufferedStream(sslStream_));
                         @out = new LittleEndianDataOutputStream(new BufferedStream(sslStream_));
+               
                     }
                     else
                     {
@@ -193,14 +205,8 @@ namespace dolphindb
                 string body = "connect\n";
                 @out.writeBytes("API 0 ");
                 @out.writeBytes(body.Length.ToString());
-                if (asynTask_)
-                {
-                    @out.writeBytes(" / 4_1_4_2");
-                }
-                else
-                {
-                    @out.writeBytes(" / 0_1_4_2");
-                }
+                int flag = generateRequestFlag(false);
+                @out.writeBytes(" / " + flag + "_1_" + 4 + "_" + 2);
                 @out.writeByte('\n');
                 @out.writeBytes(body);
                 @out.flush();
@@ -302,14 +308,14 @@ namespace dolphindb
                 return run(script, "script", null, null, priority, parallelism, fetchSize, clearMemory);
             }
 
-            public IEntity run(string function, IList<IEntity> arguments)
+            public IEntity run(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
             {
-                return run(function, "function", arguments);
+                return run(function, "function", null, arguments, priority, parallelism, fetchSize, clearMemory);
             }
 
-            public IEntity run(string script, string scriptType, IList<IEntity> arguments)
+            private IEntity run(string script, string scriptType, IList<IEntity> arguments, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
             {
-                return run(script, scriptType, null, arguments, 4, 2, 0, false);
+                return run(script, scriptType, null, arguments, priority, parallelism, fetchSize, clearMemory);
             }
 
             private IEntity run(string script, string scriptType, ProgressListener listener = null, IList<IEntity> arguments = null, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
@@ -321,6 +327,9 @@ namespace dolphindb
 
                     if (fetchSize > 0 && fetchSize < 8192)
                         throw new InvalidOperationException("fetchSize must be greater than 8192");
+
+                    if (parallelism <= 0 || parallelism > 64)
+                        throw new InvalidOperationException("parallelism must be greater than 0 and less than 65");
 
                     script = script.Replace(Environment.NewLine, "\n");
 
@@ -384,7 +393,7 @@ namespace dolphindb
                     {
                         throw new IOException("Invalid form value: " + form);
                     }
-                    if (type < 0 || type > (int)DATA_TYPE.DT_INT128_ARRAY || type > (int)DATA_TYPE.DT_OBJECT && type < (int)(int)DATA_TYPE.DT_BOOL_ARRAY)
+                    if (type < 0 || type > (int)DATA_TYPE.DT_INT128_ARRAY || type > (int)DATA_TYPE.DT_DECIMAL128 && type < (int)(int)DATA_TYPE.DT_BOOL_ARRAY)
                     {
                         throw new IOException("Invalid type value: " + type);
                     }
@@ -398,6 +407,11 @@ namespace dolphindb
                     }
                     else
                     {
+                        if (df == DATA_FORM.DF_SCALAR)
+                        {
+                            factory.createEntity(df, dt, @in, extended);
+                            throw new InvalidOperationException("fetchsize cannot be used with a return value of type scalar. ");
+                        }
                         return new EntityBlockReader(@in);
                     }
                 }
@@ -466,7 +480,7 @@ namespace dolphindb
                     socket_.Close();
                 sessionID_ = "";
                 socket_ = null;
-                isConnected_ = true;
+                isConnected_ = false;
             }
 
             public bool isConnected()
@@ -509,6 +523,8 @@ namespace dolphindb
             {
                 return littleEndian_;
             }
+
+
         }
 
         public bool isConnected
@@ -519,36 +535,27 @@ namespace dolphindb
             }
         }
 
+
         public string getSessionID()
         {
             return conn_.getSessionID();
         }
 
+        public Socket getSocket()
+        {
+            return conn_.getSocket();
+        }
+
         private int lastConnNodeIndex_ = 0;
 
-        public DBConnection()
-        {
-            conn_ = new DBConnectionImpl(false, false, false);
-        }
-
-        public DBConnection(bool asynchronousTask)
-        {
-            asynTask_ = asynchronousTask;
-            conn_ = new DBConnectionImpl(false, asynchronousTask, false);
-        }
-        public DBConnection(bool asynchronousTask, bool useSSL)
+        public DBConnection(bool asynchronousTask = false, bool useSSL = false, bool compress = false, bool usePython = false,bool isReverseStreaming = false)
         {
             asynTask_ = asynchronousTask;
             isUseSSL_ = useSSL;
-            conn_ = new DBConnectionImpl(useSSL, asynchronousTask, false);
-        }
 
-        public DBConnection(bool asynchronousTask, bool useSSL, bool compress, bool usePython = false)
-        {
-            asynTask_ = asynchronousTask;
-            isUseSSL_ = useSSL;
             this.compress_ = compress;
-            conn_ = new DBConnectionImpl(useSSL, asynchronousTask, compress, usePython);
+            this.isReverseStreaming_ = isReverseStreaming;
+            conn_ = new DBConnectionImpl(useSSL, asynchronousTask, compress, usePython, isReverseStreaming);
         }
 
         public bool isBusy()
@@ -571,10 +578,18 @@ namespace dolphindb
 
 
 
-public bool connect(string hostName, int port, string[] highAvailabilitySites)
-{
-    return connect(hostName, port, "", "", "", true, highAvailabilitySites);
-}
+        public bool connect(string hostName, int port, string[] highAvailabilitySites)
+        {
+            return connect(hostName, port, "", "", "", true, highAvailabilitySites);
+        }
+
+#if NETCOREAPP
+        public async Task<bool> connectAsync(string hostName, int port, string userId = "", string password = "", string startup = "", bool highAvailability = false, string[] highAvailabilitySites = null, bool reconnect = false)
+        {
+            bool result = await Task.Run(() => connect(hostName, port, userId, password, startup, highAvailability, highAvailabilitySites, reconnect));
+            return result;
+        }
+#endif
 
         public bool connect(string hostName, int port, string userId = "", string password = "", string startup = "", bool highAvailability = false, string[] highAvailabilitySites = null, bool reconnect = false)
         {
@@ -587,7 +602,17 @@ public bool connect(string hostName, int port, string[] highAvailabilitySites)
                 if (highAvailability)
                 {
                     nodes_ = new List<Node>();
-                    nodes_.Add(new Node(hostName, port));
+                    bool firstFound = false;
+                    foreach(Node it in nodes_)
+                    {
+                        if(it.hostName_ == hostName && it.port_ == port)
+                        {
+                            firstFound = true;
+                            break;
+                        }
+                    }
+                    if(!firstFound)
+                        nodes_.Add(new Node(hostName, port));
                     if (highAvailabilitySites != null)
                     {
                         foreach (string site in highAvailabilitySites)
@@ -692,6 +717,20 @@ public bool connect(string hostName, int port, string[] highAvailabilitySites)
             }
         }
 
+#if NETCOREAPP
+        public async Task<IEntity> runAsync(string script, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
+        {
+            IEntity result = await Task.Run(() => run(script, priority, parallelism, fetchSize, clearMemory));
+            return result;
+        }
+
+        public async Task<IEntity> runAsync(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
+        {
+            IEntity result = await Task.Run(() => run(function, arguments, priority, parallelism, fetchSize, clearMemory));
+            return result;
+        }
+#endif
+
         public IEntity run(string script)
         {
             return run(script, (ProgressListener)null);
@@ -725,6 +764,11 @@ public bool connect(string hostName, int port, string[] highAvailabilitySites)
             finally
             {
             }
+        }
+        
+        public IEntity run(string script, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
+        {
+            return run(script, (ProgressListener)null, priority, parallelism, fetchSize, clearMemory);
         }
 
         public IEntity run(string script, ProgressListener listener = null, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
@@ -772,7 +816,7 @@ public bool connect(string hostName, int port, string[] highAvailabilitySites)
                 }
             }
         }
-        public IEntity run(string function, IList<IEntity> arguments)
+        public IEntity run(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
         {
             lock (threadLock_)
             {
@@ -782,7 +826,7 @@ public bool connect(string hostName, int port, string[] highAvailabilitySites)
                     {
                         try
                         {
-                            return conn_.run(function, arguments);
+                            return conn_.run(function, arguments, priority, parallelism, fetchSize, clearMemory);
                         }
                         catch (IOException)
                         {
@@ -877,6 +921,48 @@ public bool connect(string hostName, int port, string[] highAvailabilitySites)
                 }
             }
         }
+
+        public List<IEntity> run(IList<string> sqlList, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        {
+            List<IEntity> results = new List<IEntity>();
+            foreach (string sql in sqlList)
+            {
+                IEntity entity = run(sql, priority, parallelism, 0, clearMemory);
+                results.Add(entity);
+            }
+            return results; 
+        }
+
+#if NETCOREAPP
+        public async Task<List<IEntity>> runAsync(IList<string> sqlList, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        {
+            List<IEntity> result = await Task.Run(() => run(sqlList, priority, parallelism, clearMemory));
+            return result;
+        }
+#endif
+
+        public List<IEntity> run(IList<string> sqlList, IList<IList<IEntity>> argumentsList, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        {
+            if(sqlList.Count != argumentsList.Count)
+            {
+                throw new Exception("The length of sqlList and argumentsList are not equal");
+            }
+            List<IEntity> results = new List<IEntity>();
+            for(int i = 0; i < sqlList.Count; i++)
+            {
+                IEntity entity = run(sqlList[i], argumentsList[i], priority, parallelism, 0, clearMemory);
+                results.Add(entity);
+            }
+            return results;
+        }
+
+#if NETCOREAPP
+        public async Task<List<IEntity>> runAsync(IList<string> sqlList, IList<IList<IEntity>> argumentsList, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        {
+            List<IEntity> result = await Task.Run(() => run(sqlList, argumentsList, priority, parallelism, clearMemory));
+            return result;
+        }
+#endif
 
         public virtual void close()
         {
@@ -1171,7 +1257,7 @@ public bool connect(string hostName, int port, string[] highAvailabilitySites)
                 //    return ExceptionType.ET_IGNORE;
                 //}
             }
-            else if((index = msg.IndexOf("The datanode isn't initialized yet. Please try again later")) != -1)
+            else if((index = msg.IndexOf("The datanode isn't initialized yet. Please try again later")) != -1 || (index = msg.IndexOf("DFS is not enabled or the script was not executed on a data node.")) != -1)
             {
                 host = "";
                 port = 0;

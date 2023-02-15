@@ -20,11 +20,6 @@ namespace dolphindb.data
         {
         }
 
-        protected BasicDateHourVector(int[] array, bool copy) : base(array, copy)
-        {
-
-        }
-
         protected internal BasicDateHourVector(DATA_FORM df, int size) : base(df, size)
         {
         }
@@ -100,7 +95,7 @@ namespace dolphindb.data
             {
                 base.add(Utils.countHours((DateTime)value));
             }
-            else if (value is String)
+            else if (value is string)
             {
                 DateTime dtm = new DateTime();
                 if (DateTime.TryParse(value.ToString(), out dtm))
@@ -115,7 +110,7 @@ namespace dolphindb.data
         }
         public override IVector getSubVector(int[] indices)
         {
-            return new BasicDateHourVector(getSubArray(indices), false);
+            return new BasicDateHourVector(getSubArray(indices));
         }
 
         public override IEntity getEntity(int index)

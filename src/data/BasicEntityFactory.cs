@@ -53,6 +53,8 @@ namespace dolphindb.data
             //
             factoriesExt[(int)DATA_TYPE.DT_SYMBOL] = new ExtendedSymbolFactory();
 
+            //factories[(int)DATA_TYPE.DT_DECIMAL32] = new Decimal32Factory();
+            //factories[(int)DATA_TYPE.DT_DECIMAL64] = new Decimal64Factory();
         }
 
         public IEntity createEntity(DATA_FORM form, DATA_TYPE type, ExtendedDataInput @in, bool extend)
@@ -181,6 +183,93 @@ namespace dolphindb.data
                 return factories[index].createScalarWithDefaultValue();
             }
         }
+
+        //private class Decimal64Factory : TypeFactory
+        //{
+        //    public IMatrix createMatrix(ExtendedDataInput @in)
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    public IMatrix createMatrixWithDefaultValue(int rows, int columns)
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    public IVector createPair(ExtendedDataInput @in)
+        //    {
+        //        return new BasicDecimal64Vector(DATA_FORM.DF_PAIR, @in, -1);
+        //    }
+
+        //    public IVector createPairWithDefaultValue()
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    public IScalar createScalar(ExtendedDataInput @in)
+        //    {
+        //        return new BasicDecimal64(@in);
+        //    }
+
+        //    public IScalar createScalarWithDefaultValue()
+        //    {
+        //        return new BasicDecimal64(0, 0);
+        //    }
+
+        //    public IVector createVector(ExtendedDataInput @in)
+        //    {
+        //        return new BasicDecimal64Vector(DATA_FORM.DF_VECTOR, @in, -1);
+        //    }
+
+        //    public IVector createVectorWithDefaultValue(int size)
+        //    {
+        //        return new BasicDecimal64Vector(size);
+        //    }
+        //}
+
+        //private class Decimal32Factory : TypeFactory
+        //{
+        //    public IMatrix createMatrix(ExtendedDataInput @in)
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    public IMatrix createMatrixWithDefaultValue(int rows, int columns)
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    public IVector createPair(ExtendedDataInput @in)
+        //    {
+        //        return new BasicDecimal32Vector(DATA_FORM.DF_PAIR, @in, -1);
+        //    }
+
+        //    public IVector createPairWithDefaultValue()
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    public IScalar createScalar(ExtendedDataInput @in)
+        //    {
+        //        return new BasicDecimal32(@in);
+        //    }
+
+        //    public IScalar createScalarWithDefaultValue()
+        //    {
+        //        return new BasicDecimal32(0, 0);
+        //    }
+
+        //    public IVector createVector(ExtendedDataInput @in)
+        //    {
+        //        return new BasicDecimal32Vector(DATA_FORM.DF_VECTOR, @in, -1);
+        //    }
+
+        //    public IVector createVectorWithDefaultValue(int size)
+        //    {
+        //        return new BasicDecimal32Vector(size);
+        //    }
+        //}
+
         private class BooleanFactory : TypeFactory
         {
             public IScalar createScalar(ExtendedDataInput @in) { return new BasicBoolean(@in); }

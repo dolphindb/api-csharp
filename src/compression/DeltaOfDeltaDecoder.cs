@@ -12,10 +12,10 @@ namespace dolphindb.compression
     class DeltaOfDeltaDecoder : AbstractDecoder
 
     {
-        public override ExtendedDataInput Decompress(ExtendedDataInput input, int length, int unitLength, int elementCount, int extra, bool isLittleEndian)
+        public override ExtendedDataInput Decompress(ExtendedDataInput input, int length, int unitLength, int elementCount, int extra, bool isLittleEndian, int type, short scale)
         {
-            int offset = 8;
-            ByteBuffer dest = CreateColumnVector(elementCount, extra, unitLength, isLittleEndian, 0);
+            ByteBuffer dest = CreateColumnVector(elementCount, extra, unitLength, isLittleEndian, 0, type, scale);
+            int offset = dest.ReadableBytes;
             byte[] output = dest.array();
             int outLength = output.Length - offset;
             int count = 0;

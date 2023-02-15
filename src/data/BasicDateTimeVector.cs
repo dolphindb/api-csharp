@@ -20,11 +20,6 @@ namespace dolphindb.data
         {
         }
 
-        protected BasicDateTimeVector(int[] array, bool copy): base(array,copy)
-        {
-            
-        }
-
         protected internal BasicDateTimeVector(DATA_FORM df, int size) : base(df, size)
         {
         }
@@ -115,7 +110,7 @@ namespace dolphindb.data
         }
         public override IVector getSubVector(int[] indices)
         {
-            return new BasicDateTimeVector(getSubArray(indices), false);
+            return new BasicDateTimeVector(getSubArray(indices));
         }
 
         public override IEntity getEntity(int index)

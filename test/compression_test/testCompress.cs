@@ -80,8 +80,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t = table(100:0, `cbool`cchar`cshort`cint`clong`cdate`cmonth`ctime`cminute`csecond`cdatetime`ctimestamp`cnanotime`cnanotimestamp`cfloat`cdouble`csymbol`cstring`cuuid`cipaddr`cint128, [BOOL, CHAR, SHORT, INT, LONG, DATE, MONTH, TIME, MINUTE, SECOND, DATETIME, TIMESTAMP, NANOTIME, NANOTIMESTAMP, FLOAT, DOUBLE, SYMBOL, STRING, UUID, IPADDR, INT128])");
 
             List<IEntity> arguments = new List<IEntity>();
@@ -176,8 +176,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [INT, INT, INT])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -205,8 +205,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [SHORT, SHORT, SHORT])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -234,8 +234,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [SHORT, SHORT, SHORT])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -264,8 +264,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [LONG, LONG, LONG])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -294,8 +294,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [LONG, LONG, LONG])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -324,8 +324,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [DATE, DATE, DATE])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -354,8 +354,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [DATE, DATE, DATE])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -384,8 +384,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [MONTH, MONTH, MONTH])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -414,8 +414,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [MONTH, MONTH, MONTH])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -444,8 +444,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [TIME, TIME, TIME])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -474,8 +474,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [TIME, TIME, TIME])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -504,8 +504,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [MINUTE, MINUTE, MINUTE])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -534,8 +534,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [MINUTE, MINUTE, MINUTE])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -564,8 +564,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [SECOND, SECOND, SECOND])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -594,8 +594,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [SECOND, SECOND, SECOND])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -624,8 +624,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [DATETIME, DATETIME, DATETIME])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -654,8 +654,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [DATETIME, DATETIME, DATETIME])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -684,8 +684,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [TIMESTAMP, TIMESTAMP, TIMESTAMP])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -714,8 +714,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [TIMESTAMP, TIMESTAMP, TIMESTAMP])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -744,8 +744,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [NANOTIME, NANOTIME, NANOTIME])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -774,8 +774,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("share table(100:0, [`col1, `col2, `col3], [NANOTIME, NANOTIME, NANOTIME]) as t");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -804,8 +804,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [NANOTIMESTAMP, NANOTIMESTAMP, NANOTIMESTAMP])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -834,8 +834,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [NANOTIMESTAMP, NANOTIMESTAMP, NANOTIMESTAMP])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -864,8 +864,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [FLOAT, FLOAT, FLOAT])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -894,8 +894,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [FLOAT, FLOAT, FLOAT])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -922,8 +922,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [DOUBLE, DOUBLE, DOUBLE])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -952,8 +952,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [FLOAT, FLOAT, FLOAT])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -981,8 +981,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [SYMBOL, SYMBOL, SYMBOL])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -1010,8 +1010,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [SYMBOL, SYMBOL, SYMBOL])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -1038,8 +1038,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t = table(100:0, [`col1, `col2, `col3], [STRING, STRING, STRING])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -1068,8 +1068,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [STRING, STRING, STRING])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -1096,8 +1096,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [UUID, UUID, UUID])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -1126,8 +1126,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [UUID, UUID, UUID])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -1157,8 +1157,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [IPADDR, IPADDR, IPADDR])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -1187,8 +1187,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [IPADDR, IPADDR, IPADDR])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -1217,8 +1217,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [INT128, INT128, INT128])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;
@@ -1247,8 +1247,8 @@ namespace dolphindb_csharp_api_test.compress_test
         {
             DBConnection conn = new DBConnection(false, false, true);
             DBConnection conn1 = new DBConnection(false, false, false);
-            conn.connect(SERVER, PORT);
-            conn1.connect(SERVER, PORT);
+            conn.connect(SERVER, PORT,USER,PASSWORD);
+            conn1.connect(SERVER, PORT,USER,PASSWORD);
             conn.run("t=table(100:0, [`col1, `col2, `col3], [INT128, INT128, INT128])");
             List<IEntity> arguments = new List<IEntity>();
             int n = 100000;

@@ -178,14 +178,6 @@ namespace dolphindb.data
             return end;
         }
 
-        protected override void writeVectorToBuffer(ByteBuffer buffer)
-        {
-            foreach (float val in values)
-            {
-                buffer.WriteFloat(val);
-            }
-        }
-
         public override void deserialize(int start, int count, ExtendedDataInput @in)
         {
             if (start + count > values.Count)
@@ -241,6 +233,11 @@ namespace dolphindb.data
         public override IEntity getEntity(int index)
         {
             return new BasicFloat(values[index]);
+        }
+
+        public override int getExtraParamForType()
+        {
+            throw new NotImplementedException();
         }
     }
 

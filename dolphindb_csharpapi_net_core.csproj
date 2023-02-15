@@ -13,4 +13,8 @@
     <None Remove="test\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="AltCover" Version="8.3.839" />
+  </ItemGroup>
+
 </Project>

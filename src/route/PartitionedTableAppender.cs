@@ -61,7 +61,14 @@ namespace dolphindb.route
                     throw new Exception(task.getErrorMsg());
                 tableInfo = (BasicDictionary)task.getResults();
 
-                IEntity partColNames = tableInfo.get(new BasicString("partitionColumnName"));
+                IEntity partColNames = null;
+                try
+                {
+                    partColNames = tableInfo.get(new BasicString("partitionColumnName"));
+                }
+                catch(Exception e)
+                {
+                }
                 if (partColNames == null)
                     throw new Exception("Can't find specified partition column name.");
                 if (partColNames.isScalar())
@@ -85,7 +92,7 @@ namespace dolphindb.route
                     int index = -1;
                     for (int i = 0; i < dims; ++i)
                     {
-                        if ( !vec.getString(i).Equals(partitionColName, StringComparison.OrdinalIgnoreCase))
+                        if (vec.getString(i).Equals(partitionColName, StringComparison.OrdinalIgnoreCase))
                         {
                             index = i;
                             break;

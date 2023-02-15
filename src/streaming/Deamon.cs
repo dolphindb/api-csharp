@@ -72,11 +72,12 @@ namespace dolphindb.streaming
         Thread thread_;
         Thread rcThread;
         private ConcurrentBag<Tuple<Thread, Socket>> parserThreads = new ConcurrentBag<Tuple<Thread, Socket>>();
-        
+        private BlockingCollection<DBConnection> connList = new BlockingCollection<DBConnection>();
 
-        public Deamon(int port, MessageDispatcher dispatcher) {
+        public Deamon(int port, MessageDispatcher dispatcher, BlockingCollection<DBConnection> connections) {
             listeningPort_ = port;
             this.dispatcher_ = dispatcher;
+            this.connList = connections;
             IPAddress localAddr = IPAddress.Parse("0.0.0.0");
             ssocket_ = new TcpListener(localAddr, listeningPort_);
             ssocket_.Start();
@@ -93,13 +94,22 @@ namespace dolphindb.streaming
 
         public void run()
         {
+
             try
             {
                 while (!dispatcher_.isClose())
                 {
-                    Socket socket = ssocket_.AcceptSocket();
+                    Socket socket;
+                    if( listeningPort_ > 0)
+                    {
+                        socket = ssocket_.AcceptSocket();
+                    }
+                    else{
+                        socket = connList.Take().getSocket();
+                    }
+
                     SetKeepAliveValues(socket, true, 30000, 5000);
-                    MessageParser listener = new MessageParser(socket, dispatcher_);
+                    MessageParser listener = new MessageParser(socket, dispatcher_,listeningPort_);
                     Thread listeningThread = new Thread(new ThreadStart(listener.run));
                     parserThreads.Add(new Tuple<Thread, Socket>(listeningThread, socket));
                     listeningThread.Start();

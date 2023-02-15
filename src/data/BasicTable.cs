@@ -161,7 +161,13 @@ namespace dolphindb.data
 
         public virtual IVector getColumn(string name)
         {
-            int? index = name2index_[name];
+            int? index = null;
+            try
+            {
+                index = name2index_[name];
+            }catch(Exception e)
+            {
+            }
             if (index == null)
             {
                 return null;
@@ -205,7 +211,7 @@ namespace dolphindb.data
                 maxColWidth = 0;
                 for (i = 0; i < rows; i++)
                 {
-                    listTmp[i + 1] = getColumn(curCol).get(i).getString();
+                    listTmp[i + 1] = getColumn(curCol).getEntity(i).getString();
                     if (listTmp[i + 1].Length > maxColWidth)
                     {
                         maxColWidth = listTmp[i + 1].Length;
@@ -609,15 +615,6 @@ namespace dolphindb.data
         {
             throw new NotImplementedException();
         }
-
-        public void add(BasicRow br)
-        {
-            for(int i = 0; i < columns_.Count; i++)
-            {
-                columns_[i].add(br[i]);
-            }
-        }
-
         public ITable getSubTable(int[] indices)
         {
             int colCount = columns_.Count;
@@ -628,25 +625,4 @@ namespace dolphindb.data
         }
 
     }
-
-    public class BasicRow : List<object>
-    {
-
-        public BasicRow(int size):base(size)
-        {
-            
-        }
-        public new object this[int index]
-        {
-            get
-            {
-                return base[index];
-            }
-            set
-            {
-                base[index] = value;
-            }
-        }
-    }
-
 }

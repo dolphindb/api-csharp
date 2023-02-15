@@ -95,21 +95,6 @@ public class ByteBuffer
         }
     }
 
-    private int FixLength(int value)
-    {
-        if (value == 0)
-        {
-            return 1;
-        }
-        value--;
-        value |= value >> 1;
-        value |= value >> 2;
-        value |= value >> 4;
-        value |= value >> 8;
-        value |= value >> 16;
-        return value + 1;
-    }
-
     private byte[] Flip(byte[] bytes)
     {
         if (!this.isLittleEndian)
@@ -117,23 +102,6 @@ public class ByteBuffer
             Array.Reverse(bytes);
         }
         return bytes;
-    }
-
-    private int FixSizeAndReset(int currLen, int futureLen)
-    {
-        if (futureLen > currLen)
-        {
-            int size = FixLength(currLen) * 2;
-            if (futureLen > size)
-            {
-                size = FixLength(futureLen) * 2;
-            }
-            byte[] newbuf = new byte[size];
-            Array.Copy(buf, 0, newbuf, 0, currLen);
-            buf = newbuf;
-            capacity = size;
-        }
-        return futureLen;
     }
 
     public void WriteBytes(byte[] bytes, int startIndex, int length)

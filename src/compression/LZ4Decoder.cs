@@ -10,9 +10,10 @@ using LZ4Sharp;
     class LZ4Decoder: AbstractDecoder
     {
 
-    public override ExtendedDataInput Decompress(ExtendedDataInput input, int length, int unitLength, int elementCount, int extra, bool isLittleEndian) {
-        int offset = 8;
-        byte[] output = CreateColumnVector(elementCount, extra, unitLength, isLittleEndian, 0).array();
+    public override ExtendedDataInput Decompress(ExtendedDataInput input, int length, int unitLength, int elementCount, int extra, bool isLittleEndian, int type, short scale) {
+        ByteBuffer buffer = CreateColumnVector(elementCount, extra, unitLength, isLittleEndian, 0, type, scale);
+        byte[] output = buffer.array();
+        int offset = buffer.ReadableBytes;
         ILZ4Decompressor t = LZ4DecompressorFactory.CreateNew();
         while (length > 0) {
             int blockSize = input.readInt();

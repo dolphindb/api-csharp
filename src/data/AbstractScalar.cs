@@ -81,5 +81,10 @@ namespace dolphindb.data
         }
 
         public abstract int hashBucket(int buckets);
+
+        public virtual int getScale()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

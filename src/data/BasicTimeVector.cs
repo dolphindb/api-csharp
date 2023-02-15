@@ -77,11 +77,22 @@ namespace dolphindb.data
         public override void set(int index, string value)
         {
             TimeSpan ts = new TimeSpan();
-            if (TimeSpan.TryParse(value, out ts))
+            int v = 0;
+            if (!int.TryParse(value, out v))
             {
-                BasicTime.checkTimeSpanToTime(ts);
-                base.set(index, new BasicInt(Utils.countMilliseconds(ts)));
-                return;
+                var tmp = value.Split('.');
+                if (tmp.Length >= 2)
+                {
+                    int milli = 0;
+                    if (int.TryParse(tmp[1], out milli))
+                    {
+                        if (TimeSpan.TryParse(tmp[0], out ts))
+                        {
+                            base.set(index, new BasicInt(Utils.countMilliseconds(ts) + milli));
+                            return;
+                        }
+                    }
+                }
             }
             base.set(index, value);
         }
@@ -97,9 +108,20 @@ namespace dolphindb.data
             {
                 base.add(Utils.countMilliseconds(((DateTime)value).TimeOfDay));
             }
+            else if(value is string)
+            {
+                TimeSpan ts = new TimeSpan();
+                if (TimeSpan.TryParse((string)value, out ts))
+                {
+                    BasicTime.checkTimeSpanToTime(ts);
+                    int data = new BasicInt(Utils.countMilliseconds(ts)).getInt();
+                    base.add(data);
+                    return;
+                }
+            }
             else
             { 
-            base.add(value);
+                base.add(value);
             }
         }
 

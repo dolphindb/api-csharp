@@ -106,7 +106,7 @@ namespace dolphindb.data
 
         public virtual DATA_CATEGORY getDataCategory()
         {
-            return getDataCategory(valueType);
+            return Utils.typeToCategory(valueType);
         }
 
         public virtual DATA_TYPE getDataType()
@@ -263,7 +263,7 @@ namespace dolphindb.data
             }
 
             BasicEntityFactory factory = new BasicEntityFactory();
-            IVector keys = (IVector)factory.createScalarWithDefaultValue(keyType);
+            IVector keys = (IVector)factory.createVectorWithDefaultValue(keyType, dict.Count);
             IVector values = (IVector)factory.createVectorWithDefaultValue(valueType, dict.Count);
             int index = 0;
             try

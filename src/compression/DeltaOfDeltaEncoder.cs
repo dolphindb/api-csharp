@@ -42,25 +42,6 @@ namespace dolphindb.compression
             }
             return count;
         }
-
-        public ByteBuffer compress(ByteBuffer input, int elementCount, int unitLength, int maxCompressedLength)  {
-            DeltaOfDeltaBlockEncoder blockEncoder = new DeltaOfDeltaBlockEncoder(unitLength);
-            int count = 0;
-            //TODO: create header in advanced
-            ByteBuffer output = ByteBuffer.Allocate(maxCompressedLength);
-            while (elementCount > 0 && count<maxCompressedLength) {
-                int blockSize = Math.Min(elementCount * unitLength, DEFAULT_BLOCK_SIZE);
-                long[] compressed = blockEncoder.compress(input, blockSize);
-                //write blockSize+data
-                output.WriteInt(compressed.Length * sizeof(long) * 8);
-                foreach (long l in compressed) {
-                    output.WriteLong(l);
-                }
-                count += sizeof(int) * 8 + compressed.Length * sizeof(long) * 8;
-                elementCount -= blockSize / unitLength;
-            }
-            return output;
-        }
     }
 }
 

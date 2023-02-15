@@ -66,7 +66,7 @@ namespace dolphindb.data
 
         public override Type getElementClass()
         {
-            return typeof(DateTime);
+            return typeof(BasicMonth);
         }
 
         public override object getList()
