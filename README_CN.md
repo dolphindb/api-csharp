@@ -18,16 +18,19 @@ chart||BasicChart
 DolphinDB C# API 提供的最核心的对象是DBConnection，它主要的功能就是让C#应用可以通过它调用DolphinDB的脚本和函数，在C#应用和DolphinDB服务器之间双向传递数据。
 DBConnection类提供如下主要方法：
 
-| 方法名        | 详情          |
-|:------------- |:-------------|
-|DBConnection([asynchronousTask], [useSSL], [compress])|构造函数，表示是否开启异步、ssl、压缩功能|
-|connect(hostName, port, [userId, password], [startup], highAvailability, highAvailabilitySites, [reconnect])|将会话连接到DolphinDB服务器|
-|login(username,password,enableEncryption)|登陆服务器|
-|run(script)|将脚本在DolphinDB服务器运行|
-|run(functionName,args)|调用DolphinDB服务器上的函数|
-|upload(variableObjectMap)|将本地数据对象上传到DolphinDB服务器|
-|isBusy()|判断当前会话是否正忙|
-|close()|关闭当前会话。若当前会话不再使用，会自动被释放，但存在释放延时，可以调用 `close()` 立即关闭会话。否则可能出现因连接数过多，导致其它会话无法连接服务器的问题。|
+
+| 方法名                                      | 详情                     |
+| ---------------------------------------- | ---------------------- |
+| DBConnection([asynchronousTask=false], [useSSL=false], [compress=false], [usePython=false]) | 构造函数，表示是否开启异步、ssl、压缩功能 |
+| connect(hostName, port, [userId=””], [password=””], [startup=””], [highAvailability=false], [highAvailabilitySites], [reconnect=false]) | 将会话连接到DolphinDB服务器     |
+| login(userId, password, enableEncryption) | 登陆服务器                  |
+| run(script, [listener], [priority=4], [parallelism=2], [fetchSize=0], [clearMemory=false]) | 将脚本在DolphinDB服务器同步运行   |
+| runAsync(script, [priority = 4], [parallelism=2],  [fetchSize=0], [clearMemory = false]) | 将脚本在DolphinDB服务器异步运行   |
+| run(functionName, arguments, [priority=4], [parallelism=2], [fetchSize=0], [clearMemory=false]) | 同步调用DolphinDB服务器上的函数   |
+| runAsync(functionName, arguments, [priority=4], [parallelism=2], [fetchSize=0], [clearMemory=false]) | 异步调用DolphinDB服务器上的函数   |
+| upload(variableObjectMap)                | 将本地数据对象上传到DolphinDB服务器 |
+| isBusy()                                 | 判断当前会话是否正忙             |
+| close()                                  | 关闭当前会话                 |
 
 ### 2. 建立DolphinDB连接
 
@@ -69,25 +72,27 @@ boolean success = conn.connect("localhost", 8848, "admin", "123456", "");
 
 ExclusiveDBConnectionPool可以复用多个DBConnection。可以直接使用ExclusiveDBConnectionPool.run执行命令，也可以通过execute方法执行任务，然后使用BasicDBTask的getResults方法获取该任务的执行结果。
 
-| 方法名        | 详情          |
-|:------------- |:-------------|
-|ExclusiveDBConnectionPoolExclusiveDBConnectionPool(string host, int port, string uid,string pwd, int count, bool loadBalance,bool highAvaliability, string[] haSites = null, string startup = "", bool compress = false, bool useSSL = false, bool usePython = false)|构造函数，参数count为连接数，loadBalance为true会连接不同的节点|
-|run(script)|将脚本在DolphinDB服务器运行|
-|run(functionName,args)|调用DolphinDB服务器上的函数|
-|execute(IDBTask task)|执行任务|
-|execute(List<IDBTask> tasks)|执行批量任务|
-|getConnectionCount()|获取连接数|
-|shutdown|关闭连接池。请注意，若当前 ExclusiveDBConnectionPool 线程池不再使用，会自动被释放，但存在释放延时，可以通过调用 `shutdown()` 等待线程任务执行结束后立即释放连接。|
+| 方法名                                      | 详情                                       |
+| ---------------------------------------- | ---------------------------------------- |
+| ExclusiveDBConnectionPoolExclusiveDBConnectionPool(host, port, uid, pwd, count, loadBalance,  highAvaliability, [haSites], [startup=””], [compress= false], [useSSL=false], [usePython=false]) | 构造函数，参数count为连接数，loadBalance为true会连接不同的节点 |
+| run(script, [priority=4], [parallelism=2], [clearMemory=false]) | 将脚本在DolphinDB服务器同步运行                     |
+| runAsync(script, [priority=4], [parallelism=2], [clearMemory=false]) | 将脚本在DolphinDB服务器异步运行                     |
+| run(functionName, arguments, [priority=4], [parallelism=2], [clearMemory=false]) | 同步调用DolphinDB服务器上的函数                     |
+| runAsync(functionName, arguments, [priority=4], [parallelism=2], [clearMemory=false]) | 异步调用DolphinDB服务器上的函数                     |
+| execute(task)                            | 执行任务                                     |
+| execute(tasks)                           | 执行批量任务                                   |
+| getConnectionCount()                     | 获取连接数                                    |
+| shutdown                                 | 关闭连接池                                    |
 
 BasicDBTask包装了需要执行的脚本和参数。
 
-| 方法名        | 详情          |
-|:------------- |:-------------|
-|BasicDBTask(string script, List<IEntity> args)|script为需要执行的函数，args为参数。|
-|BasicDBTask(string script)|需要执行的脚本|
-|isSuccessful|任务是否执行成功|
-|getResults|获取脚本运行结果|
-|getErrorMsg|获取任务运行时发生的异常信息|
+| 方法名                                      | 详情                      |
+| ---------------------------------------- | ----------------------- |
+| BasicDBTask(functionName, arguments, [priority=4], [parallelism=2], [clearMemory=false]) | script为需要执行的函数，args为参数。 |
+| BasicDBTask(script, [priority=4], [parallelism=2], [clearMemory=false]) | 需要执行的脚本                 |
+| isSuccessful()                           | 任务是否执行成功                |
+| getResults()                             | 获取脚本运行结果                |
+| getErrorMsg()                            | 获取任务运行时发生的异常信息          |
 
 建立一个DBConnection连接数为10的连接池。
 
@@ -165,10 +170,13 @@ System.Console.Out.WriteLine(logData.getString());
 
 ### 3. 运行脚本
 
-在C#中运行DolphinDB脚本的语法如下：
+在C#中运行DolphinDB脚本的基础语法如下：
 ```cs
 conn.run("script");
+conn.runAsync("script")
 ```
+
+run 表示同步执行脚本，runAsync 表示异步执行。
 
 如果脚本只包含一条语句，如表达式，DolphinDB会返回该语句计算结果。如果脚本包含多条语句，将返回最后一条语句的结果。如果脚本含有错误或者出现网络问题，会抛出IOException。
 
@@ -204,7 +212,7 @@ public void testUpload(){
 }
 ```
 
-### 6. 读取数据示例
+### 6. 下载DolphinDB服务器对象到本地
 
 下面介绍通过DBConnection对象，读取DolphinDB不同类型的数据。
 
@@ -489,7 +497,7 @@ public void test_loop_basicTable(BasicTable table1)
 }
 ```
 
-#### 7.4 MultithreadedTableWriter
+#### 7.4 批量异步追加数据
 
 DolphinDB C# API 提供 `MultithreadedTableWriter` 类对象支持多线程的并发写入。目前，`MultithreadedTableWriter` 支持批量写入数据到内存表、分区表和维度表。
 
@@ -519,8 +527,9 @@ MultithreadedTableWriter(string hostName, int port, string userId, string passwo
 * **mode** 写入模式，用于指定 MultithreadedTableWriter 对象写入数据的方式，包括两种：
    * Mode.M_Append：表示以 [tableInsert](https://www.dolphindb.cn/cn/help/FunctionsandCommands/FunctionReferences/t/tableInsert.html) 的方式向追加数据。
    * Mode.M_Upsert：表示以 [upsert!](https://www.dolphindb.cn/cn/help/FunctionsandCommands/FunctionReferences/u/upsert!.html) 方式更新（或追加）数据。
-* **pModeOption**：字符串数组，表示不同模式下的扩展选项，目前，仅当 mode 指定为 Mode.M_Upsert 时有效，表示由 upsert! 可选参数组成的字符串数组。
-* **callbackHandler**：回调类，默认为空，表示不使用回调。开启回调后，将继承回调接口 Callback 并重载回调方法，将回调的接口对象传入 MultithreadedTableWriter。
+* **pModeOption**：字符串数组，表示不同模式下的扩展选项，目前，仅当 mode 指定为 Mode.M_Upsert 时有效，表示由 upsert! 可选参数组成的字符串数组。如：
+  ```new String[] { "ignoreNull=false", "keyColNames=`volume" }```。
+* **callbackHandler**：回调类（Callback），默认为空，表示不使用回调。开启回调后，将继承回调接口 Callback 并重载回调方法，将回调的接口对象传入 MultithreadedTableWriter。
 
 以下是 `MultithreadedTableWriter` 对象包含的函数方法介绍：
 
@@ -812,10 +821,10 @@ AutoFitTableUpsert(string dbUrl, string tableName, DBConnection connection, bool
 
 * dbUrl 字符串，表示分布式数据库地址。内存表时该参数为空。
 * tableName 字符串，表示分布式表或内存表的表名。
-* connection DBConnection 对象，用于连接 server 并 upsert 数据
+* connection DBConnection 对象，用于连接 server 并 upsert 数据。注意：创建用于 AutoFitTableUpsert 的 DBConnection 对象时，asynchronousTask 必须为 false。
 * ignoreNull 布尔值，表示 [upsert!](https://www.dolphindb.cn/cn/help/FunctionsandCommands/FunctionReferences/u/upsert!.html) 的一个参数，其含义为若 upsert! 的新数据表中某元素为 NULL 值，是否对目标表中的相应数据进行更新。
-* pkeyColNames 字符串数组，表示 upsert! 的一个参数，用于指定 DFS 表（目标表）的键值列。
-* psortColumns 字符串数组，表示 upsert! 的一个参数，设置该参数，更新的分区内的所有数据会根据指定的列进行排序。排序在每个分区内部进行，不会跨分区排序。
+* pkeyColNames 字符串数组，用于指定 upsert! 的 keyColNames 参数，即指定 DFS 表（目标表）的键值列。
+* psortColumns 字符串数组，用于指定 upsert! 的 sortColumns 参数，设置该参数后，更新的分区内的所有数据会根据指定的列进行排序。排序在每个分区内部进行，不会跨分区排序。
 
 -写入并更新数据的方法：
 
