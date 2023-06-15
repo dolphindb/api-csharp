@@ -22,7 +22,7 @@ DBConnection类提供如下主要方法：
 | 方法名                                      | 详情                     |
 | ---------------------------------------- | ---------------------- |
 | DBConnection([asynchronousTask=false], [useSSL=false], [compress=false], [usePython=false]) | 构造函数，表示是否开启异步、ssl、压缩功能 |
-| connect(hostName, port, [userId=””], [password=””], [startup=””], [highAvailability=false], [highAvailabilitySites], [reconnect=false]) | 将会话连接到DolphinDB服务器     |
+| connect(hostName, port, [userId=""], [password=""], [startup=""], [highAvailability=false], [highAvailabilitySites], [reconnect=false]) | 将会话连接到DolphinDB服务器     |
 | login(userId, password, enableEncryption) | 登陆服务器                  |
 | run(script, [listener], [priority=4], [parallelism=2], [fetchSize=0], [clearMemory=false]) | 将脚本在DolphinDB服务器同步运行   |
 | runAsync(script, [priority = 4], [parallelism=2],  [fetchSize=0], [clearMemory = false]) | 将脚本在DolphinDB服务器异步运行   |
@@ -30,7 +30,7 @@ DBConnection类提供如下主要方法：
 | runAsync(functionName, arguments, [priority=4], [parallelism=2], [fetchSize=0], [clearMemory=false]) | 异步调用DolphinDB服务器上的函数   |
 | upload(variableObjectMap)                | 将本地数据对象上传到DolphinDB服务器 |
 | isBusy()                                 | 判断当前会话是否正忙             |
-| close()                                  | 关闭当前会话                 |
+| close()                                  | 关闭当前会话  .若当前会话不再使用，会自动被释放，但存在释放延时，可以调用 close() 立即关闭会话。否则可能出现因连接数过多，导致其它会话无法连接服务器的问题。               |
 
 ### 2. 建立DolphinDB连接
 
@@ -46,7 +46,7 @@ public void Test_Connect(){
       Assert.AreEqual(true,conn.connect("localhost",8848));
 }
 ```
-声明connection变量的时候，有三个可选参数：asynchronousTask（支持一部分），useSSL（支持SSL），compress（是否压缩传输）。这三个参数默认值为false。 目前只支持linux, 稳定版>=1.10.17,最新版>=1.20.6。  
+声明connection变量的时候，有三个可选参数：asynchronousTask（支持一部分），useSSL（支持SSL），compress（是否压缩传输）。这三个参数默认值为false。 目前只支持linux, 稳定版>=1.10.17，最新版>=1.20.6。  
 
 下面例子是，建立支持SSL而非支持异步的connection，要求数据进行压缩。服务器端应该添加参数enableHTTPS=true(单节点部署，需要添加到dolphindb.cfg;集群部署需要添加到cluster.cfg)。
 
@@ -82,13 +82,13 @@ ExclusiveDBConnectionPool可以复用多个DBConnection。可以直接使用Excl
 | execute(task)                            | 执行任务                                     |
 | execute(tasks)                           | 执行批量任务                                   |
 | getConnectionCount()                     | 获取连接数                                    |
-| shutdown                                 | 关闭连接池                                    |
+| shutdown                                 | 关闭连接池请注意，若当前 ExclusiveDBConnectionPool 线程池不再使用，会自动被释放，但存在释放延时，可以通过调用 shutdown() 等待线程任务执行结束后立即释放连接。    |
 
 BasicDBTask包装了需要执行的脚本和参数。
 
 | 方法名                                      | 详情                      |
 | ---------------------------------------- | ----------------------- |
-| BasicDBTask(functionName, arguments, [priority=4], [parallelism=2], [clearMemory=false]) | script为需要执行的函数，args为参数。 |
+| BasicDBTask(functionName, arguments, [priority=4], [parallelism=2], [clearMemory=false]) | functionName为需要执行的函数，arguments为参数。 |
 | BasicDBTask(script, [priority=4], [parallelism=2], [clearMemory=false]) | 需要执行的脚本                 |
 | isSuccessful()                           | 任务是否执行成功                |
 | getResults()                             | 获取脚本运行结果                |
@@ -226,11 +226,11 @@ using dolphindb.data;
 
 - 向量
 
-在下面的示例中，DolphinDB语句
+在下面的示例中，DolphinDB语句返回C#对象BasicStringVector。
 ```cs
 rand(`IBM`MSFT`GOOG`BIDU,10)
 ```
-返回C#对象BasicStringVector。vector.rows()方法能够获取向量的大小。我们可以使用vector.getString(i)方法按照索引访问向量元素。
+vector.rows()方法能够获取向量的大小。我们可以使用vector.getString(i)方法按照索引访问向量元素。
 
 ```cs
 public void testStringVector(){
@@ -529,9 +529,16 @@ MultithreadedTableWriter(string hostName, int port, string userId, string passwo
    * Mode.M_Upsert：表示以 [upsert!](https://www.dolphindb.cn/cn/help/FunctionsandCommands/FunctionReferences/u/upsert!.html) 方式更新（或追加）数据。
 * **pModeOption**：字符串数组，表示不同模式下的扩展选项，目前，仅当 mode 指定为 Mode.M_Upsert 时有效，表示由 upsert! 可选参数组成的字符串数组。如：
   ```new String[] { "ignoreNull=false", "keyColNames=`volume" }```。
-* **callbackHandler**：回调类（Callback），默认为空，表示不使用回调。开启回调后，将继承回调接口 Callback 并重载回调方法，将回调的接口对象传入 MultithreadedTableWriter。
+* **callbackHandler**：回调类（Callback），默认为空，表示不使用回调。开启回调后，将继承回调接口 Callback 并重载回调方法 writeCompletion。
+
+若 MultithreadedTableWriter 指定了 *callbackHandler*，则注意以下事项：
+
+* insert 的第一个参数必须是 STRING 类型，表示这一行数据的 id。
+* getUnwrittenData 方法将不可用。
 
 以下是 `MultithreadedTableWriter` 对象包含的函数方法介绍：
+
+(1) insert
 
 ```cs
 ErrorCodeInfo insert(params Object[] args)
@@ -544,12 +551,11 @@ ErrorCodeInfo insert(params Object[] args)
 
 参数说明：
 
-* **errorInfo**：hasError() 返回 true，则表示存在错误，否则表示无错误。succeed() 返回 true，则表示插入成功，否则表示插入失败。
 * **args**：是变长参数，代表插入的一行数据。
 
 返回值：返回一个ErrorCodeInfo对象，包含 errorCode 和 errorInfo，分别表示错误代码和错误信息。当 errorCode 不为空时，表示 MTW 写入失败，此时，errorInfo 会显示失败的详细信息。之后的版本中会对错误信息进行详细说明，给出错误信息的代码、错误原因及解决办法。
 
-
+(2) getUnwrittenData
 
 ```cs
 List<List<IEntity>> getUnwrittenData();
@@ -561,11 +567,7 @@ List<List<IEntity>> getUnwrittenData();
 
 注意：该方法获取到数据资源后， `MultithreadedTableWriter` 将释放这些数据资源。
 
-参数说明：
-
-* **unwrittenData**：嵌套列表，表示未写入服务器的数据，包含发送失败的数据以及待发送的数据两部分
-
-
+(3) insertUnwrittenData
 
 ```cs
 ErrorCodeInfo insertUnwrittenData(List<List<IEntity>> data);
@@ -577,9 +579,7 @@ ErrorCodeInfo insertUnwrittenData(List<List<IEntity>> data);
 
 参数说明：
 
-* **records**：需要再次写入的数据。可以通过方法 getUnwrittenData 获取该对象。
-* **errorInfo**：返回值：返回一个ErrorCodeInfo对象，包含 errorCode 和 errorInfo，分别表示错误代码和错误信息。当 errorCode 不为空时，表示 MTW 写入失败，此时，errorInfo 会显示失败的详细信息。之后的版本中会对错误信息进行详细说明，给出错误信息的代码、错误原因及解决办法。
-
+* **data**：需要再次写入的数据。可以通过方法 getUnwrittenData 获取该对象。
 
 ```cs
 Status getStatus()
@@ -592,7 +592,6 @@ Status getStatus()
 参数说明：
 
 * **status**：是MultithreadedTableWriter::Status 类，具有以下属性和方法
-
 
 属性：
 
@@ -607,6 +606,8 @@ Status getStatus()
   - sentRows：该线程成功发送的记录数。
   - unsentRows：该线程待发送的记录数。
   - sendFailedRows：该线程发送失败的记录数。
+
+(5) waitForThreadCompletion
 
 ```cs
 waitForThreadCompletion()
@@ -759,7 +760,7 @@ threadId : 12 sentRows : 1 unsentRows : 0 sendFailedRows : 0
       */
 ```
 
-MultithreadedTableWriter 回调的使用 <!-- omit in toc -->
+MultithreadedTableWriter 回调的使用
 
 `MultithreadedTableWriter` 在开启回调后，用户会在回调的方法中获取到一个 BasicTable 类型的回调表，该表由两列构成：
 第一列（String类型），存放的是调用 `MultithreadedTableWriter.insert` 时增加的每一行的 id；第二列（布尔值），表示每一行写入成功与否，true 表示写入成功，false 表示写入失败。
@@ -802,8 +803,6 @@ for (int id = 0; id < 1000000; id++){
     mtw.insert(theme + id, code, price); //theme+id 为每一行对应的 id，将在回调时返回
 }
 ```
-
-
 
 ### 7.5 更新并写入DolphinDB的数据表
 
@@ -953,7 +952,7 @@ subscribe(string host, int port, string tableName, string actionName, MessageHan
 - **user** 是一个字符串，表示 API 所连接服务器的登录用户名。
 - **password** 是一个字符串，表示 API 所连接服务器的登录密码。
 
-1. 通过 ThreadPooledClient 方式订阅的接口：
+2. 通过 ThreadPooledClient 方式订阅的接口：
 
 ```cs
 subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, StreamDeserializer deserializer = null, string user = "", string password = "")
@@ -1184,6 +1183,6 @@ TopicPoller poller = client.subscribe(hostName, port, tableName, actionName, 0, 
 ```
 #### 9.6 取消订阅
 每一个订阅都有一个订阅主题topic作为唯一标识。如果订阅时topic已经存在，那么会订阅失败。这时需要通过unsubscribeTable函数取消订阅才能再次订阅。
-```java
+```cs
 client.unsubscribe(serverIP, serverPort, tableName,actionName);
 ```
