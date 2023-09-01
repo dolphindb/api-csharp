@@ -69,7 +69,6 @@
     <Compile Include="data_test\UploadTest.cs" />
     <Compile Include="data_test\Util_test.cs" />
     <Compile Include="DBConnection_test.cs" />
-    <Compile Include="DBConnection_test2.cs" />
     <Compile Include="EntityBlockReader_test.cs" />
     <Compile Include="ha_test\ha_test.cs" />
     <Compile Include="MyConfigReader.cs" />
@@ -86,7 +85,6 @@
     <Compile Include="streamReverse_test\PoolingClientReverseTest.cs" />
     <Compile Include="streamReverse_test\ThreadedClientReverseTest.cs" />
     <Compile Include="streamReverse_test\ThreadPoolClientReverseTest.cs" />
-    <Compile Include="streamReverse_test\UnitTest1.cs" />
     <Compile Include="stream_test\PoolingClientTest.cs" />
     <Compile Include="stream_test\ThreadedClientTest.cs" />
     <Compile Include="stream_test\ThreadPoolClientTest.cs" />
