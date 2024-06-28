@@ -31,7 +31,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         private readonly int TIMEOUT = 10000;
         public static DBConnection conn;
         private static PollingClient client;
-
+        private static List<long> myLongList;
         public void clear_env()
         {
             try
@@ -1590,8 +1590,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_INT()
         {
             PrepareStreamTable_array("INT");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1599,12 +1598,12 @@ namespace dolphindb_csharp_api_test.streamReverse_test
             checkResult(conn);
             client.unsubscribe(SERVER, PORT, "Trades", "sub1");
         }
+
         [TestMethod]
         public void Test_PollingClient_subscribe_arrayVector_BOOL()
         {
             PrepareStreamTable_array("BOOL");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1616,8 +1615,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_CHAR()
         {
             PrepareStreamTable_array("CHAR");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1629,8 +1627,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_SHORT()
         {
             PrepareStreamTable_array("SHORT");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1642,8 +1639,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_LONG()
         {
             PrepareStreamTable_array("LONG");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1655,8 +1651,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_DOUBLE()
         {
             PrepareStreamTable_array("DOUBLE");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1668,8 +1663,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_FLOAT()
         {
             PrepareStreamTable_array("FLOAT");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1681,8 +1675,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_TIME()
         {
             PrepareStreamTable_array("TIME");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1694,8 +1687,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_MINUTE()
         {
             PrepareStreamTable_array("MINUTE");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1707,8 +1699,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_SECOND()
         {
             PrepareStreamTable_array("SECOND");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1720,8 +1711,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_DATETIME()
         {
             PrepareStreamTable_array("DATETIME");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1733,8 +1723,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_TIMESTAMP()
         {
             PrepareStreamTable_array("TIMESTAMP");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1746,8 +1735,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_NANOTIME()
         {
             PrepareStreamTable_array("NANOTIME");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1759,8 +1747,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_NANOTIMESTAMP()
         {
             PrepareStreamTable_array("NANOTIMESTAMP");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1789,8 +1776,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_UUID()
         {
             PrepareStreamTable_array("UUID");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1819,8 +1805,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_DATEHOUR()
         {
             PrepareStreamTable_array("DATEHOUR");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1850,8 +1835,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_IPADDR()
         {
             PrepareStreamTable_array("IPADDR");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1881,8 +1865,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_INT128()
         {
             PrepareStreamTable_array("INT128");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1929,8 +1912,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_COMPLEX()
         {
             PrepareStreamTable_array("COMPLEX");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1978,8 +1960,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_POINT()
         {
             PrepareStreamTable_array("POINT");
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -1991,8 +1972,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_DECIMAL32()
         {
             PrepareStreamTableDecimal("DECIMAL32", 3, 1000);
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -2007,8 +1987,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_DECIMAL64()
         {
             PrepareStreamTableDecimal("DECIMAL64", 3, 1000);
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -2024,8 +2003,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_DECIMAL128()
         {
             PrepareStreamTableDecimal("DECIMAL128", 10, 1000);
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -2040,8 +2018,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_DECIMAL32_1()
         {
             PrepareStreamTableDecimal("DECIMAL32", 3, 1);
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -2058,8 +2035,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_DECIMAL64_1()
         {
             PrepareStreamTableDecimal("DECIMAL64", 3, 1);
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -2077,8 +2053,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_DECIMAL128_1()
         {
             PrepareStreamTableDecimal("DECIMAL128", 10, 1);
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -2096,8 +2071,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_DECIMAL32()
         {
             PrepareStreamTableDecimal_array("DECIMAL32", 3);
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -2110,8 +2084,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_DECIMAL64()
         {
             PrepareStreamTableDecimal_array("DECIMAL64", 5);
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -2124,8 +2097,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void Test_PollingClient_subscribe_arrayVector_DECIMAL128()
         {
             PrepareStreamTableDecimal_array("DECIMAL128", 10);
-            BasicIntVector filter = new BasicIntVector(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true, filter);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
             conn.run("Trades.append!(pub_t);");
             //write 1000 rows after subscribe
             List<IMessage> messages = poller.poll(1000, 1000);
@@ -2225,6 +2197,54 @@ namespace dolphindb_csharp_api_test.streamReverse_test
             Handler1(messages);
             checkResult1(conn, "pub", "sub1");
             client.unsubscribe(SERVER, PORT, "pub", "sub1");
+            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`sub1, SHARED)");
+        }
+
+        public void Handler_getOffset(List<IMessage> messages)
+        {
+            for (int i = 0; i < messages.Count; i++)
+            {
+                try
+                {
+                    IMessage msg = messages[i];
+                    String script = String.Format("insert into sub1 values({0},{1},\"{2}\",{3},{4},{5},{6},{7},{8},{9},{10},{11},{12} )", msg.getEntity(0).getString(), msg.getEntity(1).getString(), msg.getEntity(2).getString(), msg.getEntity(3).getString(), msg.getEntity(4).getString(), msg.getEntity(5).getString(), msg.getEntity(6).getString(), msg.getEntity(7).getString(), msg.getEntity(8).getString(), msg.getEntity(9).getString(), msg.getEntity(10).getString(), msg.getEntity(11).getString(), msg.getEntity(12).getString());
+                    conn.run(script);
+                    Console.Out.WriteLine("msg.getOffset is :" + msg.getOffset());
+                    myLongList.Add(msg.getOffset());
+                }
+                catch (Exception e)
+                {
+                    Console.Out.WriteLine(e.ToString());
+                }
+            }
+        }
+
+        [TestMethod]
+        public void Test_PollingClient_subscribe_getOffset()
+        {
+            PrepareStreamTable1(conn, "pub");
+            PrepareStreamTable1(conn, "sub1");
+            WriteStreamTable1(conn, "pub", 1000);
+            myLongList = new List<long>();
+            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub");
+            Assert.AreEqual(1000, num1.getInt());
+            TopicPoller pool = client.subscribe(SERVER, PORT, "pub", 0);
+            //write 1000 rows after subscribe
+            WriteStreamTable1(conn, "pub", 1000);
+            List<IMessage> messages = pool.poll(1000, 2000);
+            Handler_getOffset(messages);
+            checkResult1(conn, "pub", "sub1");
+            client.unsubscribe(SERVER, PORT, "pub");
+            myLongList.Sort();
+            int total = 0;
+            Assert.AreEqual(2000, myLongList.Count);
+            foreach (long item in myLongList)
+            {
+                Console.WriteLine(item);
+                Assert.AreEqual(item, total);
+                total++;
+            }
             conn.run("undef(`pub, SHARED)");
             conn.run("undef(`sub1, SHARED)");
         }

@@ -30,7 +30,7 @@ namespace dolphindb.data
         private static readonly int[] cumLeapMonthDays = new int[] { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 };
         private static readonly int[] monthDays = new int[] { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
         private static readonly int[] leapMonthDays = new int[] { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-        private static string API_VERSION = "3.00.0.0";
+        private static string API_VERSION = "3.00.1.0";
 
         public static string getAPIVersion()
         {
@@ -950,6 +950,8 @@ namespace dolphindb.data
         {
             switch (dt)
             {
+                case DATA_TYPE.DT_VOID:
+                    return "VOID";
                 case DATA_TYPE.DT_BOOL:
                     return "BOOL";
                 case DATA_TYPE.DT_BYTE:
@@ -1411,6 +1413,23 @@ namespace dolphindb.data
         public static BasicDecimal128 createBasicDecimal128(BigInteger rawData, int scale)
         {
             return new BasicDecimal128(rawData, scale);
+        }
+
+        internal static void checkParamIsNull(object param, string paramName)
+        {
+            if(param == null)
+            {
+                throw new Exception(paramName + " must be non-null.");
+            }
+        }
+
+        internal static void checkStringNotNullAndEmpty (string param, string paramName)
+        {
+            checkParamIsNull(param, paramName);
+            if (param == "")
+            {
+                throw new Exception(paramName + " must be non-empty.");
+            }
         }
     }
 

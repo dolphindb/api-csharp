@@ -149,7 +149,7 @@ namespace dolphindb_csharp_api_test.data_test
         {
             BasicDictionary sc1 = new BasicDictionary(DATA_TYPE.DT_INT, DATA_TYPE.DT_DICTIONARY);
             @out = null;
-            Exception ex1 = null;
+            String re = null;
             try
             {
                 sc1.writeCompressed(@out);
@@ -157,16 +157,16 @@ namespace dolphindb_csharp_api_test.data_test
             }
             catch (Exception e)
             {
-                ex1 = e;
+                re = e.Message;
             }
-            Assert.AreEqual("The method or operation is not implemented.", ex1.Message);
+            Assert.AreEqual(true, re.Contains("The method or operation is not implemented.") || re.Contains("未实现该方法或操作。"));
         }
         [TestMethod]
         public void Test_BasicDictionary_getString()
         {
             BasicDictionary sc1 = new BasicDictionary(DATA_TYPE.DT_INT, DATA_TYPE.DT_INT);
             Console.Out.WriteLine(sc1.put((IScalar)conn.run("1"), (BasicInt)conn.run("1")));
-            Exception ex1 = null;
+            String re = null;
             try
             {
                 sc1.getString();
@@ -174,9 +174,9 @@ namespace dolphindb_csharp_api_test.data_test
             }
             catch (Exception e)
             {
-                ex1 = e;
+                re = e.Message;
             }
-            Assert.AreEqual("The method or operation is not implemented.",ex1.Message);
+            Assert.AreEqual(true, re.Contains("The method or operation is not implemented.") || re.Contains("未实现该方法或操作。"));
         }
 
         [TestMethod]
@@ -184,7 +184,7 @@ namespace dolphindb_csharp_api_test.data_test
         {
             BasicDictionary sc1 = new BasicDictionary(DATA_TYPE.DT_INT, DATA_TYPE.DT_INT);
             Console.Out.WriteLine(sc1.put((IScalar)conn.run("1"), (BasicInt)conn.run("1")));
-            Exception ex1 = null;
+            String re = null;
             try
             {
                 sc1.getObject();
@@ -192,9 +192,9 @@ namespace dolphindb_csharp_api_test.data_test
             }
             catch (Exception e)
             {
-                ex1 = e;
+                re = e.Message;
             }
-            Assert.AreEqual("The method or operation is not implemented.", ex1.Message);
+            Assert.AreEqual(true, re.Contains("The method or operation is not implemented.") || re.Contains("未实现该方法或操作。"));
         }
     }
 }

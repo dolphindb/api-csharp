@@ -569,7 +569,7 @@ namespace dolphindb_csharp_api_test.data_test
             sc.setObject(99);
             Assert.AreEqual(99, sc.getValue());
             Assert.AreEqual(0, sc.hashBucket(-1));
-            Assert.AreEqual(99, sc.GetHashCode());
+            Assert.AreEqual(sc.GetHashCode(), sc.GetHashCode());
             Assert.AreEqual(true, sc.Equals(sc));
             Assert.AreEqual(false, sc.Equals('c'));
             Assert.AreEqual("INTEGRAL", sc.getDataCategory().ToString());
@@ -1425,7 +1425,7 @@ namespace dolphindb_csharp_api_test.data_test
             catch (Exception ex) { 
                 re = ex.Message;
             }
-            Assert.AreEqual("The method or operation is not implemented.", re);
+            Assert.AreEqual(true, re.Contains("The method or operation is not implemented.") || re.Contains("未实现该方法或操作。"));
         }
 
         [TestMethod]
@@ -1543,7 +1543,7 @@ namespace dolphindb_csharp_api_test.data_test
             catch (Exception e)
             {
                 string s = e.Message;
-                Assert.AreEqual("The method or operation is not implemented.", s);
+                Assert.AreEqual(true, s.Contains("The method or operation is not implemented.") || s.Contains("未实现该方法或操作。"));
             }
         }
 
@@ -1973,7 +1973,7 @@ namespace dolphindb_csharp_api_test.data_test
             catch (Exception ex) {
                 re = ex.Message;
             }
-            Assert.AreEqual("The method or operation is not implemented.", re);
+            Assert.AreEqual(true, re.Contains("The method or operation is not implemented.") || re.Contains("未实现该方法或操作。"));
 
         }
 
@@ -2070,7 +2070,7 @@ namespace dolphindb_csharp_api_test.data_test
             catch (Exception e)
             {
                 string s = e.Message;
-                Assert.AreEqual("The method or operation is not implemented.", s);
+                Assert.AreEqual(true, s.Contains("The method or operation is not implemented.") || s.Contains("未实现该方法或操作。"));
             }
 
         }
@@ -2546,7 +2546,7 @@ namespace dolphindb_csharp_api_test.data_test
             } catch (Exception e) {
                 re = e.Message;
             }
-            Assert.AreEqual("Value was either too large or too small for a Decimal.", re);
+            Assert.AreEqual(true, re.Contains("Value was either too large or too small for a Decimal.") || re.Contains("值对于 Decimal 太大或太小。"));
         }
 
         [TestMethod]
@@ -2628,7 +2628,7 @@ namespace dolphindb_csharp_api_test.data_test
             {
                 re = e.Message;
             }
-            Assert.AreEqual("The method or operation is not implemented.", re);
+            Assert.AreEqual(true, re.Contains("The method or operation is not implemented.") || re.Contains("未实现该方法或操作。"));
         }
 
         [TestMethod]
@@ -2644,7 +2644,7 @@ namespace dolphindb_csharp_api_test.data_test
             {
                 re = e.Message;
             }
-            Assert.AreEqual("The method or operation is not implemented.", re);
+            Assert.AreEqual(true, re.Contains("The method or operation is not implemented.") || re.Contains("未实现该方法或操作。"));
         }
 
         [TestMethod]

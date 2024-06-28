@@ -716,7 +716,6 @@ namespace dolphindb_csharp_api_test.compatibility_test.data_test
         public void Test_BasicMinuteVector_set_data_error()
         {
             BasicMinuteVector blv = new BasicMinuteVector(1);
-            String re = null;
             blv.set(0, "wesdsd");           
             Assert.AreEqual(TimeSpan.MinValue, blv.getMinute(0));
 

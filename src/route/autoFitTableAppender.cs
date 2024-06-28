@@ -18,6 +18,7 @@ namespace dolphindb.route
         private string tableStr;
         Dictionary<string, DATA_TYPE> dataTypeMap;
         Dictionary<string, int> extrasMap;
+        bool supportDecimal;
 
 
 
@@ -34,7 +35,8 @@ namespace dolphindb.route
             colDefs = ((BasicTable)tableInfo.get(new BasicString("colDefs")));
             BasicStringVector names = (BasicStringVector)colDefs.getColumn("name");
             BasicIntVector types = (BasicIntVector)colDefs.getColumn("typeInt");
-            BasicIntVector extras = (BasicIntVector)colDefs.getColumn("extra");
+            supportDecimal = colDefs.getColumnNames().Contains("extra");
+            BasicIntVector extras = supportDecimal ? (BasicIntVector)colDefs.getColumn("extra") : null;
             int rows = names.rows();
 
             this.dataTypeMap = new Dictionary<string, DATA_TYPE>();
@@ -42,7 +44,7 @@ namespace dolphindb.route
             for (int i = 0; i < rows; ++i)
             {
                 dataTypeMap.Add(names.getString(i), (DATA_TYPE)types.getInt(i));
-                extrasMap.Add(names.getString(i), extras.getInt(i));
+                if(supportDecimal) extrasMap.Add(names.getString(i), extras.getInt(i));
             }
             conn.setasynTask(asynTask);
 

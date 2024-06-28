@@ -1464,7 +1464,7 @@ namespace dolphindb_csharp_api_test
             db.close();
         }
 
-        [TestMethod]//APICS-338
+        [TestMethod]
         public void Test_run_return_matrix_string()
         {
             DBConnection db = new DBConnection();
@@ -1482,7 +1482,222 @@ namespace dolphindb_csharp_api_test
             Console.WriteLine(datatype.toString());
             BasicStringMatrix matrixString1Res = (BasicStringMatrix)db.run("matrixString");
             Assert.AreEqual(matrixString.getString(), matrixString1Res.getString());
+
+            IEntity matrixString1 = db.run("string(1..36)$6:6");
+            Dictionary<string, IEntity> obj1 = new Dictionary<string, IEntity>();
+            obj1.Add("matrixString", (IEntity)matrixString);
+            obj1.Add("matrixString1", (IEntity)matrixString1);
+            db.upload(obj1);
+            BasicStringMatrix matrixString1Res1 = (BasicStringMatrix)db.run("matrixString1");
+            Assert.AreEqual(6, matrixString1.rows());
+            Assert.AreEqual(6, matrixString1.columns());
+            Assert.AreEqual(matrixString1.getString(), matrixString1Res1.getString());
             db.close();
+        }
+
+        [TestMethod]
+        public void Test_upload_matrix_string_1()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            IEntity matrixString = db.run("matrix(`STRING,1000,1000, ,\"NULL中国测试!@#$%^&*()_+{}:COUNT<>,.//;'|[]=-`~\\\\\");");
+            Assert.IsTrue(matrixString.isMatrix());
+            Assert.AreEqual(1000, matrixString.rows());
+            Assert.AreEqual(1000, matrixString.columns());
+            Dictionary<string, IEntity> obj = new Dictionary<string, IEntity>();
+            obj.Add("matrixString", matrixString);
+            db.upload(obj);
+            BasicString datatype = (BasicString)db.run("typestr(matrixString)");
+            Console.WriteLine(datatype.toString());
+            BasicStringMatrix matrixString1Res = (BasicStringMatrix)db.run("matrixString");
+            Assert.AreEqual(matrixString.getString(), matrixString1Res.getString());
+            db.close();
+        }
+
+        [TestMethod]
+        public void Test_run_return_matrix_decimal32()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT);
+            BasicDecimal32Matrix matrix = (BasicDecimal32Matrix)conn.run("matrix(DECIMAL32(1),1,1, ,);");
+            Assert.AreEqual(1, matrix.rows());
+            Assert.AreEqual(1, matrix.columns());
+            Assert.AreEqual("", matrix.get(0, 0).getString());
+
+            BasicDecimal32Matrix matrix1 = (BasicDecimal32Matrix)conn.run("decimal32(1..10$2:5,2)");
+            Assert.AreEqual("#0   #1   #2   #3   #4   \n" +
+                    "1.00 3.00 5.00 7.00 9.00 \n" +
+                    "2.00 4.00 6.00 8.00 10.00\n", matrix1.getString());
+
+            BasicDecimal32Matrix matrix2 = (BasicDecimal32Matrix)conn.run("decimal32(-1.999999999 -1.0000001 0 1.999999999 1.01 0.1$3:2,9)");
+            Assert.AreEqual(3, matrix2.rows());
+            Assert.AreEqual(2, matrix2.columns());
+            Assert.AreEqual("#0           #1         \n" +
+                    "-1.999999999 1.999999999\n" +
+                    "-1.000000100 1.010000000\n" +
+                    "0.000000000  0.100000000\n", matrix2.getString());
+            BasicDecimal32Matrix matrix3 = (BasicDecimal32Matrix)conn.run("decimal32(cross(add,1 2,3 4),2)");
+            Assert.AreEqual(2, matrix3.rows());
+            Assert.AreEqual(2, matrix3.columns());
+            Assert.AreEqual("1", matrix3.getRowLabel(0).getString());
+            Assert.AreEqual("4.00", matrix3.get(0, 0).getString());
+        }
+
+        [TestMethod]
+        public void Test_run_return_matrix_decimal64()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT);
+            BasicDecimal64Matrix matrix = (BasicDecimal64Matrix)conn.run("matrix(DECIMAL64(1),1,1, ,);");
+            Assert.AreEqual(1, matrix.rows());
+            Assert.AreEqual(1, matrix.columns());
+            Assert.AreEqual("", matrix.get(0, 0).getString());
+
+            BasicDecimal64Matrix matrix1 = (BasicDecimal64Matrix)conn.run("decimal64(1..10$2:5,2)");
+            Assert.AreEqual("#0   #1   #2   #3   #4   \n" +
+                    "1.00 3.00 5.00 7.00 9.00 \n" +
+                    "2.00 4.00 6.00 8.00 10.00\n", matrix1.getString());
+
+            BasicDecimal64Matrix matrix2 = (BasicDecimal64Matrix)conn.run("decimal64(-1.99999999999999999 -1.00000001 0 1.99999999999999999 1.01 0.1$3:2,18)");
+            Assert.AreEqual(3, matrix2.rows());
+            Assert.AreEqual(2, matrix2.columns());
+            Console.WriteLine(matrix2.getString());
+            Assert.AreEqual("#0                    #1                  \n" +
+                    "-2.000000000000000000 2.000000000000000000\n" +
+                    "-1.000000010000000000 1.010000000000000000\n" +
+                    "0.000000000000000000  0.100000000000000000\n", matrix2.getString());
+            BasicDecimal64Matrix matrix3 = (BasicDecimal64Matrix)conn.run("decimal64(cross(add,1 2,3 4),2)");
+            Assert.AreEqual(2, matrix3.rows());
+            Assert.AreEqual(2, matrix3.columns());
+            Assert.AreEqual("1", matrix3.getRowLabel(0).getString());
+            Assert.AreEqual("4.00", matrix3.get(0, 0).getString());
+        }
+
+        [TestMethod]
+        public void Test_run_return_matrix_decimal128()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT);
+            BasicDecimal128Matrix matrix = (BasicDecimal128Matrix)conn.run("matrix(DECIMAL128(1),1,1, ,);");
+            Assert.AreEqual(1, matrix.rows());
+            Assert.AreEqual(1, matrix.columns());
+            Assert.AreEqual("", matrix.get(0, 0).getString());
+
+            BasicDecimal128Matrix matrix1 = (BasicDecimal128Matrix)conn.run("decimal128(1..10$2:5,2)");
+            Assert.AreEqual("#0   #1   #2   #3   #4   \n" +
+                    "1.00 3.00 5.00 7.00 9.00 \n" +
+                    "2.00 4.00 6.00 8.00 10.00\n", matrix1.getString());
+
+            BasicDecimal128Matrix matrix2 = (BasicDecimal128Matrix)conn.run("decimal128(-1.99999999999999999 -1.00000001 0 1.99999999999999999 1.01 0.1$3:2,37)");
+            Assert.AreEqual(3, matrix2.rows());
+            Assert.AreEqual(2, matrix2.columns());
+            Console.WriteLine(matrix2.getString());
+            Assert.AreEqual("#0                                       #1                                     \n" +
+                    "-2.0000000000000000000000000000000000000 2.0000000000000000000000000000000000000\n" +
+                    "-1.0000000099999998682326038754967420928 1.0099999999999999498732536162620014592\n" +
+                    "0.0000000000000000000000000000000000000  0.1000000000000000042420637374017961984\n", matrix2.getString());
+            BasicDecimal128Matrix matrix3 = (BasicDecimal128Matrix)conn.run("decimal128(cross(add,1 2,3 4),2)");
+            Assert.AreEqual(2, matrix3.rows());
+            Assert.AreEqual(2, matrix3.columns());
+            Assert.AreEqual("1", matrix3.getRowLabel(0).getString());
+            Assert.AreEqual("4.00", matrix3.get(0, 0).getString());
+        }
+
+        [TestMethod]
+        public void Test_upload_matrix_decimal32()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT);
+            Dictionary<string, IEntity> map = new Dictionary<string, IEntity>();
+            IEntity decimal32matrix = conn.run("decimal32(-1.999999999 -1.0000001 0 1.999999999 1.01 0.1$3:2,9)");
+            map.Add("decimal32matrix", decimal32matrix);
+            conn.upload(map);
+            IEntity decimal32matrixRes = conn.run("decimal32matrix");
+            Assert.AreEqual(3, decimal32matrixRes.rows());
+            Assert.AreEqual(2, decimal32matrixRes.columns());
+            Assert.AreEqual(decimal32matrix.getString(), decimal32matrixRes.getString());
+
+            List<String[]> list = new List<String[]>();
+            list.Add(new String[] { "999999999", "0", "-999999999" });
+            list.Add(new String[] { "999999999", "999999999", "999999999" });
+            list.Add(new String[] { "-999999999", "-999999999", "-999999999" });
+            BasicDecimal32Matrix decimal32matrix1 = new BasicDecimal32Matrix(3, 3, list, 0);
+            map.Add("decimal32matrix1", decimal32matrix1);
+            conn.upload(map);
+            IEntity decimal32matrix1Res = conn.run("decimal32matrix1");
+            Assert.AreEqual(decimal32matrix1.getString(), decimal32matrix1Res.getString());
+
+            BasicDecimal32Matrix decimal32matrix2 = new BasicDecimal32Matrix(0, 0, 0);
+            map.Add("decimal32matrix2", decimal32matrix2);
+            conn.upload(map);
+            IEntity decimal32matrix2Res = conn.run("decimal32matrix2");
+            Assert.AreEqual(decimal32matrix2.getString(), decimal32matrix2Res.getString());
+            Assert.AreEqual("\n", decimal32matrix2Res.getString());
+        }
+
+        [TestMethod]
+        public void Test_upload_matrix_decimal64()
+        {
+
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT);
+            Dictionary<string, IEntity> map = new Dictionary<string, IEntity>();
+            IEntity decimal64matrix = conn.run("decimal64(-1.99999999999999999 -1.00000001 0 1.99999999999999999 1.01 0.1$3:2,18)");
+            map.Add("decimal64matrix", decimal64matrix);
+            conn.upload(map);
+            IEntity decimal64matrixRes = conn.run("decimal64matrix");
+            Assert.AreEqual(3, decimal64matrixRes.rows());
+            Assert.AreEqual(2, decimal64matrixRes.columns());
+            Assert.AreEqual(decimal64matrix.getString(), decimal64matrixRes.getString());
+
+            List<String[]> list = new List<String[]>();
+            list.Add(new String[] { "999999999999999999", "0", "-999999999999999999" });
+            list.Add(new String[] { "999999999999999999", "9.99999999999999999", "9999.99999999999999" });
+            list.Add(new String[] { "-9.999999999999999999", "-9.99999999999999999", "-9999.99999999999999" });
+            BasicDecimal64Matrix decimal64matrix1 = new BasicDecimal64Matrix(3, 3, list, 0);
+            map.Add("decimal64matrix1", decimal64matrix1);
+            conn.upload(map);
+            IEntity decimal64matrix1Res = conn.run("decimal64matrix1");
+            Assert.AreEqual(decimal64matrix1.getString(), decimal64matrix1Res.getString());
+
+            BasicDecimal64Matrix decimal64matrix2 = new BasicDecimal64Matrix(0, 0, 0);
+            map.Add("decimal64matrix2", decimal64matrix2);
+            conn.upload(map);
+            IEntity decimal64matrix2Res = conn.run("decimal64matrix2");
+            Assert.AreEqual(decimal64matrix2.getString(), decimal64matrix2Res.getString());
+            Assert.AreEqual("\n", decimal64matrix2Res.getString());
+        }
+
+        [TestMethod]
+        public void Test_upload_matrix_decimal128()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT);
+            Dictionary<string, IEntity> map = new Dictionary<string, IEntity>();
+            IEntity decimal128matrix = conn.run("decimal128(-1.99999999999999999 -1.00000001 0 1.99999999999999999 1.01 0.1$3:2,37)");
+            map.Add("decimal128matrix", decimal128matrix);
+            conn.upload(map);
+            IEntity decimal128matrixRes = conn.run("decimal128matrix");
+            Assert.AreEqual(3, decimal128matrixRes.rows());
+            Assert.AreEqual(2, decimal128matrixRes.columns());
+            Assert.AreEqual(decimal128matrix.getString(), decimal128matrixRes.getString());
+
+            List<String[]> list = new List<String[]>();
+            list.Add(new String[] { "9999999999999999999.9999999999999999999", "0", "-9999999999999999999" });
+            list.Add(new String[] { "9999999999999999999.0000000000000000009", "9999999999999999999", "9999999999999999999" });
+            list.Add(new String[] { "-9999999999999999999.0000000000000000009", "-9999999999999999999", "-9999999999999999999" });
+            BasicDecimal128Matrix decimal128matrix1 = new BasicDecimal128Matrix(3, 3, list, 0);
+            map.Add("decimal128matrix1", decimal128matrix1);
+            conn.upload(map);
+            IEntity decimal128matrix1Res = conn.run("decimal128matrix1");
+            Assert.AreEqual(decimal128matrix1.getString(), decimal128matrix1Res.getString());
+
+            BasicDecimal128Matrix decimal128matrix2 = new BasicDecimal128Matrix(0, 0, 0);
+            map.Add("decimal128matrix2", decimal128matrix2);
+            conn.upload(map);
+            IEntity decimal128matrix2Res = conn.run("decimal128matrix2");
+            Assert.AreEqual(decimal128matrix2.getString(), decimal128matrix2Res.getString());
+            Assert.AreEqual("\n", decimal128matrix2Res.getString());
         }
 
         [TestMethod]
@@ -3544,18 +3759,19 @@ a";
             connection1.run(scripts,false);
             List<string> sqlList1 = new List<string>() { "select sum(impl_fwd), * from loadTable(\"dfs://test1\", \"pt\") where  instr='OPT_XSHG_510050' and snapshot_config = 'snap_sz1_0930_1457_5s' and impl_fwd_disc_config = 'fwd_synth_order_match' and impl_vol_model_config = 'spline_gd_dof10.0' and snapshot_ts = timestamp('2022.08.03T09:30:05.000000'); " };
 
-            List<string> sqlList2 = new List<string>() { "t = select * from loadTable(\"dfs://test\",\"pt\")", "loop(max, t.values()); " };
+           // List<string> sqlList2 = new List<string>() { "t = select * from loadTable(\"dfs://test1\",\"pt\")", "loop(max, t.values()); " };
+            List<string> sqlList2 = new List<string>() { "t = select * from loadTable(\"dfs://test11\",\"t1\")", "loop(max, t.values()); " };
+            List<string> sqlList3 = new List<string>() { "t =  select id, max(v) from loadTable(\"dfs://test11\", \"t1\")  group by id;" };
 
-            List<IEntity> entities1 = connection1.run(sqlList1, 4, 64);
+            List<IEntity> entities1 = connection1.run(sqlList3, 4, 1);
             foreach (IEntity entity in entities1)
             {
                 Console.Out.WriteLine(entity.getString());
                 entity.getString();
             }
             connection1.close();
-
-
         }
+
         [TestMethod]
         public void Test_sqlList_parallelism_65()
         {

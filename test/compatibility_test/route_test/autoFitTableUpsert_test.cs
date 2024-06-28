@@ -196,10 +196,9 @@ namespace dolphindb_csharp_api_test.compatibility_test.route_test
             script += "cstring = \"hello\" \"hi\" \"here\";\n";
             script += "cdatehour = datehour(2012.06.15 15:32:10.158 2012.06.15 17:30:10.008 2014.09.29 23:55:42.693);\n";
             script += "try{\n undef(`t,SHARED)\n }catch(ex){\n };\n";
-            script += "t = indexedTable(`cint,cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
+            script += "share indexedTable(`cint,cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
             script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
-            script += "cstring,cdatehour);";
-            script += "share t as st;";
+            script += "cstring,cdatehour) as st;;\n";
             conn.run(script);
             BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,10 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour)");
             AutoFitTableUpsert aftu = new AutoFitTableUpsert("", "st", conn, false, null, null);

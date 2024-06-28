@@ -37,9 +37,9 @@ namespace dolphindb.data
             this.scale_ = scale;
         }
 
-        public BasicDecimal128(ExtendedDataInput @input)
+        internal BasicDecimal128(ExtendedDataInput @input, int scale = -1)
         {
-            scale_ = @input.readInt();
+            scale_ = scale == -1 ? @input.readInt() : scale;
             byte[] data = new byte[16];
             @input.readFully(data);
             reserveBytes(data, !@input.isLittleEndian());

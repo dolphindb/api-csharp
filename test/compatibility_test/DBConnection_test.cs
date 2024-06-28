@@ -3335,6 +3335,7 @@ a";
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
             IList<IEntity> arg = new List<IEntity>();
+            arg.Add(db.run("1"));
             db.tryRun("sleep", arg);
             db.close();
         }

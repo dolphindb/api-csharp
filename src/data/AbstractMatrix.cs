@@ -150,7 +150,7 @@ namespace dolphindb.data
         public virtual string getString()
         {
             int rows = Math.Min(Utils.DISPLAY_ROWS, this.rows());
-            int limitColMaxWidth = 25;
+            int limitColMaxWidth = Utils.DISPLAY_WIDTH;
             int length = 0;
             int curCol = 0;
             int maxColWidth;

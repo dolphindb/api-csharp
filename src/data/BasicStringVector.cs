@@ -10,7 +10,7 @@ namespace dolphindb.data
     {
         private List<string> values;
         private List<byte[]> blobValues;
-        private bool isSymbol;
+        private bool isSymbol = false;
         //2021.01.19 cwj
         private bool isBlob = false;
         //

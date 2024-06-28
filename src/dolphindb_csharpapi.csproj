@@ -52,10 +52,13 @@
     <Compile Include="data\BasicDateHourMatrix.cs" />
     <Compile Include="data\BasicDateHourVector.cs" />
     <Compile Include="data\BasicDecimal128.cs" />
+    <Compile Include="data\BasicDecimal128Matrix.cs" />
     <Compile Include="data\BasicDecimal128Vector.cs" />
     <Compile Include="data\BasicDecimal32.cs" />
+    <Compile Include="data\BasicDecimal32Matrix.cs" />
     <Compile Include="data\BasicDecimal32Vector.cs" />
     <Compile Include="data\BasicDecimal64.cs" />
+    <Compile Include="data\BasicDecimal64Matrix.cs" />
     <Compile Include="data\BasicDecimal64Vector.cs" />
     <Compile Include="route\AutoFitTableUpsert.cs" />
     <Compile Include="route\ByteBuffer.cs" />
@@ -193,6 +196,10 @@
     <Compile Include="ServerExceptionUtils.cs" />
     <Compile Include="streaming\AbstractClient.cs" />
     <Compile Include="streaming\BasicMessage.cs" />
+    <Compile Include="streaming\cep\EventClient.cs" />
+    <Compile Include="streaming\cep\EventHandler.cs" />
+    <Compile Include="streaming\cep\EventMessageHandler.cs" />
+    <Compile Include="streaming\cep\EventSender.cs" />
     <Compile Include="streaming\Deamon.cs" />
     <Compile Include="streaming\IMessage.cs" />
     <Compile Include="streaming\MessageDispatcher.cs" />

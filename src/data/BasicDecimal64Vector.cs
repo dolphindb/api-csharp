@@ -252,9 +252,13 @@ namespace dolphindb.data
             else
             {
                 int originScale = value.getScale();
-                if (originScale > scale_)
+                if (originScale == scale_)
                 {
-                    values_[index] = ((BasicDecimal64)value).getRawData() / BasicDecimal64.pow10(originScale - scale_);
+                    values_[index] = ((BasicDecimal64)value).getRawData();
+                }
+                else if (originScale > scale_)
+                {
+                    values_[index] = new BasicDecimal64(value.getString(), scale_).getRawData();
                 }
                 else
                 {
@@ -303,6 +307,11 @@ namespace dolphindb.data
         public decimal getDecimal(int index)
         {
             return Utils.createBasicDecimal64(values_[index], scale_).getDecimalValue();
+        }
+
+        public void setDecimal(int index, decimal value)
+        {
+            set(index, new BasicDecimal64(value, scale_));
         }
     }
 }

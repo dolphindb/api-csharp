@@ -128,13 +128,13 @@ namespace dolphindb.data
             }
         }
 
-        public IMatrix createMatrixWithDefaultValue(DATA_TYPE type, int rows, int columns)
+        public IMatrix createMatrixWithDefaultValue(DATA_TYPE type, int rows, int columns, int extra = -1)
         {
             int index = (int)type;
             if (factories[index] == null)
                 return null;
             else
-                return factories[index].createMatrixWithDefaultValue(rows, columns);
+                return factories[index].createMatrixWithDefaultValue(rows, columns, extra);
         }
 
 
@@ -280,7 +280,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicBoolean(false); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicBooleanVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicBooleanVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicBooleanMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicBooleanMatrix(rows, columns); }
         }
 
         private class ByteFactory : TypeFactory
@@ -292,7 +292,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicByte((byte)0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicByteVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicByteVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicByteMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicByteMatrix(rows, columns); }
         }
 
         private class ShortFactory : TypeFactory
@@ -305,7 +305,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicShort((short)0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicShortVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicShortVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicShortMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicShortMatrix(rows, columns); }
         }
 
         private class IntFactory : TypeFactory
@@ -317,7 +317,7 @@ namespace dolphindb.data
             public IVector createPairWithDefaultValue() { return new BasicIntVector(DATA_FORM.DF_PAIR, 2); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicIntVector(size); }
             public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicIntMatrix(@in); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicIntMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicIntMatrix(rows, columns); }
         }
 
         private class LongFactory : TypeFactory
@@ -330,7 +330,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicLong(0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicLongVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicLongVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicLongMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicLongMatrix(rows, columns); }
         }
 
         private class FloatFactory : TypeFactory
@@ -342,7 +342,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicFloat(0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicFloatVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicFloatVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicFloatMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicFloatMatrix(rows, columns); }
         }
 
         private class DoubleFactory : TypeFactory
@@ -355,7 +355,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicDouble(0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicDoubleVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicDoubleVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicDoubleMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicDoubleMatrix(rows, columns); }
         }
 
         private class UuidFactory : TypeFactory
@@ -368,7 +368,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicUuid(0, 0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicUuidVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicUuidVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { throw new Exception("Matrix for UUID not supported yet."); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { throw new Exception("Matrix for UUID not supported yet."); }
 	}
 
         private class IPAddrFactory : TypeFactory
@@ -381,7 +381,7 @@ namespace dolphindb.data
 		    public IScalar createScalarWithDefaultValue() { return new BasicIPAddr(0, 0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicIPAddrVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicIPAddrVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { throw new Exception("Matrix for IPADDR not supported yet."); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { throw new Exception("Matrix for IPADDR not supported yet."); }
 	    }
 
         private class Int128Factory : TypeFactory
@@ -394,7 +394,7 @@ namespace dolphindb.data
 		    public IScalar createScalarWithDefaultValue() { return new BasicInt128(0, 0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicInt128Vector(size); }
             public IVector createPairWithDefaultValue() { return new BasicInt128Vector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { throw new Exception("Matrix for INT128 not supported yet."); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { throw new Exception("Matrix for INT128 not supported yet."); }
 	    }
 
         private class StringFactory : TypeFactory
@@ -403,11 +403,11 @@ namespace dolphindb.data
             public IScalar createScalar(ExtendedDataInput @in) { return new BasicString(@in); }
             public IVector createVector(ExtendedDataInput @in) { return new BasicStringVector(DATA_FORM.DF_VECTOR, @in); }
             public IVector createPair(ExtendedDataInput @in) { return new BasicStringVector(DATA_FORM.DF_PAIR, @in); }
-            public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicStringMatrix(@in); }
+            public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicStringMatrix(@in, false); }
             public IScalar createScalarWithDefaultValue() { return new BasicString(""); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicStringVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicStringVector(DATA_FORM.DF_PAIR, 2, false); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicStringMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicStringMatrix(rows, columns); }
         }
 
         //2021.01.19 cwj
@@ -417,11 +417,11 @@ namespace dolphindb.data
             public IScalar createScalar(ExtendedDataInput @in) { return new BasicString(@in,true); }
             public IVector createVector(ExtendedDataInput @in) { return new BasicStringVector(DATA_FORM.DF_VECTOR, @in,false,true ); }
             public IVector createPair(ExtendedDataInput @in) { return new BasicStringVector(DATA_FORM.DF_PAIR, @in,false, true); }
-            public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicStringMatrix(@in); }
+            public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicStringMatrix(@in, false); }
             public IScalar createScalarWithDefaultValue() { return new BasicString("", true); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicStringVector(DATA_FORM.DF_VECTOR, size, false, true); }
             public IVector createPairWithDefaultValue() { return new BasicStringVector(DATA_FORM.DF_PAIR, 2, false,true); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicStringMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicStringMatrix(rows, columns); }
         }
         //
         private class SymbolFactory : TypeFactory
@@ -430,11 +430,11 @@ namespace dolphindb.data
             public IScalar createScalar(ExtendedDataInput @in) { return new BasicString(@in); }
             public IVector createVector(ExtendedDataInput @in) { return new BasicStringVector(DATA_FORM.DF_VECTOR, @in); }
             public IVector createPair(ExtendedDataInput @in) { return new BasicStringVector(DATA_FORM.DF_PAIR, @in); }
-            public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicStringMatrix(@in); }
+            public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicStringMatrix(@in, true); }
             public IScalar createScalarWithDefaultValue() { return new BasicString(""); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicStringVector(DATA_FORM.DF_VECTOR, size, true); }
             public IVector createPairWithDefaultValue() { return new BasicStringVector(DATA_FORM.DF_PAIR, 2, true); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicStringMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicStringMatrix(rows, columns); }
         }
 
         private class ExtendedSymbolFactory : TypeFactory
@@ -443,11 +443,11 @@ namespace dolphindb.data
             public IScalar createScalar(ExtendedDataInput @in) { return new BasicString(@in); }
             public IVector createVector(ExtendedDataInput @in) { return new BasicSymbolVector(DATA_FORM.DF_VECTOR, @in); }
             public IVector createPair(ExtendedDataInput @in) { return new BasicSymbolVector(DATA_FORM.DF_PAIR, @in); }
-            public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicStringMatrix(@in); }
+            public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicStringMatrix(@in, true); }
             public IScalar createScalarWithDefaultValue() { return new BasicString(""); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicSymbolVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicStringVector(DATA_FORM.DF_PAIR, 2, true); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicStringMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicStringMatrix(rows, columns); }
         }
 
         private class DateFactory : TypeFactory
@@ -459,7 +459,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicDate(0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicDateVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicDateVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicDateMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicDateMatrix(rows, columns); }
         }
 
         private class DateTimeFactory : TypeFactory
@@ -471,7 +471,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicDateTime(0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicDateTimeVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicDateTimeVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicDateTimeMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicDateTimeMatrix(rows, columns); }
         }
 
         private class DateHourFactory : TypeFactory
@@ -483,7 +483,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicDateHour(0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicDateHourVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicDateHourVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicDateHourMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicDateHourMatrix(rows, columns); }
         }
 
         private class TimestampFactory : TypeFactory
@@ -495,7 +495,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicTimestamp(0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicTimestampVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicTimestampVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicTimestampMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicTimestampMatrix(rows, columns); }
         }
 
         private class MonthFactory : TypeFactory
@@ -507,7 +507,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicMonth(0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicMonthVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicMonthVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicMonthMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicMonthMatrix(rows, columns); }
         }
         private class NanoTimestampFactory : TypeFactory
         {
@@ -518,7 +518,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicNanoTimestamp(0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicNanoTimestampVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicNanoTimestampVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicNanoTimestampMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicNanoTimestampMatrix(rows, columns); }
         }
         private class MinuteFactory : TypeFactory
         {
@@ -529,7 +529,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicMinute(0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicMinuteVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicMinuteVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicMinuteMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicMinuteMatrix(rows, columns); }
         }
 
         private class SecondFactory : TypeFactory
@@ -541,7 +541,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicSecond(0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicSecondVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicSecondVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicSecondMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicSecondMatrix(rows, columns); }
         }
 
         private class TimeFactory : TypeFactory
@@ -554,7 +554,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicTime(0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicTimeVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicTimeVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicTimeMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicTimeMatrix(rows, columns); }
         }
         private class NanoTimeFactory : TypeFactory
         {
@@ -565,7 +565,7 @@ namespace dolphindb.data
             public IScalar createScalarWithDefaultValue() { return new BasicNanoTime(0); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicNanoTimeVector(size); }
             public IVector createPairWithDefaultValue() { return new BasicNanoTimeVector(DATA_FORM.DF_PAIR, 2); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { return new BasicNanoTimeMatrix(rows, columns); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicNanoTimeMatrix(rows, columns); }
         }
 
         private class Decimal32Factory : TypeFactory
@@ -573,11 +573,11 @@ namespace dolphindb.data
             public IScalar createScalar(ExtendedDataInput @in) { return new BasicDecimal32(@in); }
             public IVector createVector(ExtendedDataInput @in) { return new BasicDecimal32Vector(DATA_FORM.DF_VECTOR, @in, -1); }
             public IVector createPair(ExtendedDataInput @in) { return new BasicDecimal32Vector(DATA_FORM.DF_PAIR, @in, -1); }
-            public IMatrix createMatrix(ExtendedDataInput @in) { throw new NotImplementedException("Matrix for BasicDecimal32 not supported yet."); }
+            public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicDecimal32Matrix(@in); }
             public IScalar createScalarWithDefaultValue() { return new BasicDecimal32("0"); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicDecimal32Vector(size, extra); }
             public IVector createPairWithDefaultValue() { throw new NotImplementedException(); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { throw new NotImplementedException("Matrix for BasicDecimal32 not supported yet."); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicDecimal32Matrix(rows, columns, extra); }
         }
 
         private class Decimal64Factory : TypeFactory
@@ -585,11 +585,11 @@ namespace dolphindb.data
             public IScalar createScalar(ExtendedDataInput @in) { return new BasicDecimal64(@in); }
             public IVector createVector(ExtendedDataInput @in) { return new BasicDecimal64Vector(DATA_FORM.DF_VECTOR, @in, -1); }
             public IVector createPair(ExtendedDataInput @in) { return new BasicDecimal64Vector(DATA_FORM.DF_PAIR, @in, -1); }
-            public IMatrix createMatrix(ExtendedDataInput @in) { throw new NotImplementedException("Matrix for BasicDecimal64 not supported yet."); }
+            public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicDecimal64Matrix(@in); }
             public IScalar createScalarWithDefaultValue() { return new BasicDecimal64("0"); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicDecimal64Vector(size, extra); }
             public IVector createPairWithDefaultValue() { throw new NotImplementedException(); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { throw new NotImplementedException("Matrix for BasicDecimal32 not supported yet."); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicDecimal64Matrix(rows, columns, extra); }
         }
 
         private class Decimal128Factory : TypeFactory
@@ -597,11 +597,11 @@ namespace dolphindb.data
             public IScalar createScalar(ExtendedDataInput @in) { return new BasicDecimal128(@in); }
             public IVector createVector(ExtendedDataInput @in) { return new BasicDecimal128Vector(DATA_FORM.DF_VECTOR, @in, -1); }
             public IVector createPair(ExtendedDataInput @in) { return new BasicDecimal128Vector(DATA_FORM.DF_PAIR, @in, -1); }
-            public IMatrix createMatrix(ExtendedDataInput @in) { throw new NotImplementedException("Matrix for BasicDecimal128 not supported yet."); }
+            public IMatrix createMatrix(ExtendedDataInput @in) { return new BasicDecimal128Matrix(@in); }
             public IScalar createScalarWithDefaultValue() { return new BasicDecimal128("0"); }
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicDecimal128Vector(size, extra); }
             public IVector createPairWithDefaultValue() { throw new NotImplementedException(); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { throw new NotImplementedException("Matrix for BasicDecimal128 not supported yet."); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicDecimal128Matrix(rows, columns, extra); }
         }
 
         private class FunctionDefFactory : TypeFactory
@@ -613,7 +613,7 @@ namespace dolphindb.data
             public IMatrix createMatrix(ExtendedDataInput @in) { throw new NotImplementedException(); }
             public IVector createVectorWithDefaultValue(int size, int extra) { throw new NotImplementedException(); }
             public IVector createPairWithDefaultValue() { throw new NotImplementedException(); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { throw new NotImplementedException(); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { throw new NotImplementedException(); }
         }
 
         private class MetaCodeFactory : TypeFactory
@@ -625,7 +625,7 @@ namespace dolphindb.data
             public IMatrix createMatrix(ExtendedDataInput @in) { throw new NotImplementedException(); }
             public IVector createVectorWithDefaultValue(int size, int extra) { throw new NotImplementedException(); }
             public IVector createPairWithDefaultValue() { throw new NotImplementedException(); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { throw new NotImplementedException(); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { throw new NotImplementedException(); }
         }
 
         private class DataSourceFactory : TypeFactory
@@ -637,7 +637,7 @@ namespace dolphindb.data
             public IMatrix createMatrix(ExtendedDataInput @in) { throw new NotImplementedException(); }
             public IVector createVectorWithDefaultValue(int size, int extra) { throw new NotImplementedException(); }
             public IVector createPairWithDefaultValue() { throw new NotImplementedException(); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { throw new NotImplementedException(); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { throw new NotImplementedException(); }
         }
 
         private class SystemHandleFactory : TypeFactory
@@ -650,7 +650,7 @@ namespace dolphindb.data
             public IMatrix createMatrix(ExtendedDataInput @in) { throw new NotImplementedException(); }
             public IVector createVectorWithDefaultValue(int size, int extra) { throw new NotImplementedException(); }
             public IVector createPairWithDefaultValue() { throw new NotImplementedException(); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { throw new NotImplementedException(); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { throw new NotImplementedException(); }
         }
 
         private class ResourceFactory : TypeFactory
@@ -663,7 +663,7 @@ namespace dolphindb.data
             public IMatrix createMatrix(ExtendedDataInput @in) { throw new NotImplementedException(); }
             public IVector createVectorWithDefaultValue(int size, int extra) { throw new NotImplementedException(); }
             public IVector createPairWithDefaultValue() { throw new NotImplementedException(); }
-            public IMatrix createMatrixWithDefaultValue(int rows, int columns) { throw new NotImplementedException(); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { throw new NotImplementedException(); }
         }
     }
 
@@ -676,6 +676,6 @@ namespace dolphindb.data
         IMatrix createMatrix(ExtendedDataInput @in);
         IVector createVectorWithDefaultValue(int size, int extra);
         IVector createPairWithDefaultValue();
-        IMatrix createMatrixWithDefaultValue(int rows, int columns);
+        IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra);
     }
 }

@@ -13,9 +13,9 @@ namespace dolphindb.data
         private int scale_ = 0;//Decimal precision
         private long value_; //covert decimal to int for saving
 
-        public BasicDecimal64(ExtendedDataInput @input)
+        internal BasicDecimal64(ExtendedDataInput @input, int scale = -1)
         {
-            scale_ = @input.readInt();
+            scale_ = scale == -1 ? @input.readInt() : scale;
             value_ = @input.readLong();
         }
 

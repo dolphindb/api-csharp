@@ -491,7 +491,7 @@ namespace dolphindb_csharp_api_test
                     pool.run(script1);
                     pool.shutdown();
                 }
-                catch (IOException ex)
+                catch (Exception ex)
                 {
                     string s = ex.Message;
                     Assert.AreEqual(s, "Syntax Error: [line #1] Cannot recognize the token import");

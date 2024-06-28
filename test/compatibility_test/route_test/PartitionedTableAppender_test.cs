@@ -183,7 +183,7 @@ namespace dolphindb_csharp_api_test.compatibility_test.route_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
             var cols = new List<IVector>() { };
-            var colNames = new List<String>() { "intv", "boolv", "charv", "shortv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "symbolv", "stringv", "uuidv", "datehourv", "ippaddrv", "int128v", "blobv" };
+            var colNames = new List<String>() { "intv", "boolv", "charv", "shortv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "symbolv", "stringv", "uuidv", "datehourv", "ippaddrv", "int128v" };
             int rowNum = 0;
             cols.Add(new BasicIntVector(rowNum));
             cols.Add(new BasicBooleanVector(rowNum));
@@ -315,7 +315,7 @@ namespace dolphindb_csharp_api_test.compatibility_test.route_test
             {
                 re = ex.Message;
             }
-            Assert.AreEqual("The input table doesn't match the schema of the target table.", re);
+            Assert.AreEqual("the size of colNames must be equal than cols", re);
             pool.shutdown();
         }
 

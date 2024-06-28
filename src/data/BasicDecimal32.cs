@@ -41,9 +41,9 @@ namespace dolphindb.data
             }
         }
 
-        public BasicDecimal32(ExtendedDataInput @input)
+        internal BasicDecimal32(ExtendedDataInput @input, int scale = -1)
         {
-            scale_ = @input.readInt();
+            scale_ = scale == -1 ? @input.readInt() : scale;
             value_ = @input.readInt();
         }
 

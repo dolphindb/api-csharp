@@ -3009,7 +3009,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(2000);
                 long total = 0;
@@ -3022,7 +3022,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }
@@ -3058,7 +3058,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(3000);
                 long total = 0;
@@ -3071,7 +3071,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }
@@ -3107,7 +3107,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(3000);
                 long total = 0;
@@ -3120,7 +3120,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }
@@ -3157,7 +3157,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(1000);
                 long total = 0;
@@ -3170,7 +3170,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }
@@ -3206,7 +3206,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(1000);
                 long total = 0;
@@ -3219,7 +3219,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }
@@ -3255,7 +3255,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(1000);
                 long total = 0;
@@ -3268,7 +3268,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }
@@ -3304,7 +3304,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(1000);
                 long total = 0;
@@ -3317,7 +3317,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }
@@ -3353,7 +3353,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(3000);
                 long totalSentRows = 0;
@@ -3365,7 +3365,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(totalSentRows, 3000000);
                     }
@@ -3777,7 +3777,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(2000);
                 long total = 0;
@@ -3790,7 +3790,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }
@@ -3852,7 +3852,7 @@ namespace dolphindb_csharp_api_test.route_test
                 List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicInt(i), new BasicString("AA" + (i % 99).ToString()), new BasicString("BB" + (i % 99).ToString()), new BasicDouble(i % 999 + 0.1), new BasicInt(i % 999) });
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(1000);
                 long total = 0;
@@ -3865,7 +3865,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }
@@ -4352,7 +4352,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(1000);
                 bool flag = true;
@@ -4363,7 +4363,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }
@@ -4400,7 +4400,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(1000);
                 bool flag = true;
@@ -4411,7 +4411,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }
@@ -4448,7 +4448,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(1000);
                 bool flag = true;
@@ -4459,7 +4459,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }
@@ -4496,7 +4496,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(1000);
                 bool flag = true;
@@ -4507,7 +4507,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }
@@ -4556,7 +4556,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(1000);
                 bool flag = true;
@@ -4567,7 +4567,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }
@@ -4619,7 +4619,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(1000);
                 bool flag = true;
@@ -4630,7 +4630,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }
@@ -4689,7 +4689,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(2000);
                 long total = 0;
@@ -4702,7 +4702,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }
@@ -4764,7 +4764,7 @@ namespace dolphindb_csharp_api_test.route_test
                 ErrorCodeInfo pErrorInfo = mtw.insert(x);
             }
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Thread.Sleep(1000);
                 long total = 0;
@@ -4777,7 +4777,7 @@ namespace dolphindb_csharp_api_test.route_test
                 }
                 else
                 {
-                    if (i == 9)
+                    if (i == 29)
                     {
                         Assert.AreEqual(total, 3000000);
                     }

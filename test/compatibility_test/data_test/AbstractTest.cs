@@ -125,7 +125,7 @@ namespace dolphindb_csharp_api_test.compatibility_test.data_test
                     throw new NotImplementedException();
                 }
 
-                protected override void writeScalarToOutputStream(ExtendedDataOutput @out)
+                public override void writeScalarToOutputStream(ExtendedDataOutput @out)
                 {
                     throw new NotImplementedException();
                 }

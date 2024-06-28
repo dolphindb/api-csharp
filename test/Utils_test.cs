@@ -83,39 +83,6 @@ xeBqwbgg5VAp5wZyjQIDAQAB
         //}
 
         [TestMethod]
-        public void Test_RSAUtil_ReadASNLength()
-        {
-            string filePath = "data.bin";
-
-            // 数据
-            int intValue = 42;
-            float floatValue = 3.14f;
-            string stringValue = "Hello, Binary World!";
-
-            // 创建二进制文件流
-            FileStream fileStream = new FileStream(filePath, FileMode.Create);
-            {
-                // 创建BinaryWriter对象
-                BinaryWriter writer = new BinaryWriter(fileStream);
-                {
-                    // 写入整数
-                    writer.Write(intValue);
-
-                    // 写入浮点数
-                    writer.Write(floatValue);
-
-                    // 写入字符串
-                    writer.Write(stringValue);
-                }
-            }
-
-            Console.WriteLine("数据已成功写入二进制文件：" + filePath);
-            BinaryReader reader = new BinaryReader(fileStream) ;
-            int t = RSAUtils.ReadASNLength(reader) ;
-            Console.WriteLine(t);        
-        }
-
-        [TestMethod]
         public void Test_RSAUtil_ReadASNLength_1()
         {
             byte[] SeqOID = { 0x30, 0x06, 0x03, 0x30, 0x02, 0x00, 0x01 };

@@ -199,7 +199,7 @@ namespace dolphindb.streaming
                                             IEntity entity = vector.getEntity(i);
                                             row.setEntity(j, entity);
                                         }
-                                        BasicMessage rec = new BasicMessage(msgId, topic, row);
+                                        BasicMessage rec = new BasicMessage(msgId - rowSize + i + 1, topic, row);
                                         if (subscribeInfo.getDeseriaLizer() != null)
                                             rec = subscribeInfo.getDeseriaLizer().parse(rec);
                                         messages.Add(rec);

@@ -155,18 +155,18 @@ namespace dolphindb_csharp_api_test.data_test
                 bm.setColumnLabels(bsyv);
                 Assert.AreEqual("a", bm.getColumnLabel(0).getString());
                 Assert.AreEqual("[a,b,c]", bm.getColumnLabels().getString());
-                Exception exception = null;
+                String re = null;
                 try
                 {
                     bm.getObject();
                 }
                 catch (Exception e)
                 {
-                    exception = e;
+                    re = e.Message;
                 }
-                Assert.AreEqual("The method or operation is not implemented.", exception.Message);
+                Assert.AreEqual(true, re.Contains("The method or operation is not implemented.") || re.Contains("未实现该方法或操作。"));
 
-                BasicMatrix bm1 = new BasicMatrix(1, 1);
+            BasicMatrix bm1 = new BasicMatrix(1, 1);
                 Exception exception1 = null;
                 try
                 {
@@ -212,99 +212,97 @@ namespace dolphindb_csharp_api_test.data_test
             public void test_AbstractScalar()
             {
                 BasicScalar bm = new BasicScalar(2);
-                Exception exception = null;
+                String re = null;
                 try
                 {
                     bm.isNull();
                 }
                 catch (Exception e)
                 {
-                    exception = e;
+                    re = e.Message;
                 }
-                Assert.AreEqual("The method or operation is not implemented.", exception.Message);
-                Exception exception1 = null;
+            Assert.AreEqual(true, re.Contains("The method or operation is not implemented.") || re.Contains("未实现该方法或操作。"));
+            String re1 = null;
                 try
                 {
                     bm.setNull();
                 }
                 catch (Exception e)
                 {
-                    exception1 = e;
+                    re1 = e.Message;
                 }
-                Assert.AreEqual("The method or operation is not implemented.", exception1.Message);
-                Exception exception2 = null;
-                try
-                {
+            Assert.AreEqual(true, re1.Contains("The method or operation is not implemented.") || re1.Contains("未实现该方法或操作。"));
+            String re2 = null;
+            try
+            {
                     bm.getNumber();
                 }
                 catch (Exception e)
                 {
-                    exception2 = e;
-                }
-                Assert.AreEqual("The method or operation is not implemented.", exception2.Message);
-                Exception exception3 = null;
+                    re2 = e.Message;
+            }
+            Assert.AreEqual(true, re2.Contains("The method or operation is not implemented.") || re2.Contains("未实现该方法或操作。"));
+            String re3 = null;
                 try
                 {
                     bm.getTemporal();
                 }
                 catch (Exception e)
                 {
-                    exception3 = e;
-                }
-                Assert.AreEqual("The method or operation is not implemented.", exception3.Message);
-                Exception exception4 = null;
-                try
-                {
+                    re3 = e.Message;
+            }
+            Assert.AreEqual(true, re3.Contains("The method or operation is not implemented.") || re3.Contains("未实现该方法或操作。"));
+            String re4 = null;
+            try
+            {
                     bm.getDataCategory();
                 }
                 catch (Exception e)
                 {
-                    exception4 = e;
-                }
-                Assert.AreEqual("The method or operation is not implemented.", exception4.Message);
-                Exception exception5 = null;
-                try
-                {
+                    re4 = e.Message;
+            }
+            Assert.AreEqual(true, re4.Contains("The method or operation is not implemented.") || re4.Contains("未实现该方法或操作。"));
+            String re5 = null;
+            try
+            {
                     bm.getDataType();
                 }
                 catch (Exception e)
                 {
-                    exception5 = e;
-                }
-                Assert.AreEqual("The method or operation is not implemented.", exception5.Message);
-                Exception exception6 = null;
-                try
-                {
+                re5 = e.Message;
+            }
+            Assert.AreEqual(true, re5.Contains("The method or operation is not implemented.") || re5.Contains("未实现该方法或操作。"));
+            String re6 = null;
+            try
+            {
                     bm.toDataTable();
                 }
                 catch (Exception e)
                 {
-                    exception6 = e;
-                }
-                Assert.AreEqual("The scalar can not be convert to datatable", exception6.Message);
-                Exception exception7 = null;
-                try
-                {
+                re6 = e.Message;
+            }
+            Assert.AreEqual("The scalar can not be convert to datatable", re6);
+            String re7 = null;
+            try
+            {
                     bm.getScale();
                 }
                 catch (Exception e)
                 {
-                    exception7 = e;
-                }
-                Assert.AreEqual("The method or operation is not implemented.", exception7.Message);
-                Exception exception8 = null;
-                try
-                {
+                re7 = e.Message;
+            }
+            Assert.AreEqual(true, re7.Contains("The method or operation is not implemented.") || re7.Contains("未实现该方法或操作。"));
+            String re8 = null;
+            try
+            {
                     bm.toString();
                 }
                 catch (Exception e)
                 {
-                    exception8 = e;
-                }
-                Assert.AreEqual("The method or operation is not implemented.", exception8.Message);
-                Assert.AreEqual(1, bm.columns());
+                re8 = e.Message;
             }
-
-        
+            Assert.AreEqual(true, re8.Contains("The method or operation is not implemented.") || re8.Contains("未实现该方法或操作。"));
+            Assert.AreEqual(1, bm.columns());
+            }
     }
 }

@@ -9,12 +9,11 @@ namespace dolphindb.data
     public class BasicStringMatrix : AbstractMatrix
     {
         private string[] values;
-        private bool isSymbol;
+        private bool isSymbol = false;
 
         public BasicStringMatrix(int rows, int columns) : base(rows, columns)
         {
             values = new string[rows * columns];
-            isSymbol = true;
         }
 
         public BasicStringMatrix(int rows, int columns, IList<string[]> list) : base(rows, columns)
@@ -33,12 +32,11 @@ namespace dolphindb.data
                 }
                 Array.Copy(array, 0, values, i * rows, rows);
             }
-            isSymbol = true;
         }
 
-        public BasicStringMatrix(ExtendedDataInput @in) : base(@in)
+        public BasicStringMatrix(ExtendedDataInput @in, bool isSymbol) : base(@in)
         {
-            isSymbol = true;
+            this.isSymbol = isSymbol;
         }
 
         public virtual void setString(int row, int column, string value)

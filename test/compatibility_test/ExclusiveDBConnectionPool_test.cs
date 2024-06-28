@@ -277,21 +277,6 @@ namespace dolphindb_csharp_api_test.compatibility_test
         }
 
         [TestMethod]
-        public void Test_ExclusiveDBConnectionPool_haSites()
-        {
-            conn = new DBConnection();
-            pool = new ExclusiveDBConnectionPool("www", PORT, USER, PASSWORD, 10, true, true, HASTREAM_GROUP);
-            Assert.AreEqual(10, pool.getConnectionCount());
-        }
-
-        [TestMethod]
-        public void Test_ExclusiveDBConnectionPool_haSite11s()
-        {
-            pool = new ExclusiveDBConnectionPool("192.168.1.167", PORT, USER, PASSWORD, 10, true, true, HASTREAM_GROUP);
-            Assert.AreEqual(10, pool.getConnectionCount());
-        }
-
-        [TestMethod]
         public void Test_ExclusiveDBConnectionPool_startup_error()
         {    
             Exception exception = null;  

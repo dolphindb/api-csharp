@@ -630,7 +630,7 @@ namespace dolphindb_csharp_api_test.data_test
             Assert.IsNotNull(ex);
 
             Assert.AreEqual("LITERAL", bcv.getDataCategory().ToString());
-            Assert.AreEqual("DT_SYMBOL", bcv.getDataType().ToString());
+            Assert.AreEqual("DT_STRING", bcv.getDataType().ToString());
             Assert.AreEqual("dolphindb.data.BasicString", bcv.getElementClass().ToString());
         }
 
@@ -919,5 +919,1124 @@ namespace dolphindb_csharp_api_test.data_test
                 Console.WriteLine(e.Message);
             }
         }
+        [TestMethod]
+        public void test_BasicDecimal32Matrix()
+        {
+            BasicDecimal32Matrix re1 = new BasicDecimal32Matrix(0, 0, 0);
+            Console.WriteLine(re1.getString());
+            Assert.AreEqual("\n", re1.getString());
+            Assert.AreEqual(DATA_CATEGORY.DENARY, re1.getDataCategory());
+            Assert.AreEqual("dolphindb.data.BasicDecimal32", re1.getElementClass().ToString());
+            Assert.AreEqual(DATA_TYPE.DT_DECIMAL32, re1.getDataType());
+
+            BasicDecimal32Matrix re2 = new BasicDecimal32Matrix(3, 4, 0);
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual("#0 #1 #2 #3\n" +
+                    "0  0  0  0 \n" +
+                    "0  0  0  0 \n" +
+                    "0  0  0  0 \n", re2.getString());
+
+            IList<decimal[]> list = new List<decimal[]>();
+            list.Add(new decimal[] { 1, 2, 3 });
+            list.Add(new decimal[] { 4, 5, 6 });
+            BasicDecimal32Matrix re3 = new BasicDecimal32Matrix(3, 2, list, 2);
+            Console.WriteLine(re3.getString());
+            Assert.AreEqual("#0   #1  \n" +
+                    "1.00 4.00\n" +
+                    "2.00 5.00\n" +
+                    "3.00 6.00\n", re3.getString());
+            IList<String[]> list1 = new List<String[]>();
+            list1.Add(new String[] { "1", "2", "3" });
+            list1.Add(new String[] { "4", "5", "6" });
+            BasicDecimal32Matrix re4 = new BasicDecimal32Matrix(3, 2, list1, 2);
+            Console.WriteLine(re4.getString());
+            Assert.AreEqual("#0   #1  \n" +
+                    "1.00 4.00\n" +
+                    "2.00 5.00\n" +
+                    "3.00 6.00\n", re4.getString());
+            String exception = null;
+            try
+            {
+                BasicDecimal32Matrix re5 = new BasicDecimal32Matrix(4, 2, list, 2);
+            }
+            catch (Exception ex)
+            {
+                exception = ex.Message;
+            }
+            Assert.AreEqual("the total size of list must be equal to rows * columns", exception);
+            String exception1 = null;
+            try
+            {
+                BasicDecimal32Matrix re6 = new BasicDecimal32Matrix(3, 3, list, 2);
+            }
+            catch (Exception ex)
+            {
+                exception1 = ex.Message;
+            }
+            Assert.AreEqual("the total size of list must be equal to rows * columns", exception1);
+
+            String exception2 = null;
+            try
+            {
+                BasicDecimal32Matrix re7 = new BasicDecimal32Matrix(4, 2, list1, 2);
+            }
+            catch (Exception ex)
+            {
+                exception2 = ex.Message;
+            }
+            Assert.AreEqual("the total size of list must be equal to rows * columns", exception2);
+
+            String exception3 = null;
+            try
+            {
+                BasicDecimal32Matrix re8 = new BasicDecimal32Matrix(3, 3, list1, 2);
+            }
+            catch (Exception ex)
+            {
+                exception3 = ex.Message;
+            }
+            Assert.AreEqual("the total size of list must be equal to rows * columns", exception3);
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal32Matrix_scale_not_true()
+        {
+            IList<decimal[]> list = new List<decimal[]>();
+            list.Add(new decimal[] { 999999999, 0, -999999999 });
+            list.Add(new decimal[] { 999999999, 999999999, 999999999 });
+            list.Add(new decimal[] { -999999999, -999999999, -999999999 });
+            String exception = null;
+            try
+            {
+                BasicDecimal32Matrix re3 = new BasicDecimal32Matrix(3, 3, list, -1);
+            }
+            catch (Exception ex)
+            {
+                exception = ex.Message;
+            }
+            Assert.AreEqual("Scale -1 is out of bounds, it must be in [0,9].", exception);
+            String exception1 = null;
+            try
+            {
+                BasicDecimal32Matrix re3 = new BasicDecimal32Matrix(3, 3, list, 10);
+            }
+            catch (Exception ex)
+            {
+                exception1 = ex.Message;
+            }
+            Assert.AreEqual("Scale 10 is out of bounds, it must be in [0,9].", exception1);
+
+            List<String[]> list1 = new List<String[]>();
+            list1.Add(new String[] { "999999999", "0", "-999999999" });
+            list1.Add(new String[] { "999999999", "999999999", "999999999" });
+            list1.Add(new String[] { "-999999999", "-999999999", "-999999999" });
+            String exception2 = null;
+            try
+            {
+                BasicDecimal32Matrix re3 = new BasicDecimal32Matrix(3, 3, list1, -1);
+            }
+            catch (Exception ex)
+            {
+                exception2 = ex.Message;
+            }
+            Assert.AreEqual("Scale -1 is out of bounds, it must be in [0,9].", exception2);
+            String exception3 = null;
+            try
+            {
+                BasicDecimal32Matrix re3 = new BasicDecimal32Matrix(3, 3, list1, 10);
+            }
+            catch (Exception ex)
+            {
+                exception3 = ex.Message;
+            }
+            Assert.AreEqual("Scale 10 is out of bounds, it must be in [0,9].", exception3);
+        }
+        [TestMethod]
+        public void test_BasicDecimal32Matrix_decimal()
+        {
+            IList<decimal[]> list = new List<decimal[]>();
+            list.Add(new decimal[] { 999999999, 0, -999999999 });
+            list.Add(new decimal[] { 999999999, 999999999, 999999999 });
+            list.Add(new decimal[] { -999999999, -999999999, -999999999 });
+            BasicDecimal32Matrix re1 = new BasicDecimal32Matrix(3, 3, list, 0);
+            Console.WriteLine(re1.getString());
+            Assert.AreEqual("#0         #1        #2        \n" +
+                    "999999999  999999999 -999999999\n" +
+                    "0          999999999 -999999999\n" +
+                    "-999999999 999999999 -999999999\n", re1.getString());
+
+            List<decimal[]> list1 = new List<decimal[]>();
+            list1.Add(new decimal[] { 99999, 0, -99999 });
+            list1.Add(new decimal[] { 99999, 99999, 99999 });
+            list1.Add(new decimal[] { -99999, -99999, -1999 });
+            BasicDecimal32Matrix re2 = new BasicDecimal32Matrix(3, 3, list1, 4);
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual("#0          #1         #2         \n" +
+                    "99999.0000  99999.0000 -99999.0000\n" +
+                    "0.0000      99999.0000 -99999.0000\n" +
+                    "-99999.0000 99999.0000 -1999.0000 \n", re2.getString());
+
+            List<decimal[]> list2 = new List<decimal[]>();
+            list2.Add(new decimal[] { 1, 0, -1 });
+            BasicDecimal32Matrix re3 = new BasicDecimal32Matrix(3, 1, list2, 9);
+            Console.WriteLine(re3.getString());
+            Assert.AreEqual("#0          \n" +
+                    "1.000000000 \n" +
+                    "0.000000000 \n" +
+                    "-1.000000000\n", re3.getString());
+        }
+        [TestMethod]
+        public void test_BasicDecimal32Matrix_string()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "999999999", "0", "-999999999" });
+            list.Add(new String[] { "999999999", "999999999", "999999999" });
+            list.Add(new String[] { "-999999999", "-999999999", "-999999999" });
+            BasicDecimal32Matrix re1 = new BasicDecimal32Matrix(3, 3, list, 0);
+            Console.WriteLine(re1.getString());
+            Assert.AreEqual("#0         #1        #2        \n" +
+                    "999999999  999999999 -999999999\n" +
+                    "0          999999999 -999999999\n" +
+                    "-999999999 999999999 -999999999\n", re1.getString());
+            List<String[]> list1 = new List<String[]>();
+            list1.Add(new String[] { "99999", "0", "-99999" });
+            list1.Add(new String[] { "99999", "99999", "99999" });
+            list1.Add(new String[] { "-99999", "-99999", "-1999" });
+            BasicDecimal32Matrix re2 = new BasicDecimal32Matrix(3, 3, list1, 4);
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual("#0          #1         #2         \n" +
+                    "99999.0000  99999.0000 -99999.0000\n" +
+                    "0.0000      99999.0000 -99999.0000\n" +
+                    "-99999.0000 99999.0000 -1999.0000 \n", re2.getString());
+
+            List<String[]> list2 = new List<String[]>();
+            list2.Add(new String[] { "1", "0", "-1" });
+            BasicDecimal32Matrix re3 = new BasicDecimal32Matrix(3, 1, list2, 9);
+            Console.WriteLine(re3.getString());
+            Assert.AreEqual("#0          \n" +
+                    "1.000000000 \n" +
+                    "0.000000000 \n" +
+                    "-1.000000000\n", re3.getString());
+            List<String[]> list3 = new List<String[]>();
+            list3.Add(new String[] { "-1.9999", "0", "-1.00000009", "-1.999999999999" });
+            list3.Add(new String[] { "1.9999", "0", "1.00000009", "1.999999999999" });
+            list3.Add(new String[] { "-0.9999", "0.01", "-0.00000009", "-0.999999999999" });
+            list3.Add(new String[] { "0.9999", "-0.001", "0.00000009", "0.999999999999" });
+            BasicDecimal32Matrix re4 = new BasicDecimal32Matrix(4, 4, list3, 9);
+            Console.WriteLine(re4.getString());
+            Assert.AreEqual("#0           #1          #2           #3          \n" +
+                    "-1.999900000 1.999900000 -0.999900000 0.999900000 \n" +
+                    "0.000000000  0.000000000 0.010000000  -0.001000000\n" +
+                    "-1.000000090 1.000000090 -0.000000090 0.000000090 \n" +
+                    "-2.000000000 2.000000000 -1.000000000 1.000000000 \n", re4.getString());
+
+            List<String[]> list4 = new List<String[]>();
+            list4.Add(new String[] { "0.49", "-123.44", "132.50", "-0.51" });
+            BasicDecimal32Matrix re5 = new BasicDecimal32Matrix(4, 1, list4, 0);
+            Console.WriteLine(re5.getString());
+            Assert.AreEqual("#0  \n" +
+                    "0   \n" +
+                    "-123\n" +
+                    "133 \n" +
+                    "-1  \n", re5.getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal32Matrix_setNull()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "111", "0", "-111" });
+            BasicDecimal32Matrix re1 = new BasicDecimal32Matrix(3, 1, list, 0);
+            Assert.AreEqual(false, re1.isNull(0, 0));
+            re1.setNull(0, 0);
+            Assert.AreEqual(true, re1.isNull(0, 0));
+            Assert.AreEqual("#0  \n" +
+                    "    \n" +
+                    "0   \n" +
+                    "-111\n", re1.getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal32Matrix_setDecimal()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "111", "0", "-111" });
+            BasicDecimal32Matrix re1 = new BasicDecimal32Matrix(2, 2, 0);
+            Assert.AreEqual(new BasicDecimal32(0, 0).getString(), re1.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal32(0, 0).getString(), re1.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal32(0, 0).getString(), re1.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal32(0, 0).getString(), re1.get(1, 1).getString());
+            re1.setDecimal(0, 0, 1.999990m);
+            re1.setDecimal(0, 1, -0.99999999m);
+            re1.setDecimal(1, 0, 999.9999999m);
+            re1.setDecimal(1, 1, -999.99999m);
+            Assert.AreEqual("#0   #1   \n" +
+                    "2    -1   \n" +
+                    "1000 -1000\n", re1.getString());
+            BasicDecimal32Matrix re2 = new BasicDecimal32Matrix(2, 2, 6);
+            re2.setDecimal(0, 0, 1.999990m);
+            re2.setDecimal(0, 1, -0.99999999m);
+            re2.setDecimal(1, 0,  999.9999999m);
+            re2.setDecimal(1, 1,  -999.99999m);
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual(6, re2.getScale());
+            Assert.AreEqual(new BasicDecimal32("1.999990", 6).getString(), re2.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal32("-1.000000", 6).getString(), re2.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal32("1000.000000", 6).getString(), re2.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal32("-999.999990", 6).getString(), re2.get(1, 1).getString());
+
+            Assert.AreEqual("1.99999", re2.getDecimal(0, 0).ToString());
+            Assert.AreEqual("-1", re2.getDecimal(0, 1).ToString());
+            Assert.AreEqual("1000", re2.getDecimal(1, 0).ToString());
+            Assert.AreEqual("-999.99999", re2.getDecimal(1, 1).ToString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal32Matrix_setString()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "111", "0", "-111" });
+            BasicDecimal32Matrix re1 = new BasicDecimal32Matrix(2, 2, 0);
+            Assert.AreEqual(new BasicDecimal32(0, 0).getString(), re1.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal32(0, 0).getString(), re1.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal32(0, 0).getString(), re1.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal32(0, 0).getString(), re1.get(1, 1).getString());
+            re1.setString(0, 0, "1.999990");
+            re1.setString(0, 1, "-0.99999999");
+            re1.setString(1, 0, "999.9999999");
+            re1.setString(1, 1, "-999.99999");
+            Assert.AreEqual("#0   #1   \n" +
+                    "2    -1   \n" +
+                    "1000 -1000\n", re1.getString());
+            BasicDecimal32Matrix re2 = new BasicDecimal32Matrix(2, 2, 6);
+            re2.setString(0, 0, "1.999990");
+            re2.setString(0, 1, "-0.99999999");
+            re2.setString(1, 0, "999.9999999");
+            re2.setString(1, 1, "-999.99999");
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual(6, re2.getScale());
+            Assert.AreEqual(new BasicDecimal32("1.999990", 6).getString(), re2.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal32("-1.000000", 6).getString(), re2.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal32("1000.000000", 6).getString(), re2.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal32("-999.999990", 6).getString(), re2.get(1, 1).getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal32Matrix_set()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "111", "0", "-111" });
+            BasicDecimal32Matrix re1 = new BasicDecimal32Matrix(2, 2, 0);
+            Assert.AreEqual(new BasicDecimal32(0, 0).getString(), re1.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal32(0, 0).getString(), re1.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal32(0, 0).getString(), re1.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal32(0, 0).getString(), re1.get(1, 1).getString());
+            IScalar bd1 = new BasicDecimal32("1.999990", 6);
+            IScalar bd2 = new BasicDecimal32("-0.99999999",8);
+            IScalar bd3 = new BasicDecimal32("999.999999", 6);
+            IScalar bd4 = new BasicDecimal32("-999.99999", 5);
+            re1.set(0, 0, bd1);
+            re1.set(0, 1, bd2);
+            re1.set(1, 0, bd3);
+            re1.set(1, 1, bd4);
+            Assert.AreEqual("#0   #1   \n" +
+                    "2    -1   \n" +
+                    "1000 -1000\n", re1.getString());
+            BasicDecimal32Matrix re2 = new BasicDecimal32Matrix(2, 2, 6);
+            re2.set(0, 0, bd1);
+            re2.set(0, 1, bd2);
+            re2.set(1, 0, bd3);
+            re2.set(1, 1, bd4);
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual(6, re2.getScale());
+            Assert.AreEqual(new BasicDecimal32("1.999990", 6).getString(), re2.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal32("-1.000000", 6).getString(), re2.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal32("999.999999", 6).getString(), re2.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal32("-999.999990", 6).getString(), re2.get(1, 1).getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal32Matrix_set_null()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "9999999.99", "-9999999.99" });
+            BasicDecimal32Matrix re1 = new BasicDecimal32Matrix(2, 1, list, 2);
+            BasicDecimal32 bd1 = new BasicDecimal32("1.99999", 9);
+            bd1.setNull();
+            re1.set(0, 0, bd1);
+            re1.isNull(0, 0);
+            BasicDecimal32 bd2 = new BasicDecimal32(-2147483648, 0);
+            BasicDecimal32 bd3 = new BasicDecimal32(1, 0);
+            bd3.setNull();
+            re1.set(1, 0, bd2);
+            re1.isNull(1, 0);
+            Assert.AreEqual("", re1.get(0, 0).getString());
+            Assert.AreEqual("", re1.get(1, 0).getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal32Matrix_set_entity_not_support()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "111", "0", "-111" });
+            BasicDecimal32Matrix re1 = new BasicDecimal32Matrix(2, 2, 0);
+
+            String exception = null;
+            try
+            {
+                re1.set(0, 0, new BasicDecimal64("1.99999", 9));
+            }
+            catch (Exception ex)
+            {
+                exception = ex.Message;
+            }
+            Assert.AreEqual("the type of value must be BasicDecimal32. ", exception);
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal64Matrix()
+        {
+            BasicDecimal64Matrix re1 = new BasicDecimal64Matrix(0, 0, 0);
+            Console.WriteLine(re1.getString());
+            Assert.AreEqual("\n", re1.getString());
+            Assert.AreEqual(DATA_CATEGORY.DENARY, re1.getDataCategory());
+            Assert.AreEqual("dolphindb.data.BasicDecimal64", re1.getElementClass().ToString());
+            Assert.AreEqual(DATA_TYPE.DT_DECIMAL64, re1.getDataType());
+
+            BasicDecimal64Matrix re2 = new BasicDecimal64Matrix(3, 4, 0);
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual("#0 #1 #2 #3\n" +
+                    "0  0  0  0 \n" +
+                    "0  0  0  0 \n" +
+                    "0  0  0  0 \n", re2.getString());
+
+            IList<decimal[]> list = new List<decimal[]>();
+            list.Add(new decimal[] { 1, 2, 3 });
+            list.Add(new decimal[] { 4, 5, 6 });
+            BasicDecimal64Matrix re3 = new BasicDecimal64Matrix(3, 2, list, 2);
+            Console.WriteLine(re3.getString());
+            Assert.AreEqual("#0   #1  \n" +
+                    "1.00 4.00\n" +
+                    "2.00 5.00\n" +
+                    "3.00 6.00\n", re3.getString());
+            List<String[]> list1 = new List<String[]>();
+            list1.Add(new String[] { "1", "2", "3" });
+            list1.Add(new String[] { "4", "5", "6" });
+            BasicDecimal64Matrix re4 = new BasicDecimal64Matrix(3, 2, list1, 2);
+            Console.WriteLine(re3.getString());
+            Assert.AreEqual("#0   #1  \n" +
+                    "1.00 4.00\n" +
+                    "2.00 5.00\n" +
+                    "3.00 6.00\n", re3.getString());
+            String exception = null;
+            try
+            {
+                BasicDecimal64Matrix re5 = new BasicDecimal64Matrix(4, 2, list, 2);
+            }
+            catch (Exception ex)
+            {
+                exception = ex.Message;
+            }
+            Assert.AreEqual("the total size of list must be equal to rows * columns", exception);
+            String exception1 = null;
+            try
+            {
+                BasicDecimal64Matrix re6 = new BasicDecimal64Matrix(3, 3, list, 2);
+            }
+            catch (Exception ex)
+            {
+                exception1 = ex.Message;
+            }
+            Assert.AreEqual("the total size of list must be equal to rows * columns", exception1);
+
+            String exception2 = null;
+            try
+            {
+                BasicDecimal64Matrix re7 = new BasicDecimal64Matrix(4, 2, list1, 2);
+            }
+            catch (Exception ex)
+            {
+                exception2 = ex.Message;
+            }
+            Assert.AreEqual("the total size of list must be equal to rows * columns", exception2);
+
+            String exception3 = null;
+            try
+            {
+                BasicDecimal64Matrix re8 = new BasicDecimal64Matrix(3, 3, list1, 2);
+            }
+            catch (Exception ex)
+            {
+                exception3 = ex.Message;
+            }
+            Assert.AreEqual("the total size of list must be equal to rows * columns", exception3);
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal64Matrix_scale_not_true()
+        {
+            IList<decimal[]> list = new List<decimal[]>();
+            list.Add(new decimal[] { 999999999, 0, -999999999 });
+            list.Add(new decimal[] { 999999999, 999999999, 999999999 });
+            list.Add(new decimal[] { -999999999, -999999999, -999999999 });
+            String exception = null;
+            try
+            {
+                BasicDecimal64Matrix re3 = new BasicDecimal64Matrix(3, 3, list, -1);
+            }
+            catch (Exception ex)
+            {
+                exception = ex.Message;
+            }
+            Assert.AreEqual("Scale -1 is out of bounds, it must be in [0,18].", exception);
+            String exception1 = null;
+            try
+            {
+                BasicDecimal64Matrix re3 = new BasicDecimal64Matrix(3, 3, list, 19);
+            }
+            catch (Exception ex)
+            {
+                exception1 = ex.Message;
+            }
+            Assert.AreEqual("Scale 19 is out of bounds, it must be in [0,18].", exception1);
+
+            List<String[]> list1 = new List<String[]>();
+            list1.Add(new String[] { "999999999999999999", "0", "-999999999999999999" });
+            list1.Add(new String[] { "999999999999999999", "999999999999999999", "999999999999999999" });
+            list1.Add(new String[] { "-999999999999999999", "-999999999999999999", "-999999999999999999" });
+            String exception2 = null;
+            try
+            {
+                BasicDecimal64Matrix re3 = new BasicDecimal64Matrix(3, 3, list1, -1);
+            }
+            catch (Exception ex)
+            {
+                exception2 = ex.Message;
+            }
+            Assert.AreEqual("Scale -1 is out of bounds, it must be in [0,18].", exception2);
+            String exception3 = null;
+            try
+            {
+                BasicDecimal64Matrix re3 = new BasicDecimal64Matrix(3, 3, list1, 19);
+            }
+            catch (Exception ex)
+            {
+                exception3 = ex.Message;
+            }
+            Assert.AreEqual("Scale 19 is out of bounds, it must be in [0,18].", exception3);
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal64Matrix_decimal()
+        {
+            IList<decimal[]> list = new List<decimal[]>();
+            list.Add(new decimal[] { 999999999999999999L, 0, -999999999999999999L });
+            list.Add(new decimal[] { 999999999999999999L, 999999999999999999L, 999999999999999999L });
+            list.Add(new decimal[] { -999999999999999999L, -999999999999999999l, -999999999999999999L });
+            BasicDecimal64Matrix re1 = new BasicDecimal64Matrix(3, 3, list, 0);
+            Console.WriteLine(re1.getString());
+            Assert.AreEqual("#0                  #1                 #2                 \n" +
+                    "999999999999999999  999999999999999999 -999999999999999999\n" +
+                    "0                   999999999999999999 -999999999999999999\n" +
+                    "-999999999999999999 999999999999999999 -999999999999999999\n", re1.getString());
+
+            List<decimal[]> list1 = new List<decimal[]>();
+            list1.Add(new decimal[] { 99999, 0, -99999 });
+            list1.Add(new decimal[] { 99999, 99999, 99999 });
+            list1.Add(new decimal[] { -99999, -99999, -1999 });
+            BasicDecimal64Matrix re2 = new BasicDecimal64Matrix(3, 3, list1, 13);
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual("#0                   #1                  #2                  \n" +
+                    "99999.0000000000000  99999.0000000000000 -99999.0000000000000\n" +
+                    "0.0000000000000      99999.0000000000000 -99999.0000000000000\n" +
+                    "-99999.0000000000000 99999.0000000000000 -1999.0000000000000 \n", re2.getString());
+
+            List<decimal[]> list2 = new List<decimal[]>();
+            list2.Add(new decimal[] { 1, 0, -1 });
+            BasicDecimal64Matrix re3 = new BasicDecimal64Matrix(3, 1, list2, 18);
+            Console.WriteLine(re3.getString());
+            Assert.AreEqual("#0                   \n" +
+                    "1.000000000000000000 \n" +
+                    "0.000000000000000000 \n" +
+                    "-1.000000000000000000\n", re3.getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal64Matrix_string()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "999999999999999999", "0", "-999999999999999999" });
+            list.Add(new String[] { "999999999999999999", "999999999999999999", "999999999999999999" });
+            list.Add(new String[] { "-999999999999999999", "-999999999999999999", "-999999999999999999" });
+            BasicDecimal64Matrix re1 = new BasicDecimal64Matrix(3, 3, list, 0);
+            Console.WriteLine(re1.getString());
+            Assert.AreEqual("#0                  #1                 #2                 \n" +
+                    "999999999999999999  999999999999999999 -999999999999999999\n" +
+                    "0                   999999999999999999 -999999999999999999\n" +
+                    "-999999999999999999 999999999999999999 -999999999999999999\n", re1.getString());
+            List<String[]> list1 = new List<String[]>();
+            list1.Add(new String[] { "99999", "0", "-99999" });
+            list1.Add(new String[] { "99999", "99999", "99999" });
+            list1.Add(new String[] { "-99999", "-99999", "-1999" });
+            BasicDecimal64Matrix re2 = new BasicDecimal64Matrix(3, 3, list1, 13);
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual("#0                   #1                  #2                  \n" +
+                    "99999.0000000000000  99999.0000000000000 -99999.0000000000000\n" +
+                    "0.0000000000000      99999.0000000000000 -99999.0000000000000\n" +
+                    "-99999.0000000000000 99999.0000000000000 -1999.0000000000000 \n", re2.getString());
+
+            List<String[]> list2 = new List<String[]>();
+            list2.Add(new String[] { "1", "0", "-1" });
+            BasicDecimal64Matrix re3 = new BasicDecimal64Matrix(3, 1, list2, 18);
+            Console.WriteLine(re3.getString());
+            Assert.AreEqual("#0                   \n" +
+                    "1.000000000000000000 \n" +
+                    "0.000000000000000000 \n" +
+                    "-1.000000000000000000\n", re3.getString());
+            List<String[]> list3 = new List<String[]>();
+            list3.Add(new String[] { "-1.9999", "0", "-1.00000000000009", "-1.999999999999999999999999" });
+            list3.Add(new String[] { "1.9999", "0", "1.00000000009", "1.999999999999999999999999" });
+            list3.Add(new String[] { "-0.9999", "0.01", "-0.00000000009", "-0.999999999999999999999999" });
+            list3.Add(new String[] { "0.9999", "-0.001", "0.00000000000000000009", "0.999999999999999999999999" });
+            BasicDecimal64Matrix re4 = new BasicDecimal64Matrix(4, 4, list3, 18);
+            Console.WriteLine(re4.getString());
+            Assert.AreEqual("#0                    #1                   #2                    #3                   \n" +
+                    "-1.999900000000000000 1.999900000000000000 -0.999900000000000000 0.999900000000000000 \n" +
+                    "0.000000000000000000  0.000000000000000000 0.010000000000000000  -0.001000000000000000\n" +
+                    "-1.000000000000090000 1.000000000090000000 -0.000000000090000000 0.000000000000000000 \n" +
+                    "-2.000000000000000000 2.000000000000000000 -1.000000000000000000 1.000000000000000000 \n", re4.getString());
+
+            List<String[]> list4 = new List<String[]>();
+            list4.Add(new String[] { "0.49", "-123.44", "132.50", "-0.51" });
+            BasicDecimal64Matrix re5 = new BasicDecimal64Matrix(4, 1, list4, 0);
+            Console.WriteLine(re5.getString());
+            Assert.AreEqual("#0  \n" +
+                    "0   \n" +
+                    "-123\n" +
+                    "133 \n" +
+                    "-1  \n", re5.getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal64Matrix_setNull()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "111", "0", "-111" });
+            BasicDecimal64Matrix re1 = new BasicDecimal64Matrix(3, 1, list, 0);
+            Assert.AreEqual(false, re1.isNull(0, 0));
+            re1.setNull(0, 0);
+            Assert.AreEqual(true, re1.isNull(0, 0));
+            Assert.AreEqual("", re1.get(0, 0).getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal64Matrix_setDecimal()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "111", "0", "-111" });
+            BasicDecimal64Matrix re1 = new BasicDecimal64Matrix(2, 2, 0);
+            Assert.AreEqual(new BasicDecimal64(0, 0).getString(), re1.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal64(0, 0).getString(), re1.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal64(0, 0).getString(), re1.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal64(0, 0).getString(), re1.get(1, 1).getString());
+            re1.setDecimal(0, 0, 1.999990m);
+            re1.setDecimal(0, 1, -0.99999999m);
+            re1.setDecimal(1, 0, 999.9999999m);
+            re1.setDecimal(1, 1, -999.99999m);
+            Assert.AreEqual("#0   #1   \n" +
+                    "2    -1   \n" +
+                    "1000 -1000\n", re1.getString());
+            BasicDecimal64Matrix re2 = new BasicDecimal64Matrix(2, 2, 6);
+            re2.setDecimal(0, 0, 1.999990m);
+            re2.setDecimal(0, 1, -0.99999999m);
+            re2.setDecimal(1, 0, 999.9999999m);
+            re2.setDecimal(1, 1, -999.99999m);
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual(6, re2.getScale());
+            Assert.AreEqual(new BasicDecimal64("1.999990", 6).getString(), re2.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal64("-1.000000", 6).getString(), re2.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal64("1000.000000", 6).getString(), re2.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal64("-999.999990", 6).getString(), re2.get(1, 1).getString());
+
+            Assert.AreEqual("1.99999", re2.getDecimal(0, 0).ToString());
+            Assert.AreEqual("-1", re2.getDecimal(0, 1).ToString());
+            Assert.AreEqual("1000", re2.getDecimal(1, 0).ToString());
+            Assert.AreEqual("-999.99999", re2.getDecimal(1, 1).ToString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal64Matrix_setString()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "111", "0", "-111" });
+            BasicDecimal64Matrix re1 = new BasicDecimal64Matrix(2, 2, 0);
+            Assert.AreEqual(new BasicDecimal64(0, 0).getString(), re1.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal64(0, 0).getString(), re1.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal64(0, 0).getString(), re1.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal64(0, 0).getString(), re1.get(1, 1).getString());
+            re1.setString(0, 0, "1.999990");
+            re1.setString(0, 1, "-0.99999999");
+            re1.setString(1, 0, "999.9999999");
+            re1.setString(1, 1, "-999.99999");
+            Assert.AreEqual("#0   #1   \n" +
+                    "2    -1   \n" +
+                    "1000 -1000\n", re1.getString());
+            BasicDecimal64Matrix re2 = new BasicDecimal64Matrix(2, 2, 6);
+            re2.setString(0, 0, "1.999990");
+            re2.setString(0, 1, "-0.99999999");
+            re2.setString(1, 0, "999.9999999");
+            re2.setString(1, 1, "-999.99999");
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual(6, re2.getScale());
+            Assert.AreEqual(new BasicDecimal64("1.999990", 6).getString(), re2.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal64("-1.000000", 6).getString(), re2.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal64("1000.000000", 6).getString(), re2.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal64("-999.999990", 6).getString(), re2.get(1, 1).getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal64Matrix_set()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "111", "0", "-111" });
+            BasicDecimal64Matrix re1 = new BasicDecimal64Matrix(2, 2, 0);
+            Assert.AreEqual(new BasicDecimal64(0, 0).getString(), re1.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal64(0, 0).getString(), re1.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal64(0, 0).getString(), re1.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal64(0, 0).getString(), re1.get(1, 1).getString());
+            IScalar bd1 = new BasicDecimal64("1.999990", 6);
+            IScalar bd2 = new BasicDecimal64("-0.99999999", 8);
+            IScalar bd3 = new BasicDecimal64("999.999999", 6);
+            IScalar bd4 = new BasicDecimal64("-999.99999", 5);
+            re1.set(0, 0, bd1);
+            re1.set(0, 1, bd2);
+            re1.set(1, 0, bd3);
+            re1.set(1, 1, bd4);
+            Assert.AreEqual("#0   #1   \n" +
+                    "2    -1   \n" +
+                    "1000 -1000\n", re1.getString());
+            BasicDecimal64Matrix re2 = new BasicDecimal64Matrix(2, 2, 6);
+            re2.set(0, 0, bd1);
+            re2.set(0, 1, bd2);
+            re2.set(1, 0, bd3);
+            re2.set(1, 1, bd4);
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual(6, re2.getScale());
+            Assert.AreEqual(new BasicDecimal64("1.999990", 6).getString(), re2.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal64("-1.000000", 6).getString(), re2.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal64("999.999999", 6).getString(), re2.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal64("-999.999990", 6).getString(), re2.get(1, 1).getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal64Matrix_set_null()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "999999999", "-999999999" });
+            BasicDecimal64Matrix re1 = new BasicDecimal64Matrix(2, 1, list, 2);
+            BasicDecimal64 bd1 = new BasicDecimal64("1.99999", 9);
+            bd1.setNull();
+            re1.set(0, 0, bd1);
+            re1.isNull(0, 0);
+            BasicDecimal64 bd2 = new BasicDecimal64("", 0);
+            re1.set(1, 0, bd2);
+            re1.isNull(1, 0);
+            Assert.AreEqual("", re1.get(0, 0).getString());
+            Assert.AreEqual("", re1.get(1, 0).getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal64Matrix_set_entity_not_support()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "111", "0", "-111" });
+            BasicDecimal64Matrix re1 = new BasicDecimal64Matrix(2, 2, 0);
+
+            String exception = null;
+            try
+            {
+                re1.set(0, 0, new BasicDecimal128("1.99999", 9));
+            }
+            catch (Exception ex)
+            {
+                exception = ex.Message;
+            }
+            Assert.AreEqual("value type must be BasicDecimal64. ", exception);
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal128Matrix()
+        {
+            BasicDecimal128Matrix re1 = new BasicDecimal128Matrix(0, 0, 0);
+            Console.WriteLine(re1.getString());
+            Assert.AreEqual("\n", re1.getString());
+            Assert.AreEqual(DATA_CATEGORY.DENARY, re1.getDataCategory());
+            Assert.AreEqual("dolphindb.data.BasicDecimal128", re1.getElementClass().ToString());
+            Assert.AreEqual(DATA_TYPE.DT_DECIMAL128, re1.getDataType());
+
+            BasicDecimal128Matrix re2 = new BasicDecimal128Matrix(3, 4, 0);
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual("#0 #1 #2 #3\n" +
+                    "0  0  0  0 \n" +
+                    "0  0  0  0 \n" +
+                    "0  0  0  0 \n", re2.getString());
+
+            IList<decimal[]> list = new List<decimal[]>();
+            list.Add(new decimal[] { 1, 2, 3 });
+            list.Add(new decimal[] { 4, 5, 6 });
+            BasicDecimal128Matrix re3 = new BasicDecimal128Matrix(3, 2, list, 2);
+            Console.WriteLine(re3.getString());
+            Assert.AreEqual("#0   #1  \n" +
+                    "1.00 4.00\n" +
+                    "2.00 5.00\n" +
+                    "3.00 6.00\n", re3.getString());
+            List<String[]> list1 = new List<String[]>();
+            list1.Add(new String[] { "1", "2", "3" });
+            list1.Add(new String[] { "4", "5", "6" });
+            BasicDecimal128Matrix re4 = new BasicDecimal128Matrix(3, 2, list1, 2);
+            Console.WriteLine(re3.getString());
+            Assert.AreEqual("#0   #1  \n" +
+                    "1.00 4.00\n" +
+                    "2.00 5.00\n" +
+                    "3.00 6.00\n", re3.getString());
+            String exception = null;
+            try
+            {
+                BasicDecimal128Matrix re5 = new BasicDecimal128Matrix(4, 2, list, 2);
+            }
+            catch (Exception ex)
+            {
+                exception = ex.Message;
+            }
+            Assert.AreEqual("the total size of list must be equal to rows * columns", exception);
+            String exception1 = null;
+            try
+            {
+                BasicDecimal128Matrix re6 = new BasicDecimal128Matrix(3, 3, list, 2);
+            }
+            catch (Exception ex)
+            {
+                exception1 = ex.Message;
+            }
+            Assert.AreEqual("the total size of list must be equal to rows * columns", exception1);
+
+            String exception2 = null;
+            try
+            {
+                BasicDecimal64Matrix re7 = new BasicDecimal64Matrix(4, 2, list1, 2);
+            }
+            catch (Exception ex)
+            {
+                exception2 = ex.Message;
+            }
+            Assert.AreEqual("the total size of list must be equal to rows * columns", exception2);
+
+            String exception3 = null;
+            try
+            {
+                BasicDecimal64Matrix re8 = new BasicDecimal64Matrix(3, 3, list1, 2);
+            }
+            catch (Exception ex)
+            {
+                exception3 = ex.Message;
+            }
+            Assert.AreEqual("the total size of list must be equal to rows * columns", exception3);
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal128Matrix_scale_not_true()
+        {
+            IList<decimal[]> list = new List<decimal[]>();
+            list.Add(new decimal[] { 999999999, 0, -999999999 });
+            list.Add(new decimal[] { 999999999, 999999999, 999999999 });
+            list.Add(new decimal[] { -999999999, -999999999, -999999999 });
+            String exception = null;
+            try
+            {
+                BasicDecimal128Matrix re3 = new BasicDecimal128Matrix(3, 3, list, -1);
+            }
+            catch (Exception ex)
+            {
+                exception = ex.Message;
+            }
+            Assert.AreEqual("Scale -1 is out of bounds, it must be in [0,38].", exception);
+            String exception1 = null;
+            try
+            {
+                BasicDecimal128Matrix re3 = new BasicDecimal128Matrix(3, 3, list, 39);
+            }
+            catch (Exception ex)
+            {
+                exception1 = ex.Message;
+            }
+            Assert.AreEqual("Scale 39 is out of bounds, it must be in [0,38].", exception1);
+
+            List<String[]> list1 = new List<String[]>();
+            list1.Add(new String[] { "999999999", "0", "-999999999" });
+            list1.Add(new String[] { "999999999", "999999999", "999999999" });
+            list1.Add(new String[] { "-999999999", "-999999999", "-999999999" });
+            String exception2 = null;
+            try
+            {
+                BasicDecimal128Matrix re3 = new BasicDecimal128Matrix(3, 3, list1, -1);
+            }
+            catch (Exception ex)
+            {
+                exception2 = ex.Message;
+            }
+            Assert.AreEqual("Scale -1 is out of bounds, it must be in [0,38].", exception2);
+            String exception3 = null;
+            try
+            {
+                BasicDecimal128Matrix re3 = new BasicDecimal128Matrix(3, 3, list1, 39);
+            }
+            catch (Exception ex)
+            {
+                exception3 = ex.Message;
+            }
+            Assert.AreEqual("Scale 39 is out of bounds, it must be in [0,38].", exception3);
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal128Matrix_decimal()
+        {
+            IList<decimal[]> list = new List<decimal[]>();
+            list.Add(new decimal[] { 79228162514264337593543950335m, 0m, -79228162514264337593543950335m });
+            list.Add(new decimal[] { 79228162514264337593543950335m, 79228162514264337593543950335m, 79228162514264337593543950335m });
+            list.Add(new decimal[] { -79228162514264337593543950335m, -79228162514264337593543950335m, -79228162514264337593543950335m });
+            BasicDecimal128Matrix re1 = new BasicDecimal128Matrix(3, 3, list, 0);
+            Console.WriteLine(re1.getString());
+            Assert.AreEqual("#0                             #1                            #2                            \n" +
+                    "79228162514264337593543950335  79228162514264337593543950335 -79228162514264337593543950335\n" +
+                    "0                              79228162514264337593543950335 -79228162514264337593543950335\n" +
+                    "-79228162514264337593543950335 79228162514264337593543950335 -79228162514264337593543950335\n", re1.getString());
+
+            List<decimal[]> list1 = new List<decimal[]>();
+            list1.Add(new decimal[] { 9999999999999999999m, 0m, -9999999999999999999m });
+            list1.Add(new decimal[] { 9999999999999999999m, 9999999999999999999m, 9999999999999999999m });
+            list1.Add(new decimal[] { -9999999999999999999m, -9999999999999999999m, -9999999999999999999m });
+            BasicDecimal128Matrix re2 = new BasicDecimal128Matrix(3, 3, list1, 19);
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual("#0                                       #1                                      #2                                      \n" +
+                    "9999999999999999999.0000000000000000000  9999999999999999999.0000000000000000000 -9999999999999999999.0000000000000000000\n" +
+                    "0.0000000000000000000                    9999999999999999999.0000000000000000000 -9999999999999999999.0000000000000000000\n" +
+                    "-9999999999999999999.0000000000000000000 9999999999999999999.0000000000000000000 -9999999999999999999.0000000000000000000\n", re2.getString());
+
+            List<decimal[]> list2 = new List<decimal[]>();
+            list2.Add(new decimal[] { 1m, 0m, -1m });
+            BasicDecimal128Matrix re3 = new BasicDecimal128Matrix(3, 1, list2, 38);
+            Console.WriteLine(re3.getString());
+            Assert.AreEqual("#0                                       \n" +
+                    "1.00000000000000000000000000000000000000 \n" +
+                    "0.00000000000000000000000000000000000000 \n" +
+                    "-1.00000000000000000000000000000000000000\n", re3.getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal128Matrix_string()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "99999999999999999999999999999999999999", "0", "-99999999999999999999999999999999999999" });
+            list.Add(new String[] { "99999999999999999999999999999999999999", "99999999999999999999999999999999999999", "99999999999999999999999999999999999999" });
+            list.Add(new String[] { "-99999999999999999999999999999999999999", "-99999999999999999999999999999999999999", "-99999999999999999999999999999999999999" });
+            BasicDecimal128Matrix re1 = new BasicDecimal128Matrix(3, 3, list, 0);
+            Console.WriteLine(re1.getString());
+            Assert.AreEqual("#0                                      #1                                     #2                                     \n" +
+                    "99999999999999999999999999999999999999  99999999999999999999999999999999999999 -99999999999999999999999999999999999999\n" +
+                    "0                                       99999999999999999999999999999999999999 -99999999999999999999999999999999999999\n" +
+                    "-99999999999999999999999999999999999999 99999999999999999999999999999999999999 -99999999999999999999999999999999999999\n", re1.getString());
+            List<String[]> list1 = new List<String[]>();
+            list1.Add(new String[] { "9999999999999999999.9999999999999999999", "0", "-9999999999999999999" });
+            list1.Add(new String[] { "9999999999999999999.0000000000000000009", "9999999999999999999", "9999999999999999999" });
+            list1.Add(new String[] { "-9999999999999999999.0000000000000000009", "-9999999999999999999", "-9999999999999999999" });
+            BasicDecimal128Matrix re2 = new BasicDecimal128Matrix(3, 3, list1, 19);
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual("#0                                       #1                                      #2                                      \n" +
+                    "9999999999999999999.9999999999999999999  9999999999999999999.0000000000000000009 -9999999999999999999.0000000000000000009\n" +
+                    "0.0000000000000000000                    9999999999999999999.0000000000000000000 -9999999999999999999.0000000000000000000\n" +
+                    "-9999999999999999999.0000000000000000000 9999999999999999999.0000000000000000000 -9999999999999999999.0000000000000000000\n", re2.getString());
+
+            List<String[]> list2 = new List<String[]>();
+            list2.Add(new String[] { "1", "0", "-1" });
+            BasicDecimal128Matrix re3 = new BasicDecimal128Matrix(3, 1, list2, 38);
+            Console.WriteLine(re3.getString());
+            Assert.AreEqual("#0                                       \n" +
+                    "1.00000000000000000000000000000000000000 \n" +
+                    "0.00000000000000000000000000000000000000 \n" +
+                    "-1.00000000000000000000000000000000000000\n", re3.getString());
+            List<String[]> list3 = new List<String[]>();
+            list3.Add(new String[] { "-1.9999", "0", "-1.00000009", "-1.999999999999" });
+            list3.Add(new String[] { "1.9999", "0", "1.00000009", "1.999999999999" });
+            list3.Add(new String[] { "-0.9999", "0.01", "-0.00000009", "-0.999999999999" });
+            list3.Add(new String[] { "0.9999", "-0.001", "0.00000009", "0.999999999999" });
+            BasicDecimal128Matrix re4 = new BasicDecimal128Matrix(4, 4, list3, 9);
+            Console.WriteLine(re4.getString());
+            Assert.AreEqual("#0           #1          #2           #3          \n" +
+                    "-1.999900000 1.999900000 -0.999900000 0.999900000 \n" +
+                    "0.000000000  0.000000000 0.010000000  -0.001000000\n" +
+                    "-1.000000090 1.000000090 -0.000000090 0.000000090 \n" +
+                    "-2.000000000 2.000000000 -1.000000000 1.000000000 \n", re4.getString());
+
+            List<String[]> list4 = new List<String[]>();
+            list4.Add(new String[] { "0.49", "-123.44", "132.50", "-0.51" });
+            BasicDecimal128Matrix re5 = new BasicDecimal128Matrix(4, 1, list4, 0);
+            Console.WriteLine(re5.getString());
+            Assert.AreEqual("#0  \n" +
+                    "0   \n" +
+                    "-123\n" +
+                    "133 \n" +
+                    "-1  \n", re5.getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal128Matrix_setNull()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "111", "0", "-111" });
+            BasicDecimal128Matrix re1 = new BasicDecimal128Matrix(3, 1, list, 0);
+            Assert.AreEqual(false, re1.isNull(0, 0));
+            re1.setNull(0, 0);
+            Assert.AreEqual(true, re1.isNull(0, 0));
+            Assert.AreEqual("", re1.get(0, 0).getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal128Matrix_setDecimal()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "111", "0", "-111" });
+            BasicDecimal128Matrix re1 = new BasicDecimal128Matrix(2, 2, 0);
+            Assert.AreEqual(new BasicDecimal128(0, 0).getString(), re1.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal128(0, 0).getString(), re1.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal128(0, 0).getString(), re1.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal128(0, 0).getString(), re1.get(1, 1).getString());
+            re1.setDecimal(0, 0, 1.999990m);
+            re1.setDecimal(0, 1, -0.99999999m);
+            re1.setDecimal(1, 0, 999.9999999m);
+            re1.setDecimal(1, 1, -999.99999m);
+            Assert.AreEqual("#0   #1   \n" +
+                    "2    -1   \n" +
+                    "1000 -1000\n", re1.getString());
+            BasicDecimal128Matrix re2 = new BasicDecimal128Matrix(2, 2, 6);
+            re2.setDecimal(0, 0, 1.999990m);
+            re2.setDecimal(0, 1, -0.99999999m);
+            re2.setDecimal(1, 0, 999.9999999m);
+            re2.setDecimal(1, 1, -999.99999m);
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual(6, re2.getScale());
+            Assert.AreEqual(new BasicDecimal128("1.999990", 6).getString(), re2.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal128("-1.000000", 6).getString(), re2.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal128("1000.000000", 6).getString(), re2.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal128("-999.999990", 6).getString(), re2.get(1, 1).getString());
+
+            Assert.AreEqual("1.99999", re2.getDecimal(0, 0).ToString());
+            Assert.AreEqual("-1", re2.getDecimal(0, 1).ToString());
+            Assert.AreEqual("1000", re2.getDecimal(1, 0).ToString());
+            Assert.AreEqual("-999.99999", re2.getDecimal(1, 1).ToString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal128Matrix_setString()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "111", "0", "-111" });
+            BasicDecimal128Matrix re1 = new BasicDecimal128Matrix(2, 2, 0);
+            Assert.AreEqual(new BasicDecimal128(0, 0).getString(), re1.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal128(0, 0).getString(), re1.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal128(0, 0).getString(), re1.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal128(0, 0).getString(), re1.get(1, 1).getString());
+            re1.setString(0, 0, "1.999990");
+            re1.setString(0, 1, "-0.99999999");
+            re1.setString(1, 0, "999.9999999");
+            re1.setString(1, 1, "-999.99999");
+            Assert.AreEqual("#0   #1   \n" +
+                    "2    -1   \n" +
+                    "1000 -1000\n", re1.getString());
+            BasicDecimal128Matrix re2 = new BasicDecimal128Matrix(2, 2, 6);
+            re2.setString(0, 0, "1.999990");
+            re2.setString(0, 1, "-0.99999999");
+            re2.setString(1, 0, "999.9999999");
+            re2.setString(1, 1, "-999.99999");
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual(6, re2.getScale());
+            Assert.AreEqual(new BasicDecimal128("1.999990", 6).getString(), re2.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal128("-1.000000", 6).getString(), re2.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal128("1000.000000", 6).getString(), re2.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal128("-999.999990", 6).getString(), re2.get(1, 1).getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal128Matrix_set()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "111", "0", "-111" });
+            BasicDecimal128Matrix re1 = new BasicDecimal128Matrix(2, 2, 0);
+            Assert.AreEqual(new BasicDecimal128(0, 0).getString(), re1.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal128(0, 0).getString(), re1.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal128(0, 0).getString(), re1.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal128(0, 0).getString(), re1.get(1, 1).getString());
+            IScalar bd1 = new BasicDecimal128("1.999990", 6);
+            IScalar bd2 = new BasicDecimal128("-0.99999999", 8);
+            IScalar bd3 = new BasicDecimal128("999.999999", 6);
+            IScalar bd4 = new BasicDecimal128("-999.99999", 5);
+            re1.set(0, 0, bd1);
+            re1.set(0, 1, bd2);
+            re1.set(1, 0, bd3);
+            re1.set(1, 1, bd4);
+            Assert.AreEqual("#0   #1   \n" +
+                    "2    -1   \n" +
+                    "1000 -1000\n", re1.getString());
+            BasicDecimal128Matrix re2 = new BasicDecimal128Matrix(2, 2, 6);
+            re2.set(0, 0, bd1);
+            re2.set(0, 1, bd2);
+            re2.set(1, 0, bd3);
+            re2.set(1, 1, bd4);
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual(6, re2.getScale());
+            Assert.AreEqual(new BasicDecimal128("1.999990", 6).getString(), re2.get(0, 0).getString());
+            Assert.AreEqual(new BasicDecimal128("-1.000000", 6).getString(), re2.get(0, 1).getString());
+            Assert.AreEqual(new BasicDecimal128("999.999999", 6).getString(), re2.get(1, 0).getString());
+            Assert.AreEqual(new BasicDecimal128("-999.999990", 6).getString(), re2.get(1, 1).getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal128Matrix_set_null()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "999999999", "-999999999" });
+            BasicDecimal128Matrix re1 = new BasicDecimal128Matrix(2, 1, list, 2);
+            BasicDecimal128 bd1 = new BasicDecimal128("1.99999", 9);
+            bd1.setNull();
+            re1.set(0, 0, bd1);
+            re1.isNull(0, 0);
+            BasicDecimal128 bd2 = new BasicDecimal128(" -170141183460469231731687303715884105728", 0);
+            re1.set(1, 0, bd2);
+            re1.isNull(1, 0);
+            Console.WriteLine(re1.getString());
+            Console.WriteLine(re1.get(0, 0));
+
+            Assert.AreEqual("", re1.get(0, 0).getString());
+            Assert.AreEqual("", re1.get(1, 0).getString());
+        }
+
+        [TestMethod]
+        public void test_BasicDecimal128Matrix_set_entity_not_support()
+        {
+            IList<String[]> list = new List<String[]>();
+            list.Add(new String[] { "111", "0", "-111" });
+            BasicDecimal128Matrix re1 = new BasicDecimal128Matrix(2, 2, 0);
+
+            String exception = null;
+            try
+            {
+                re1.set(0, 0, new BasicDecimal64("1.99999", 9));
+            }
+            catch (Exception ex)
+            {
+                exception = ex.Message;
+            }
+            Assert.AreEqual("value type must be BasicDecimal128. ", exception);
+        }
+
     }
 }

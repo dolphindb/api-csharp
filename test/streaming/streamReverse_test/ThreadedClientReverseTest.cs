@@ -24,7 +24,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         private readonly int HASTREAM_GROUPID = MyConfigReader.HASTREAM_GROUPID;
         public static DBConnection conn;
         private static ThreadedClient client;
-
+        static private int total = 0;
         public void clear_env()
         {
             try
@@ -293,14 +293,14 @@ namespace dolphindb_csharp_api_test.streamReverse_test
 
         public static void checkResult(DBConnection conn)
         {
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 20; i++)
             {
                 BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
                 if (tmpNum.getInt() == (1000))
                 {
                     break;
                 }
-                Thread.Sleep(2000);
+                Thread.Sleep(100);
             }
             BasicTable except = (BasicTable)conn.run("select * from  Trades order by permno");
             BasicTable res = (BasicTable)conn.run("select * from  sub1 order by permno");
@@ -2288,7 +2288,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
                     msg.getEntity(0);
                     String script = String.Format("insert into sub1 values({0},{1})", msg.getEntity(0).getString(), msg.getEntity(1).getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' '));
                     conn.run(script);
-                    System.Console.Out.WriteLine(script);
+                    //System.Console.Out.WriteLine(script);
 
                 }
                 catch (Exception e)
@@ -2844,6 +2844,61 @@ namespace dolphindb_csharp_api_test.streamReverse_test
             client.unsubscribe(SERVER, PORT, "Trades");
         }
 
+        class Handler_getOffset : MessageHandler
+        {
+
+            public void batchHandler(List<IMessage> msgs)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void doEvent(IMessage msg)
+            {
+                try
+                {
+                    msg.getEntity(0);
+                    String script = String.Format("insert into sub1 values({0},{1},\"{2}\",{3},{4},{5},{6},{7},{8},{9},{10},{11},{12} )", msg.getEntity(0).getString(), msg.getEntity(1).getString(), msg.getEntity(2).getString(), msg.getEntity(3).getString(), msg.getEntity(4).getString(), msg.getEntity(5).getString(), msg.getEntity(6).getString(), msg.getEntity(7).getString(), msg.getEntity(8).getString(), msg.getEntity(9).getString(), msg.getEntity(10).getString(), msg.getEntity(11).getString(), msg.getEntity(12).getString());
+                    conn.run(script);
+                    Console.Out.WriteLine("msg.getOffset is :" + msg.getOffset());
+                    Assert.AreEqual(total, msg.getOffset());
+                    total++;
+                }
+                catch (Exception e)
+                {
+                    System.Console.Out.WriteLine(e.ToString());
+                }
+            }
+        };
+
+        [TestMethod]
+        public void Test_ThreaedClient_subscribe_getOffset()
+
+        {
+            PrepareStreamTable1(conn, "pub");
+            PrepareStreamTable1(conn, "sub1");
+            //write 1000 rows first
+            WriteStreamTable1(conn, "pub", 1000);
+            BasicInt num1 = (BasicInt)conn.run("exec count(*) from pub");
+            Assert.AreEqual(1000, num1.getInt());
+            Handler_getOffset handler1 = new Handler_getOffset();
+            client.subscribe(SERVER, PORT, "pub", handler1, 0, -1);
+            //write 1000 rows after subscribe
+            WriteStreamTable1(conn, "pub", 1000);
+            for (int i = 0; i < 10; i++)
+            {
+                BasicInt tmpNum = (BasicInt)conn.run("exec count(*) from sub1");
+                if (tmpNum.getInt().Equals(2000))
+                {
+                    break;
+                }
+                Thread.Sleep(1000);
+            }
+            BasicInt num2 = (BasicInt)conn.run("exec count(*) from sub1");
+            Assert.AreEqual(2000, num2.getInt());
+            client.unsubscribe(SERVER, PORT, "pub");
+            conn.run("undef(`pub, SHARED)");
+            conn.run("undef(`sub1, SHARED)");
+        }
 
     }
 }

@@ -1348,15 +1348,15 @@ namespace dolphindb_csharp_api_test.compatibility_test.route_test
         {
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, USER, PASSWORD);
-            conn.run("if(existsDatabase(\"dfs://dataXdemo\")){dropDatabase(\"dfs://dataXdemo\")}\n" +
-                "db = database(\"dfs://dataXdemo\", VALUE, 1..10)\n" +
+            conn.run("if(existsDatabase(\"dfs://dataXdemo1\")){dropDatabase(\"dfs://dataXdemo1\")}\n" +
+                "db = database(\"dfs://dataXdemo1\", VALUE, 1..10)\n" +
                 "t = table(take(1..10, 100) as id, take([`A, `B, `C], 100) as sym, 1..100 as qty, 100..1 as price)\n" +
                 "pt = db.createPartitionedTable(t, `pt, `id).append!(t)");
             BatchTableWriter btw1 = new BatchTableWriter(SERVER, PORT, USER, PASSWORD);
-            btw1.addTable("dfs://dataXdemo", "pt", true);
+            btw1.addTable("dfs://dataXdemo1", "pt", true);
             try
             {
-                btw1.addTable("dfs://dataXdemo", "pt", true);
+                btw1.addTable("dfs://dataXdemo1", "pt", true);
             }
             catch(Exception e)
             {
@@ -1364,10 +1364,10 @@ namespace dolphindb_csharp_api_test.compatibility_test.route_test
                 Console.WriteLine(e.Message);
             }
 
-            BatchTableWriter btw2 = new BatchTableWriter("192.168.1.116", 51872, USER, PASSWORD);
+            BatchTableWriter btw2 = new BatchTableWriter(SERVER, 12112, USER, PASSWORD);
             try
             {
-                btw2.addTable("dfs://dataXdemo", "pt", true);
+                btw2.addTable("dfs://dataXdemo1", "pt", true);
             }
             catch(Exception e)
             {
@@ -1378,7 +1378,7 @@ namespace dolphindb_csharp_api_test.compatibility_test.route_test
             BatchTableWriter btw3 = new BatchTableWriter(SERVER, PORT, USER, PASSWORD);
             try 
             {
-                btw3.addTable("dfs://dataXdemo", "pt", false);
+                btw3.addTable("dfs://dataXdemo1", "pt", false);
             }catch(Exception e)
             {
                 Console.WriteLine(e.Message);
