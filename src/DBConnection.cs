@@ -309,22 +309,17 @@ namespace dolphindb
                 }
             }
 
-            public IEntity run(string script, ProgressListener listener = null, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
+            public IEntity run(string script, ProgressListener listener = null, int priority = 4, int parallelism = 64, int fetchSize = 0, bool clearMemory = false)
             {
-                return run(script, "script", null, null, priority, parallelism, fetchSize, clearMemory);
+                return runInternal(script, "script", null, null, priority, parallelism, fetchSize, clearMemory);
             }
 
-            public IEntity run(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
+            public IEntity run(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 64, int fetchSize = 0, bool clearMemory = false)
             {
-                return run(function, "function", null, arguments, priority, parallelism, fetchSize, clearMemory);
+                return runInternal(function, "function", null, arguments, priority, parallelism, fetchSize, clearMemory);
             }
 
-            private IEntity run(string script, string scriptType, IList<IEntity> arguments, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
-            {
-                return run(script, scriptType, null, arguments, priority, parallelism, fetchSize, clearMemory);
-            }
-
-            private IEntity run(string script, string scriptType, ProgressListener listener = null, IList<IEntity> arguments = null, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
+            private IEntity runInternal(string script, string scriptType, ProgressListener listener = null, IList<IEntity> arguments = null, int priority = 4, int parallelism = 64, int fetchSize = 0, bool clearMemory = false)
             {
                 try
                 {
@@ -446,7 +441,7 @@ namespace dolphindb
                     varNames.Append(key + ",");
                     objects.Add(variableObjectMap[key]);
                 }
-                run(varNames.ToString(), "variable", objects);
+                runInternal(varNames.ToString(), "variable", null, objects);
             }
 
             private bool isVariableCandidate(string word)
@@ -724,7 +719,7 @@ namespace dolphindb
             }
             try
             {
-                return run(script);
+                return runInternal(script);
             }
             catch
             {
@@ -733,13 +728,13 @@ namespace dolphindb
         }
 
 #if NETCOREAPP
-        public async Task<IEntity> runAsync(string script, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
+        public async Task<IEntity> runAsync(string script, int priority = 4, int parallelism = 64, int fetchSize = 0, bool clearMemory = false)
         {
             IEntity result = await Task.Run(() => run(script, priority, parallelism, fetchSize, clearMemory));
             return result;
         }
 
-        public async Task<IEntity> runAsync(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
+        public async Task<IEntity> runAsync(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 64, int fetchSize = 0, bool clearMemory = false)
         {
             IEntity result = await Task.Run(() => run(function, arguments, priority, parallelism, fetchSize, clearMemory));
             return result;
@@ -748,22 +743,22 @@ namespace dolphindb
 
         public IEntity run(string script)
         {
-            return run(script, (ProgressListener)null);
+            return runInternal(script, (ProgressListener)null);
         }
 
         public IEntity run(string script, ProgressListener listener)
         {
-            return run(script, listener, false);
+            return runInternal(script, listener);
         }
 
         public IEntity run(string script, bool clearSessionMemory)
         {
-            return run(script, (ProgressListener)null, clearSessionMemory);
+            return runInternal(script, (ProgressListener)null, 4, 64, 0, clearSessionMemory);
         }
 
         public IEntity run(string script, ProgressListener listener, bool clearSessionMemory)
         {
-            return run(script, listener, 4, 2, 0, clearSessionMemory);
+            return runInternal(script, listener, 4, 64, 0, clearSessionMemory);
         }
 
         public IEntity tryRun(string function, IList<IEntity> arguments)
@@ -781,12 +776,16 @@ namespace dolphindb
             }
         }
 
-        public IEntity run(string script, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
+        public IEntity run(string script, int priority = 4, int parallelism = 64, int fetchSize = 0, bool clearMemory = false)
         {
-            return run(script, (ProgressListener)null, priority, parallelism, fetchSize, clearMemory);
+            return runInternal(script, (ProgressListener)null, priority, parallelism, fetchSize, clearMemory);
         }
 
-        public IEntity run(string script, ProgressListener listener = null, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
+        public IEntity run(string script, ProgressListener listener = null, int priority = 4, int parallelism = 64, int fetchSize = 0, bool clearMemory = false){
+            return runInternal(script, listener, priority, parallelism, fetchSize, clearMemory);
+        }
+
+        private IEntity runInternal(string script, ProgressListener listener = null, int priority = 4, int parallelism = 64, int fetchSize = 0, bool clearMemory = false)
         {
             lock (threadLock_)
             {
@@ -825,7 +824,13 @@ namespace dolphindb
                 }
             }
         }
-        public IEntity run(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 2, int fetchSize = 0, bool clearMemory = false)
+
+        public IEntity run(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 64, int fetchSize = 0, bool clearMemory = false)
+        {
+            return runInternal(function, arguments, priority, parallelism, fetchSize, clearMemory);
+        }
+
+        private IEntity runInternal(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 64, int fetchSize = 0, bool clearMemory = false)
         {
             lock (threadLock_)
             {
@@ -867,7 +872,7 @@ namespace dolphindb
 
         public IEntity run(string script, ProgressListener listener, int priority, int parallelism, int fetchSize)
         {
-            return run(script, listener, priority, parallelism, fetchSize, false);
+            return runInternal(script, listener, priority, parallelism, fetchSize, false);
         }
 
         public void tryUpload(IDictionary<string, IEntity> variableObjectMap)
@@ -914,26 +919,26 @@ namespace dolphindb
             }
         }
 
-        public List<IEntity> run(IList<string> sqlList, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        public List<IEntity> run(IList<string> sqlList, int priority = 4, int parallelism = 64, bool clearMemory = false)
         {
             List<IEntity> results = new List<IEntity>();
             foreach (string sql in sqlList)
             {
-                IEntity entity = run(sql, priority, parallelism, 0, clearMemory);
+                IEntity entity = runInternal(sql, (ProgressListener)null, priority, parallelism, 0, clearMemory);
                 results.Add(entity);
             }
             return results;
         }
 
 #if NETCOREAPP
-        public async Task<List<IEntity>> runAsync(IList<string> sqlList, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        public async Task<List<IEntity>> runAsync(IList<string> sqlList, int priority = 4, int parallelism = 64, bool clearMemory = false)
         {
             List<IEntity> result = await Task.Run(() => run(sqlList, priority, parallelism, clearMemory));
             return result;
         }
 #endif
 
-        public List<IEntity> run(IList<string> sqlList, IList<IList<IEntity>> argumentsList, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        public List<IEntity> run(IList<string> sqlList, IList<IList<IEntity>> argumentsList, int priority = 4, int parallelism = 64, bool clearMemory = false)
         {
             if(sqlList.Count != argumentsList.Count)
             {
@@ -942,14 +947,14 @@ namespace dolphindb
             List<IEntity> results = new List<IEntity>();
             for(int i = 0; i < sqlList.Count; i++)
             {
-                IEntity entity = run(sqlList[i], argumentsList[i], priority, parallelism, 0, clearMemory);
+                IEntity entity = runInternal(sqlList[i], argumentsList[i], priority, parallelism, 0, clearMemory);
                 results.Add(entity);
             }
             return results;
         }
 
 #if NETCOREAPP
-        public async Task<List<IEntity>> runAsync(IList<string> sqlList, IList<IList<IEntity>> argumentsList, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        public async Task<List<IEntity>> runAsync(IList<string> sqlList, IList<IList<IEntity>> argumentsList, int priority = 4, int parallelism = 64, bool clearMemory = false)
         {
             List<IEntity> result = await Task.Run(() => run(sqlList, argumentsList, priority, parallelism, clearMemory));
             return result;

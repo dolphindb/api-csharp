@@ -1565,30 +1565,66 @@ namespace dolphindb_csharp_api_test
             connection.close();
             connection1.close();
         }
-        [TestMethod]
-        public void Test_sqlList_parallelism()
+
+        public void PrepareUser(String userName, String password)
         {
-            string script = null;
-            script += "dbPath = \"dfs://parallelism_test\"\n";
-            script += "if(existsDatabase(dbPath))\n";
-            script += "dropDatabase(dbPath)\n";
-            script += "t = table(take(1..10, 100) as id, 1..100 as id2, 100..1 as value)\n";
-            script += "db  = database(dbPath, RANGE,1 50 10000)\n";
-            script += "pt = db.createPartitionedTable(t,`pt,`id).append!(t)\n";
-            DBConnection connection1 = new DBConnection();
-            connection1.connect(SERVER, PORT, "admin", "123456");
-            connection1.run(script);
-            List<string> sqlList1 = new List<string>() { "t = select * from loadTable(\"dfs://parallelism_test\",\"pt\")", "loop(max, t.values()); " };
-            DateTime beforeDT1 = System.DateTime.Now;
-            var ret1 = connection1.runAsync(sqlList1, 4, 64);
-            var ret2 = ret1.Result;
-            DateTime afterDT1 = System.DateTime.Now;
-            TimeSpan ts1 = afterDT1.Subtract(beforeDT1);
-            Console.WriteLine("DateTime costed: {0}ms", ts1.TotalMilliseconds);
-            connection1.close();
-
-
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "admin", "123456");
+            conn.run("def create_user(){try{deleteUser(`" + userName + ")}catch(ex){};createUser(`" + userName + ", '" + password + "',,true);};" +
+                    "rpc(getControllerAlias(),create_user);");
         }
+
+        [TestMethod]//api设置的parallelism小于server的setMaxJobParallelism
+        public void test_DBConnection_runAsync_parallelism_1()
+        {
+            PrepareUser("parallelism_test", "123456");
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "parallelism_test", "123456");
+            conn.run("setMaxJobParallelism(\"parallelism_test\",22);", 4, 5, 0, false);
+
+            DBConnection conn1 = new DBConnection();
+            conn1.connect(SERVER, PORT, "parallelism_test", "123456");
+            List<string> sqlList = new List<string>() { "getConsoleJobs();" };
+            var ret1 = conn1.runAsync(sqlList, 4, 5);
+            var re1 = ret1.Result;
+            Console.Out.WriteLine(((BasicTable)re1[0]).getColumn(6).get(0).getString());
+            Assert.AreEqual("5", ((BasicTable)re1[0]).getColumn(6).get(0).getString());
+        }
+
+        [TestMethod]//api设置的parallelism大于server的setMaxJobParallelism
+        public void test_DBConnection_runAsync_parallelism_2()
+        {
+            PrepareUser("parallelism_test", "123456");
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "parallelism_test", "123456");
+            conn.run("setMaxJobParallelism(\"parallelism_test\",22);", 4, 30, 0, false);
+
+            DBConnection conn1 = new DBConnection();
+            conn1.connect(SERVER, PORT, "parallelism_test", "123456");
+            List<string> sqlList = new List<string>() { "getConsoleJobs();" };
+            var ret1 = conn1.runAsync(sqlList, 4, 30);
+            var re1 = ret1.Result;
+            Console.Out.WriteLine(((BasicTable)re1[0]).getColumn(6).get(0).getString());
+            Assert.AreEqual("22", ((BasicTable)re1[0]).getColumn(6).get(0).getString());
+        }
+
+        [TestMethod]//api没有设置parallelism，取默认值64，大于server的setMaxJobParallelism
+        public void test_DBConnection_runAsync_parallelism_3()
+        {
+            PrepareUser("parallelism_test", "123456");
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "parallelism_test", "123456");
+            conn.run("setMaxJobParallelism(\"parallelism_test\",22);");
+
+            DBConnection conn1 = new DBConnection();
+            conn1.connect(SERVER, PORT, "parallelism_test", "123456");
+            List<string> sqlList = new List<string>() { "getConsoleJobs();" };
+            var ret1 = conn1.runAsync(sqlList);
+            var re1 = ret1.Result;
+            Console.Out.WriteLine(((BasicTable)re1[0]).getColumn(6).get(0).getString());
+            Assert.AreEqual("22", ((BasicTable)re1[0]).getColumn(6).get(0).getString());
+        }
+
         [TestMethod]
         public void Test_sqlList_parallelism_65()
         {

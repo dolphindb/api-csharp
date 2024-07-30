@@ -216,20 +216,20 @@ namespace dolphindb
         }
 
 #if NETCOREAPP
-        public async Task<IEntity> runAsync(string script, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        public async Task<IEntity> runAsync(string script, int priority = 4, int parallelism = 64, bool clearMemory = false)
         {
             IEntity result = await Task.Run(() => run(script, priority, parallelism, clearMemory));
             return result;
         }
 
-        public async Task<IEntity> runAsync(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        public async Task<IEntity> runAsync(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 64, bool clearMemory = false)
         {
             IEntity result = await Task.Run(() => run(function, arguments, priority, parallelism, clearMemory));
             return result;
         }
 #endif
 
-        public IEntity run(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        public IEntity run(string function, IList<IEntity> arguments, int priority = 4, int parallelism = 64, bool clearMemory = false)
         {
             IDBTask task = new BasicDBTask(function, (List<IEntity>)arguments, priority, parallelism, clearMemory);
             execute(task);
@@ -240,7 +240,7 @@ namespace dolphindb
             return task.getResults();
         }
 
-        public IEntity run(string script, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        public IEntity run(string script, int priority = 4, int parallelism = 64, bool clearMemory = false)
         {
             IDBTask task = new BasicDBTask(script, priority, parallelism, clearMemory);
             execute(task);
@@ -291,7 +291,7 @@ namespace dolphindb
             }
         }
 
-        public List<IEntity> run(IList<string> sqlList, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        public List<IEntity> run(IList<string> sqlList, int priority = 4, int parallelism = 64, bool clearMemory = false)
         {
             List<IDBTask> tasks = new List<IDBTask>();
             foreach (string sql in sqlList)
@@ -313,14 +313,14 @@ namespace dolphindb
         }
 
 #if NETCOREAPP
-        public async Task<List<IEntity>> runAsync(IList<string> sqlList, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        public async Task<List<IEntity>> runAsync(IList<string> sqlList, int priority = 4, int parallelism = 64, bool clearMemory = false)
         {
             List<IEntity> result = await Task.Run(() => run(sqlList, priority, parallelism, clearMemory));
             return result;
         }
 #endif
 
-        public List<IEntity> run(IList<string> sqlList, IList<IList<IEntity>> argumentsList, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        public List<IEntity> run(IList<string> sqlList, IList<IList<IEntity>> argumentsList, int priority = 4, int parallelism = 64, bool clearMemory = false)
         {
             if (sqlList.Count != argumentsList.Count)
             {
@@ -347,7 +347,7 @@ namespace dolphindb
         }
 
 #if NETCOREAPP
-        public async Task<List<IEntity>> runAsync(IList<string> sqlList, IList<IList<IEntity>> argumentsList, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        public async Task<List<IEntity>> runAsync(IList<string> sqlList, IList<IList<IEntity>> argumentsList, int priority = 4, int parallelism = 64, bool clearMemory = false)
         {
             List<IEntity> result = await Task.Run(() => run(sqlList, argumentsList, priority, parallelism, clearMemory));
             return result;

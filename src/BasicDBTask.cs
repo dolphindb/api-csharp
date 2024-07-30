@@ -34,7 +34,7 @@ namespace dolphindb
         {
             semaphore.Release();
         }
-        public BasicDBTask(string script, List<IEntity> args, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        public BasicDBTask(string script, List<IEntity> args, int priority = 4, int parallelism = 64, bool clearMemory = false)
         {
             semaphore.WaitOne();
             this.script = script;
@@ -43,7 +43,7 @@ namespace dolphindb
             this.priority_ = priority;
             this.parallelism_ = parallelism;
         }
-        public BasicDBTask(string script, int priority = 4, int parallelism = 2, bool clearMemory = false)
+        public BasicDBTask(string script, int priority = 4, int parallelism = 64, bool clearMemory = false)
         {
             semaphore.WaitOne();
             this.script = script;

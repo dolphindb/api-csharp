@@ -3733,43 +3733,58 @@ a";
             connection.close();
             connection1.close();
         }
-        
-        [TestMethod]
-        public void Test_sqlList_parallelism()
+        public void PrepareUser(String userName, String password)
         {
-            string scripts = String.Format("t = loadText(\"{0}file2.csv\")", DATA_DIR);
-            scripts += "if(existsDatabase(\"dfs://test1\")){\n dropDatabase(\"dfs://test1\")\n }";
-            scripts += "db = database(\"dfs://test1\", VALUE, 2022.01.01..2022.12.31);\n";
-            scripts += "tableSchema = table(1:0, t.schema().colDefs[`name], t.schema().colDefs[`typeString]);\n pt = db.createPartitionedTable(tableSchema, \"pt\", `data_date );\n loadTable(\"dfs://test1\",\"pt\").append!(t)";
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "admin", "123456");
+            conn.run("def create_user(){try{deleteUser(`" + userName + ")}catch(ex){};createUser(`" + userName + ", '" + password + "',,true);};" +
+                    "rpc(getControllerAlias(),create_user);");
+        }
 
-            //DBConnection connection = new DBConnection();
-            //connection.connect("192.168.1.167", 18921, "admin", "123456");
-            ////List<string> sqlList = new List<string>() { "select * from loadTable(\"dfs://test\", \"pt\") where  instr='OPT_XSHG_510050' and snapshot_config = 'snap_sz1_0930_1457_5s' and impl_fwd_disc_config = 'fwd_synth_order_match' and impl_vol_model_config = 'spline_gd_dof10.0' and snapshot_ts = timestamp('2022.08.03T09:30:05.000000');" };
-            //List<string> sqlList = new List<string>() { "select sum(impl_fwd), * from loadTable(\"dfs://test\", \"pt\") " };
+        [TestMethod]//api设置的parallelism小于server的setMaxJobParallelism
+        public void test_DBConnection_run_parallelism_1()
+        {
+            PrepareUser("parallelism_test", "123456");
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "parallelism_test", "123456");
+            conn.run("setMaxJobParallelism(\"parallelism_test\",22);", 4, 5, 0, false);
 
-            //DateTime beforeDT = System.DateTime.Now;
-            //var ret = connection.runAsync(sqlList, 4, 1);
-            //var ret1 = ret.Result;
-            //DateTime afterDT = System.DateTime.Now;
-            //TimeSpan ts = afterDT.Subtract(beforeDT);
-            //Console.WriteLine("DateTime costed: {0}ms", ts.TotalMilliseconds);
-            //connection.close();
-            DBConnection connection1 = new DBConnection();
-            connection1.connect(SERVER, PORT, "admin", "123456");
-            connection1.run(scripts,false);
-            List<string> sqlList1 = new List<string>() { "select sum(impl_fwd), * from loadTable(\"dfs://test1\", \"pt\") where  instr='OPT_XSHG_510050' and snapshot_config = 'snap_sz1_0930_1457_5s' and impl_fwd_disc_config = 'fwd_synth_order_match' and impl_vol_model_config = 'spline_gd_dof10.0' and snapshot_ts = timestamp('2022.08.03T09:30:05.000000'); " };
+            DBConnection conn1 = new DBConnection();
+            conn1.connect(SERVER, PORT, "parallelism_test", "123456");
+            BasicTable re1 = (BasicTable)conn1.run("getConsoleJobs();",4, 5, 0, false);
+            Console.Out.WriteLine(re1.getString());
+            Assert.AreEqual("5", re1.getColumn(6).get(0).getString());
+        }
 
-           // List<string> sqlList2 = new List<string>() { "t = select * from loadTable(\"dfs://test1\",\"pt\")", "loop(max, t.values()); " };
-            List<string> sqlList2 = new List<string>() { "t = select * from loadTable(\"dfs://test11\",\"t1\")", "loop(max, t.values()); " };
-            List<string> sqlList3 = new List<string>() { "t =  select id, max(v) from loadTable(\"dfs://test11\", \"t1\")  group by id;" };
+        [TestMethod]//api设置的parallelism大于server的setMaxJobParallelism
+        public void test_DBConnection_run_parallelism_2()
+        {
+            PrepareUser("parallelism_test", "123456");
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "parallelism_test", "123456");
+            conn.run("setMaxJobParallelism(\"parallelism_test\",22);", 5, 30, 0, false);
 
-            List<IEntity> entities1 = connection1.run(sqlList3, 4, 1);
-            foreach (IEntity entity in entities1)
-            {
-                Console.Out.WriteLine(entity.getString());
-                entity.getString();
-            }
-            connection1.close();
+            DBConnection conn1 = new DBConnection();
+            conn1.connect(SERVER, PORT, "parallelism_test", "123456");
+            BasicTable re1 = (BasicTable)conn1.run("getConsoleJobs();", 5, 30, 0, false);
+            Assert.AreEqual("22", re1.getColumn(6).get(0).getString());
+        }
+
+        [TestMethod]//api没有设置parallelism，取默认值64，大于server的setMaxJobParallelism
+        public void test_DBConnection_run_parallelism_3()
+        {
+            DBConnection conn = new DBConnection();
+            PrepareUser("parallelism_test", "123456");
+            conn.connect(SERVER, PORT, "parallelism_test", "123456");
+            conn.run("setMaxJobParallelism(\"parallelism_test\",22);");
+            BasicTable re = (BasicTable)conn.run("getConsoleJobs();");
+            Console.Out.WriteLine(re.getString());
+
+            DBConnection conn1 = new DBConnection();
+            conn1.connect(SERVER, PORT, "parallelism_test", "123456");
+            BasicTable re1 = (BasicTable)conn1.run("getConsoleJobs();");
+            Console.Out.WriteLine(re1.getString());
+            Assert.AreEqual("22", re1.getColumn(6).get(0).getString());
         }
 
         [TestMethod]
