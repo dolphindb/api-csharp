@@ -37,8 +37,8 @@ namespace dolphindb_csharp_api_test.streamReverse_test
             //string localIP = "localhost";
             List<IEntity> @params = new List<IEntity>
                 {
-                    new BasicString(SERVER),
-                    new BasicInt(PORT)
+                    new BasicString("tablename"),
+                    new BasicString("activeName")
                 };
             conn.run("activeClosePublishConnection", @params);  
             

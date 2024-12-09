@@ -73,7 +73,7 @@ namespace dolphindb.data
         {
             return getString();
         }
-        
+
         public decimal getDecimalValue()
         {
             decimal tmp = value_;
@@ -229,6 +229,10 @@ namespace dolphindb.data
             hashCode = hashCode * -1521134295 + scale_.GetHashCode();
             hashCode = hashCode * -1521134295 + value_.GetHashCode();
             return hashCode;
+        }
+
+        public override int getExtraParamForType(){
+            return scale_;
         }
     }
 }

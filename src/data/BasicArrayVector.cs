@@ -25,17 +25,25 @@ namespace dolphindb.data
             valueVec = (AbstractVector)BasicEntityFactory.instance().createVectorWithDefaultValue(valueType, 0, extra);
             this.baseUnitLength_ = valueVec.getUnitLength();
         }
-        
+
         public BasicArrayVector(DATA_TYPE type, ExtendedDataInput @in) : base(DATA_FORM.DF_VECTOR)
         {
-            this.type = type;
             int rows = @in.readInt();
             int cols = @in.readInt();
+            this.type = type;
+            int scale = -1;
+            if (Utils.getCategory(type - ARRAY_VECTOR_BASE) == DATA_CATEGORY.DENARY)
+                scale = @in.readInt();
+            this.scale_ = scale;
+            DATA_TYPE valueType = type - 64;
+            valueVec = (AbstractVector)BasicEntityFactory.instance().createVectorWithDefaultValue(valueType, cols, this.scale_);
+            deserialize(rows, @in);
+        }
+
+        public void deserialize(int rows, ExtendedDataInput @in)
+        {
             rowIndices = new List<int>(new int[rows]);
             DATA_TYPE valueType = type - 64;
-            if (Utils.getCategory(type - ARRAY_VECTOR_BASE) == DATA_CATEGORY.DENARY)
-                this.scale_ = @in.readInt();
-            valueVec = (AbstractVector)BasicEntityFactory.instance().createVectorWithDefaultValue(valueType, cols, this.scale_);
             this.baseUnitLength_ = valueVec.getUnitLength();
 
             int rowsRead = 0;
@@ -93,7 +101,6 @@ namespace dolphindb.data
                 int rowStart = rowsRead == 0 ? 0 : rowIndices[rowsRead - 1];
                 int valueCount = rowIndices[rowsRead + rowsReadInBlock - 1] - rowStart;
                 valueVec.deserialize(rowStart, valueCount, @in);
-
                 rowsRead += rowsReadInBlock;
             }
         }
@@ -253,7 +260,7 @@ namespace dolphindb.data
                     }
                     curRows += index;
                     indiceCount++;
-                    byteRequest += countBytes + baseUnitLength_ * index; 
+                    byteRequest += countBytes + baseUnitLength_ * index;
                 }
                 indiceCount--;
                 @out.writeShort(indiceCount);

@@ -2051,7 +2051,7 @@ namespace dolphindb_csharp_api_test.data_test
         public void testBasicDecimal64Vector_run_arrayVector_add()
         {
             BasicArrayVector re1 = (BasicArrayVector)conn.run("arr = array(DECIMAL64(2)[], 0, 10).append!([[92233720368547758, NULL, 100000000000000, NULL, -92233720368547758, -100000000000000], [], [00i], [92233720368547758]]);arr1=add(arr, 1);arr1;");
-            Assert.AreEqual("[[92233720368547759.00,,100000000000001.00,,-92233720368547757.00,-99999999999999.00],[],[],[92233720368547759.00]]", re1.getString());
+            Assert.AreEqual("[[92233720368547759.00, , 100000000000001.00, , -92233720368547757.00, -99999999999999.00], [], [], [92233720368547759.00]]", re1.getString());
         }
 
         [TestMethod]
@@ -2065,14 +2065,14 @@ namespace dolphindb_csharp_api_test.data_test
                     "a";
             BasicArrayVector obj = (BasicArrayVector)conn.run(script);
             Console.WriteLine(obj.getString());
-            Assert.AreEqual("[1.1111,2.0000]", obj.getEntity(0).getString());
-            Assert.AreEqual("[1.0000,3.0000]", obj.getEntity(1).getString());
-            Assert.AreEqual("[34.1000,2.0000,111.0000]", obj.getEntity(2).getString());
+            Assert.AreEqual("[1.1111, 2.0000]", obj.getEntity(0).getString());
+            Assert.AreEqual("[1.0000, 3.0000]", obj.getEntity(1).getString());
+            Assert.AreEqual("[34.1000, 2.0000, 111.0000]", obj.getEntity(2).getString());
             Assert.AreEqual("[]", obj.getEntity(3).getString());
 
             obj.append(new BasicDecimal32Vector(new string[] { "0.0", "-123.00432", "132.204234", "100.0" }, 4));
             Assert.AreEqual(5, obj.rows());
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", obj.getEntity(4).getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", obj.getEntity(4).getString());
             conn.close();
         }
         [TestMethod]
@@ -2086,14 +2086,14 @@ namespace dolphindb_csharp_api_test.data_test
                     "a";
             BasicArrayVector obj = (BasicArrayVector)conn.run(script);
             Console.WriteLine(obj.getString());
-            Assert.AreEqual("[1.1111,2.0000]", obj.getEntity(0).getString());
-            Assert.AreEqual("[1.0000,3.0000]", obj.getEntity(1).getString());
-            Assert.AreEqual("[34.1000,2.0000,111.0000]", obj.getEntity(2).getString());
+            Assert.AreEqual("[1.1111, 2.0000]", obj.getEntity(0).getString());
+            Assert.AreEqual("[1.0000, 3.0000]", obj.getEntity(1).getString());
+            Assert.AreEqual("[34.1000, 2.0000, 111.0000]", obj.getEntity(2).getString());
             Assert.AreEqual("[]", obj.getEntity(3).getString());
 
             obj.append(new BasicDecimal32Vector(new string[] { "0.0", "-123.00432", "132.204234", "100.0" }, 4));
             Assert.AreEqual(5, obj.rows());
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", obj.getEntity(4).getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", obj.getEntity(4).getString());
             conn.close();
         }
         [TestMethod]
@@ -2107,14 +2107,14 @@ namespace dolphindb_csharp_api_test.data_test
                     "a";
             BasicArrayVector obj = (BasicArrayVector)conn.run(script);
             Console.WriteLine(obj.getString());
-            Assert.AreEqual("[1.1111,2.0000]", obj.getEntity(0).getString());
-            Assert.AreEqual("[1.0000,3.0000]", obj.getEntity(1).getString());
-            Assert.AreEqual("[34.1000,2.0000,111.0000]", obj.getEntity(2).getString());
+            Assert.AreEqual("[1.1111, 2.0000]", obj.getEntity(0).getString());
+            Assert.AreEqual("[1.0000, 3.0000]", obj.getEntity(1).getString());
+            Assert.AreEqual("[34.1000, 2.0000, 111.0000]", obj.getEntity(2).getString());
             Assert.AreEqual("[]", obj.getEntity(3).getString());
 
             obj.append(new BasicDecimal64Vector(new String[] { "0.0", "-123.00432", "132.204234", "100.0" }, 4));
             Assert.AreEqual(5, obj.rows());
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", obj.getEntity(4).getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", obj.getEntity(4).getString());
             conn.close();
         }
         [TestMethod]
@@ -2128,14 +2128,14 @@ namespace dolphindb_csharp_api_test.data_test
                     "a";
             BasicArrayVector obj = (BasicArrayVector)conn.run(script);
             Console.WriteLine(obj.getString());
-            Assert.AreEqual("[1.1111,2.0000]", obj.getEntity(0).getString());
-            Assert.AreEqual("[1.0000,3.0000]", obj.getEntity(1).getString());
-            Assert.AreEqual("[34.1000,2.0000,111.0000]", obj.getEntity(2).getString());
+            Assert.AreEqual("[1.1111, 2.0000]", obj.getEntity(0).getString());
+            Assert.AreEqual("[1.0000, 3.0000]", obj.getEntity(1).getString());
+            Assert.AreEqual("[34.1000, 2.0000, 111.0000]", obj.getEntity(2).getString());
             Assert.AreEqual("[]", obj.getEntity(3).getString());
 
             obj.append(new BasicDecimal64Vector(new String[] { "0.0", "-123.00432", "132.204234", "100.0" }, 4));
             Assert.AreEqual(5, obj.rows());
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", obj.getEntity(4).getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", obj.getEntity(4).getString());
             conn.close();
         }
         [TestMethod]
@@ -2149,14 +2149,14 @@ namespace dolphindb_csharp_api_test.data_test
                     "a";
             BasicArrayVector obj = (BasicArrayVector)conn.run(script);
             Console.WriteLine(obj.getString());
-            Assert.AreEqual("[1.1111,2.0000]", obj.getEntity(0).getString());
-            Assert.AreEqual("[1.0000,3.0000]", obj.getEntity(1).getString());
-            Assert.AreEqual("[34.1000,2.0000,111.0000]", obj.getEntity(2).getString());
+            Assert.AreEqual("[1.1111, 2.0000]", obj.getEntity(0).getString());
+            Assert.AreEqual("[1.0000, 3.0000]", obj.getEntity(1).getString());
+            Assert.AreEqual("[34.1000, 2.0000, 111.0000]", obj.getEntity(2).getString());
             Assert.AreEqual("[]", obj.getEntity(3).getString());
 
             obj.append(new BasicDecimal128Vector(new String[] { "0.0", "-123.00432", "132.204234", "100.0" }, 4));
             Assert.AreEqual(5, obj.rows());
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", obj.getEntity(4).getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", obj.getEntity(4).getString());
             conn.close();
         }
         [TestMethod]
@@ -2170,14 +2170,14 @@ namespace dolphindb_csharp_api_test.data_test
                     "a";
             BasicArrayVector obj = (BasicArrayVector)conn.run(script);
             Console.WriteLine(obj.getString());
-            Assert.AreEqual("[1.1111,2.0000]", obj.getEntity(0).getString());
-            Assert.AreEqual("[1.0000,3.0000]", obj.getEntity(1).getString());
-            Assert.AreEqual("[34.1000,2.0000,111.0000]", obj.getEntity(2).getString());
+            Assert.AreEqual("[1.1111, 2.0000]", obj.getEntity(0).getString());
+            Assert.AreEqual("[1.0000, 3.0000]", obj.getEntity(1).getString());
+            Assert.AreEqual("[34.1000, 2.0000, 111.0000]", obj.getEntity(2).getString());
             Assert.AreEqual("[]", obj.getEntity(3).getString());
 
             obj.append(new BasicDecimal128Vector(new String[] { "0.0", "-123.00432", "132.204234", "100.0" }, 4));
             Assert.AreEqual(5, obj.rows());
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", obj.getEntity(4).getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", obj.getEntity(4).getString());
             conn.close();
         }
 
@@ -2194,8 +2194,8 @@ namespace dolphindb_csharp_api_test.data_test
             vectors.Add(col2);
             BasicArrayVector obj = new BasicArrayVector(vectors,4);
             Console.WriteLine(obj.getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", obj.getEntity(0).getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", obj.getEntity(1).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", obj.getEntity(0).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", obj.getEntity(1).getString());
 
             Dictionary<String, IEntity> var1 = new Dictionary<string, IEntity>();
             var1.Add("arrayvector", obj);
@@ -2203,8 +2203,8 @@ namespace dolphindb_csharp_api_test.data_test
 
             BasicArrayVector res = (BasicArrayVector)conn.run("arrayvector");
 
-            Assert.AreEqual("[15645.0000,24635.0000]", res.getEntity(0).getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", res.getEntity(1).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", res.getEntity(0).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", res.getEntity(1).getString());
             conn.close();
         }
         [TestMethod]
@@ -2220,8 +2220,8 @@ namespace dolphindb_csharp_api_test.data_test
             vectors.Add(col2);
             BasicArrayVector obj = new BasicArrayVector(vectors, 4);
             Console.WriteLine(obj.getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", obj.getEntity(0).getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", obj.getEntity(1).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", obj.getEntity(0).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", obj.getEntity(1).getString());
 
             Dictionary<String, IEntity> var1 = new Dictionary<string, IEntity>();
             var1.Add("arrayvector", obj);
@@ -2229,8 +2229,8 @@ namespace dolphindb_csharp_api_test.data_test
 
             BasicArrayVector res = (BasicArrayVector)conn.run("arrayvector");
 
-            Assert.AreEqual("[15645.0000,24635.0000]", res.getEntity(0).getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", res.getEntity(1).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", res.getEntity(0).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", res.getEntity(1).getString());
             conn.close();
         }
         [TestMethod]
@@ -2246,8 +2246,8 @@ namespace dolphindb_csharp_api_test.data_test
             vectors.Add(col2);
             BasicArrayVector obj = new BasicArrayVector(vectors, 4);
             Console.WriteLine(obj.getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", obj.getEntity(0).getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", obj.getEntity(1).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", obj.getEntity(0).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", obj.getEntity(1).getString());
 
             Dictionary<String, IEntity> var1 = new Dictionary<string, IEntity>();
             var1.Add("arrayvector", obj);
@@ -2255,8 +2255,8 @@ namespace dolphindb_csharp_api_test.data_test
 
             BasicArrayVector res = (BasicArrayVector)conn.run("arrayvector");
 
-            Assert.AreEqual("[15645.0000,24635.0000]", res.getEntity(0).getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", res.getEntity(1).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", res.getEntity(0).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", res.getEntity(1).getString());
             conn.close();
         }
         [TestMethod]
@@ -2272,8 +2272,8 @@ namespace dolphindb_csharp_api_test.data_test
             vectors.Add(col2);
             BasicArrayVector obj = new BasicArrayVector(vectors, 4);
             Console.WriteLine(obj.getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", obj.getEntity(0).getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", obj.getEntity(1).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", obj.getEntity(0).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", obj.getEntity(1).getString());
 
             Dictionary<String, IEntity> var1 = new Dictionary<string, IEntity>();
             var1.Add("arrayvector", obj);
@@ -2281,8 +2281,8 @@ namespace dolphindb_csharp_api_test.data_test
 
             BasicArrayVector res = (BasicArrayVector)conn.run("arrayvector");
 
-            Assert.AreEqual("[15645.0000,24635.0000]", res.getEntity(0).getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", res.getEntity(1).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", res.getEntity(0).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", res.getEntity(1).getString());
             conn.close();
         }
         [TestMethod]
@@ -2298,8 +2298,8 @@ namespace dolphindb_csharp_api_test.data_test
             vectors.Add(col2);
             BasicArrayVector obj = new BasicArrayVector(vectors, 4);
             Console.WriteLine(obj.getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", obj.getEntity(0).getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", obj.getEntity(1).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", obj.getEntity(0).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", obj.getEntity(1).getString());
 
             Dictionary<String, IEntity> var1 = new Dictionary<string, IEntity>();
             var1.Add("arrayvector", obj);
@@ -2307,8 +2307,8 @@ namespace dolphindb_csharp_api_test.data_test
 
             BasicArrayVector res = (BasicArrayVector)conn.run("arrayvector");
 
-            Assert.AreEqual("[15645.0000,24635.0000]", res.getEntity(0).getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", res.getEntity(1).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", res.getEntity(0).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", res.getEntity(1).getString());
             conn.close();
         }
         [TestMethod]
@@ -2324,8 +2324,8 @@ namespace dolphindb_csharp_api_test.data_test
             vectors.Add(col2);
             BasicArrayVector obj = new BasicArrayVector(vectors,4);
             Console.WriteLine(obj.getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", obj.getEntity(0).getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", obj.getEntity(1).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", obj.getEntity(0).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", obj.getEntity(1).getString());
 
             Dictionary<String, IEntity> var1 = new Dictionary<string, IEntity>();
             var1.Add("arrayvector", obj);
@@ -2333,8 +2333,8 @@ namespace dolphindb_csharp_api_test.data_test
 
             BasicArrayVector res = (BasicArrayVector)conn.run("arrayvector");
 
-            Assert.AreEqual("[15645.0000,24635.0000]", res.getEntity(0).getString());
-            Assert.AreEqual("[15645.0000,24635.0000]", res.getEntity(1).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", res.getEntity(0).getString());
+            Assert.AreEqual("[15645.0000, 24635.0000]", res.getEntity(1).getString());
             conn.close();
         }
         [TestMethod]

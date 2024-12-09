@@ -123,13 +123,13 @@ namespace dolphindb.streaming
         }
 
 
-        public void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, StreamDeserializer deserializer = null, string user = "", string password = ""){
-            subscribe(host, port, tableName, actionName, handler, offset, reconnect, filter, deserializer, user, password, true);
+        public void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, StreamDeserializer deserializer = null, string user = "", string password = "", bool msgAsTable = false){
+            subscribe(host, port, tableName, actionName, handler, offset, reconnect, filter, deserializer, user, password, true, msgAsTable);
         }
 
-        private void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, StreamDeserializer deserializer, string user, string password, bool createSubInfo)
+        private void subscribe(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter, StreamDeserializer deserializer, string user, string password, bool createSubInfo, bool msgAsTable = false)
         {
-            BlockingCollection<List<IMessage>> queue = subscribeInternal(host, port, tableName, actionName, handler, offset, reconnect, filter, deserializer, user, password, createSubInfo);
+            BlockingCollection<List<IMessage>> queue = subscribeInternal(host, port, tableName, actionName, handler, offset, reconnect, filter, deserializer, user, password, createSubInfo, msgAsTable);
             lock (this)
             {
                 DBConnection dbConn = new DBConnection();

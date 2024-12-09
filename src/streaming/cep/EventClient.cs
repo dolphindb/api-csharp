@@ -130,7 +130,7 @@ namespace dolphindb.streaming.cep
                     };
                     IEntity re = dbConn.run("getSubscriptionTopic", @params);
                     string topic = ((BasicAnyVector)re).getEntity(0).getString();
-                    BlockingCollection<List<IMessage>> queue = subscribeInternal(host, port, tableName, actionName, null, offset, reconnect, filter, deserializer, user, password, createSubInfo);
+                    BlockingCollection<List<IMessage>> queue = subscribeInternal(host, port, tableName, actionName, null, offset, reconnect, filter, deserializer, user, password, createSubInfo, false);
                     if (createSubInfo)
                     {
                         lock (handlerLoopers)

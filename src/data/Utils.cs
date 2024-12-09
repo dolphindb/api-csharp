@@ -30,13 +30,13 @@ namespace dolphindb.data
         private static readonly int[] cumLeapMonthDays = new int[] { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 };
         private static readonly int[] monthDays = new int[] { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
         private static readonly int[] leapMonthDays = new int[] { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-        private static string API_VERSION = "3.00.1.1";
+        private static string API_VERSION = "3.00.2.0";
 
         public static string getAPIVersion()
         {
             return API_VERSION;
         }
-        
+
         public static int countMonths(DateTime date)
         {
             return date.Year * 12 + date.Month - 1;
@@ -1388,14 +1388,14 @@ namespace dolphindb.data
             {
                 return entity.getString();
             }
-            
+
         }
 
         public static object getRowDataTableObject(IVector vector, int rowIndex)
         {
             DATA_TYPE dType = vector.getDataType();
             if (dType == DATA_TYPE.DT_ANY)
-                return vector.get(rowIndex).getString();
+                return vector.getEntity(rowIndex).getString();
             DATA_CATEGORY category = Utils.getCategory(dType);
             return getRowDataTableObject(vector.getEntity(rowIndex));
         }

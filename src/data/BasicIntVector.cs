@@ -17,7 +17,7 @@ namespace dolphindb.data
         {
             if (list != null)
             {
-                
+
                 values = list.Where(x => x != null).Cast<int>().ToList();
                 //values = new int[list.Count];
                 //for (int i = 0; i < list.Count; ++i)
@@ -247,11 +247,6 @@ namespace dolphindb.data
         public override IEntity getEntity(int index)
         {
             return new BasicInt(values[index]);
-        }
-
-        public override int getExtraParamForType()
-        {
-            throw new NotImplementedException();
         }
     }
 }

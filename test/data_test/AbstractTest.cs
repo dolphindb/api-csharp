@@ -146,7 +146,7 @@ namespace dolphindb_csharp_api_test.data_test
                 Assert.AreEqual("False", bm.hasColumnLabel().ToString());
                 bm.setRowLabels(bsv);
                 Assert.AreEqual("MSFT", bm.getRowLabel(0).getString());
-                Assert.AreEqual("[MSFT,GOOG,META]", bm.getRowLabels().getString());
+                Assert.AreEqual("[MSFT, GOOG, META]", bm.getRowLabels().getString());
                 Assert.AreEqual("True", bm.hasRowLabel().ToString());
                 BasicSymbolVector bsyv = new BasicSymbolVector(3);
                 bsyv.set(0, "a");
@@ -154,7 +154,7 @@ namespace dolphindb_csharp_api_test.data_test
                 bsyv.set(2, "c");
                 bm.setColumnLabels(bsyv);
                 Assert.AreEqual("a", bm.getColumnLabel(0).getString());
-                Assert.AreEqual("[a,b,c]", bm.getColumnLabels().getString());
+                Assert.AreEqual("[a, b, c]", bm.getColumnLabels().getString());
                 String re = null;
                 try
                 {
@@ -281,7 +281,7 @@ namespace dolphindb_csharp_api_test.data_test
                 {
                 re6 = e.Message;
             }
-            Assert.AreEqual("The scalar can not be convert to datatable", re6);
+            Assert.AreEqual(true, re6.Contains("The method or operation is not implemented.") || re6.Contains("未实现该方法或操作。"));
             String re7 = null;
             try
             {

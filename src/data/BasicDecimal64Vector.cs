@@ -164,7 +164,11 @@ namespace dolphindb.data
 
         public override void deserialize(int start, int count, ExtendedDataInput @in)
         {
-            for(int i = 0; i < count; ++i)
+            if (start + count > values_.Count)
+            {
+                values_.AddRange(new long[start + count - values_.Count]);
+            }
+            for (int i = 0; i < count; ++i)
             {
                 values_[start + i] = @in.readLong(); 
             }

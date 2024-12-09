@@ -259,10 +259,5 @@ namespace dolphindb.data
         {
             return get(index);
         }
-
-        public override int getExtraParamForType()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

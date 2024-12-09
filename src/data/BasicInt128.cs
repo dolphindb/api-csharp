@@ -85,7 +85,12 @@ namespace dolphindb.data
 
         public override String getString()
         {
-            return String.Format("{0:x16}", value.high) + String.Format("{0:x16}", value.low);
+            if(isNull())
+            {
+                return "";
+            }else{
+                return String.Format("{0:x16}", value.high) + String.Format("{0:x16}", value.low);
+            }
         }
 
         public bool equals(Object o)

@@ -10,7 +10,7 @@ public class BasicInt128Vector : AbstractVector
     protected List<Long2> values;
 
     public BasicInt128Vector(int size) : this(DATA_FORM.DF_VECTOR, size)
-    {   
+    {
     }
 
 public BasicInt128Vector(List<Long2> list): base(DATA_FORM.DF_VECTOR)
@@ -42,7 +42,7 @@ internal BasicInt128Vector(DATA_FORM df, int size) : base(df)
     internal BasicInt128Vector(DATA_FORM df, ExtendedDataInput @in):base(df)
 {
 		int rows = @in.readInt();
-		int cols = @in.readInt(); 
+		int cols = @in.readInt();
 		int size = rows * cols;
         values = new List<Long2>();
         values.AddRange(new Long2[size]);
@@ -74,7 +74,7 @@ internal BasicInt128Vector(DATA_FORM df, int size) : base(df)
 			off += len;
 		}
 	}
-	
+
 	public override IScalar get(int index)
 {
     return new BasicInt128(values[index].high, values[index].low);
@@ -127,7 +127,7 @@ public void setInt128(int index, long highValue, long lowValue)
     return typeof(BasicInt128);
 	}
 
-	
+
     public override int rows()
 {
     return values.Count;
@@ -281,10 +281,4 @@ public void setInt128(int index, long highValue, long lowValue)
     {
         return get(index);
     }
-
-    public override int getExtraParamForType()
-    {
-        throw new NotImplementedException();
-    }
 }
-

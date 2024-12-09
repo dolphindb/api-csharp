@@ -244,7 +244,8 @@ namespace dolphindb_csharp_api_test.cep_test
 
             public void doEvent(String eventType, List<IEntity> attributes)
             {
-                var cols = new List<IVector>() { };
+                Console.Out.WriteLine("---------eventType------------");
+                var cols = new List<IEntity>() { };
                 var colNames = new List<String>() {   "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "datehourv", "uuidv",  "ippaddrv", "int128v"};
                 BasicArrayVector boolv = new BasicArrayVector(DATA_TYPE.DT_BOOL_ARRAY);
                 boolv.append((IVector)attributes[0]);
@@ -307,12 +308,26 @@ namespace dolphindb_csharp_api_test.cep_test
                 cols.Add(uuidv);
                 cols.Add(ippaddrv);
                 cols.Add(int128v);
-                BasicTable bt = new BasicTable(colNames, cols);
+                //BasicTable bt = new BasicTable(colNames, cols);
 
-                var variable = new Dictionary<string, IEntity>();
-                variable.Add("table_tmp", bt);
-                conn.upload(variable);
-                conn.run("outputTable.tableInsert(table_tmp)");
+                //var variable = new Dictionary<string, IEntity>();
+                //variable.Add("table_tmp", bt);
+                //conn.upload(variable);
+                //conn.run("outputTable.tableInsert(table_tmp)");
+                //Console.Out.WriteLine("eventType: " + eventType);
+                //for (int i = 0; i < attributes.Count; i++)
+                //{
+                //    Console.Out.WriteLine(attributes[i].getString());
+                    
+                //}
+                try
+                {
+                    conn.run("tableInsert{outputTable}", cols);
+                }
+                catch (Exception e)
+                {
+                    System.Console.Out.WriteLine(e.ToString());
+                }
             }
         };
 
@@ -1811,7 +1826,7 @@ namespace dolphindb_csharp_api_test.cep_test
                 {
                     IEntity pt = bt.getColumn(j).getEntity(i);
                     Console.Out.WriteLine(pt.getDataType());
-                    Console.Out.WriteLine(i + "行， " + j + "列：" + pt.getString());
+                    //Console.Out.WriteLine(i + "行， " + j + "列：" + pt.getString());
                     attributes.Add(pt);
                 }
                 sender.sendEvent("event_all_array_dateType", attributes);
@@ -1910,7 +1925,7 @@ namespace dolphindb_csharp_api_test.cep_test
             EventClient client = new EventClient(eventSchemas, eventTimeFields, commonFields);
 
             Handler_array handler_Array = new Handler_array();
-            client.subscribe(SERVER, PORT, "intput1", "test1", handler_Array, -1, true, "admin", "123456");
+            client.subscribe(SERVER, PORT, "intput1", "test1", handler_Array, 0, true, "admin", "123456");
 
             Preparedata_array(5000, 500);
             BasicTable bt = (BasicTable)conn.run("select * from data");
@@ -1920,20 +1935,20 @@ namespace dolphindb_csharp_api_test.cep_test
                     "\tappendEvent(inputSerializer, event_all_array_dateType1)\n" +
                     "\t}";
             conn.run(script2);
-            Thread.Sleep(5000);
+           // Thread.Sleep(5000);
             for (int i = 0; i < bt.rows(); i++)
             {
                 List<IEntity> attributes = new List<IEntity>();
                 for (int j = 0; j < bt.columns(); j++)
                 {
                     IEntity pt = bt.getColumn(j).getEntity(i);
-                    Console.Out.WriteLine(pt.getDataType());
-                    Console.Out.WriteLine(i + "行， " + j + "列：" + pt.getString());
+                   // Console.Out.WriteLine(pt.getDataType());
+                    //Console.Out.WriteLine(i + "行， " + j + "列：" + pt.getString());
                     attributes.Add(pt);
                 }
                 sender.sendEvent("event_all_array_dateType", attributes);
             }
-            Thread.Sleep(1000);
+            //Thread.Sleep(1000);
             BasicTable bt1 = (BasicTable)conn.run("select * from inputTable;");
             Assert.AreEqual(10, bt1.rows());
             BasicTable bt2 = (BasicTable)conn.run("select * from intput1;");

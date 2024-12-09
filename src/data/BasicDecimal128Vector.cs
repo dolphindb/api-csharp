@@ -163,6 +163,10 @@ namespace dolphindb.data
 
         public override void deserialize(int start, int count, ExtendedDataInput @in)
         {
+            if ((start + count) * 16 > values_.Count)
+            {
+                values_.AddRange(new byte[(start + count) * 16 - values_.Count]);
+            }
             for (int i = 0; i < count; ++i)
             {
                 byte[] bytes = new byte[16];
@@ -236,7 +240,7 @@ namespace dolphindb.data
 
         public override void serialize(int start, int count, ExtendedDataOutput @out)
         {
-            byte[] bytes = new byte[count * 16];  
+            byte[] bytes = new byte[count * 16];
             for(int i = 0; i < count; ++i)
             {
                 for(int j = 0; j < 16; ++j)

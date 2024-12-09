@@ -20,7 +20,9 @@ namespace dolphindb.data
         public abstract IScalar get(int index);
         public abstract void setNull(int index);
         public abstract bool isNull(int index);
-        public abstract int getExtraParamForType();
+        public virtual int getExtraParamForType(){
+            return 0;
+        }
 
         private DATA_FORM df_;
 
@@ -72,7 +74,7 @@ namespace dolphindb.data
             }
             for (int i = 1; i < size; ++i)
             {
-                sb.Append(',');
+                sb.Append(", ");
                 sb.Append(getEntity(i).getString());
             }
             if (size < rows())
@@ -272,7 +274,7 @@ namespace dolphindb.data
             }
             return unitLength;
         }
-        
+
         public virtual void writeCompressed(ExtendedDataOutput output) {
             int dataType = (int)this.getDataType();
             int unitLength = getUnitLength(this.getDataType());
@@ -295,7 +297,7 @@ namespace dolphindb.data
             if (Utils.getCategory((DATA_TYPE)(dataType - (dataType >　ARRAY_VECTOR_BASE ? 64 : 0))) == DATA_CATEGORY.DENARY)
                 outBuffer.WriteShort((short)getExtraParamForType());
             else
-                outBuffer.WriteShort((short)-1); 
+                outBuffer.WriteShort((short)-1);
             outBuffer.WriteInt(-1); //extra
             outBuffer.WriteInt(elementCount);
             outBuffer.WriteInt(-1); //TODO: checkSum

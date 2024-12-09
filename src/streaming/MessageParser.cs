@@ -181,9 +181,32 @@ namespace dolphindb.streaming
                             {
                                 if ( isListenMode() && rowSize == 1)
                                 {
-                                    BasicMessage rec = new BasicMessage(msgId, topic, dTable);
-                                    if (subscribeInfo.getDeseriaLizer() != null)
-                                        rec = subscribeInfo.getDeseriaLizer().parse(rec);
+                                    BasicAnyVector convertCols = new BasicAnyVector(colSize);
+                                    for(int i = 0; i < colSize; i++)
+                                    {
+                                        IEntity val = dTable.getEntity(i);
+                                        DATA_FORM dataForm = val.getDataForm();
+                                        DATA_TYPE dataType = val.getDataType();
+                                        if(dataForm == DATA_FORM.DF_VECTOR)
+                                        {
+                                            int extra = ((AbstractVector)val).getExtraParamForType();
+                                            BasicArrayVector col = new BasicArrayVector(dataType, extra);
+                                            col.append((AbstractVector)val);
+                                            convertCols.setEntity(i, col);
+                                        }
+                                        else
+                                        {
+                                            int extra = ((AbstractScalar)val).getExtraParamForType();
+                                            IVector col = BasicEntityFactory.instance().createVectorWithDefaultValue(dataType, 0, extra);
+                                            col.append((AbstractScalar)val);
+                                            convertCols.setEntity(i, col);
+                                        }
+                                    }
+                                    dTable = convertCols;
+                                }
+                                if (subscribeInfo.getMsgAsTable())
+                                {
+                                    BasicMessage rec = new BasicMessage(msgId - rowSize + 1, topic, dTable, "", subscribeInfo.getColsName());
                                     dispatcher_.dispatch(rec);
                                 }
                                 else

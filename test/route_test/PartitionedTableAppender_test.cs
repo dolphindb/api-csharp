@@ -20,6 +20,37 @@ namespace dolphindb_csharp_api_test.route_test
         private readonly string USER = MyConfigReader.USER;
         private readonly string PASSWORD = MyConfigReader.PASSWORD;
 
+        static void compareBasicTable(BasicTable table, BasicTable newTable)
+        {
+            Assert.AreEqual(table.rows(), newTable.rows());
+            Assert.AreEqual(table.columns(), newTable.columns());
+            int cols = table.columns();
+            for (int i = 0; i < cols; i++)
+            {
+                AbstractVector v1 = (AbstractVector)table.getColumn(i);
+                AbstractVector v2 = (AbstractVector)newTable.getColumn(i);
+                if (!v1.Equals(v2))
+                {
+                    for (int j = 0; j < table.rows(); j++)
+                    {
+                        int failCase = 0;
+                        AbstractScalar e1 = (AbstractScalar)table.getColumn(i).get(j);
+                        Console.WriteLine(e1.toString());
+
+                        AbstractScalar e2 = (AbstractScalar)newTable.getColumn(i).get(j);
+                        Console.WriteLine(e2.toString());
+
+                        if (e1.getString().Equals(e2.getString()) == false)
+                        {
+                            Console.WriteLine("Column " + i + ", row " + j + " expected: " + e1.getString() + " actual: " + e2.getString());
+                            failCase++;
+                        }
+                        Assert.AreEqual(0, failCase);
+                    }
+
+                }
+            }
+        }
 
         [TestMethod]
         public void createPartitionedTableAppender()
@@ -730,6 +761,83 @@ namespace dolphindb_csharp_api_test.route_test
             Assert.AreEqual(v1284.getString(), ((BasicArrayVector)(res.getColumn("col4"))).getSubVector(0).getString());
 
             pool.shutdown();
+        }
+
+        [TestMethod]
+        public void Test_PartitionedTableAppender_dfs_allDateType()
+        {
+            DBConnection conn = new DBConnection(false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = null;
+            script = "cbool = true false false;\n";
+            script += "cchar = 'a' 'b' 'c';\n";
+            script += "cshort = 122h 32h 45h;\n";
+            script += "cint = 1 4 9;\n";
+            script += "clong = 17l 39l 72l;\n";
+            script += "cdate = 2013.06.13 2015.07.12 2019.08.15;\n";
+            script += "cmonth = 2011.08M 2014.02M 2019.07M;\n";
+            script += "ctime = 04:15:51.921 09:27:16.095 11:32:28.387;\n";
+            script += "cminute = 03:25m 08:12m 10:15m;\n";
+            script += "csecond = 01:15:20 04:26:45 09:22:59;\n";
+            script += "cdatetime = 1976.09.10 02:31:42 1987.12.13 11:58:31 1999.12.10 20:49:23;\n";
+            script += "ctimestamp = 1997.07.20 21:45:16.339 2002.11.26 12:40:31.783 2008.08.10 23:54:27.629;\n";
+            script += "cnanotime = 01:25:33.365869429 03:47:25.364828475 08:16:22.748395721;\n";
+            script += "cnanotimestamp = 2005.09.23 13:30:35.468385940 2007.12.11 14:54:38.949792731 2009.09.30 16:39:51.973463623;\n";
+            script += "cfloat = 7.5f 0.79f 8.27f;\n";
+            script += "cdouble = 5.7 7.2 3.9;\n";
+            script += "cstring = \"hello\" \"hi\" \"here\";\n";
+            script += "csymbol = \"hello\" \"hello\" \"hello\";\n";
+            script += "cdatehour = datehour(2012.06.15 15:32:10.158 2012.06.15 17:30:10.008 2014.09.29 23:55:42.693);\n";
+            script += "cblob = blob(\"dolphindb\" \"gaussdb\" \"goldendb\")\n";
+            script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
+            script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
+            script += "cdecimal128 = decimal128(18 24 33.878,10)\n";
+            script += "t = table(cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
+            script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
+            script += "cstring,csymbol,cdatehour,cblob,cdecimal32,cdecimal64,cdecimal128);";
+            script += "dbPath = \"dfs://tableAppenderTest\"\n";
+            script += "if(existsDatabase(dbPath))\n";
+            script += "dropDatabase(dbPath)\n";
+            script += "db=database(dbPath,VALUE, 1..10,engine='TSDB')\n";
+            script += "pt = db.createPartitionedTable(t,`pt,`cint,,`cint`cdate)";
+            conn.run(script);
+            BasicTable re = (BasicTable)conn.run("select * from t");
+            IDBConnectionPool pool = new ExclusiveDBConnectionPool(SERVER, PORT, USER, PASSWORD, 5, true, true);
+            PartitionedTableAppender appender = new PartitionedTableAppender("dfs://tableAppenderTest", "pt", "cint", pool);
+            int res = appender.append(re);
+            BasicTable ua = (BasicTable)conn.run("select * from pt;");
+            Assert.AreEqual(3, ua.rows());
+            compareBasicTable(re, ua);
+            conn.close();
+        }
+
+        [TestMethod]
+        public void Test_PartitionedTableAppender_dfs_allDateType1()
+        {
+            DBConnection conn = new DBConnection(false);
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "n=100;\n";
+            script += "intv = 1..100;\n";
+            script += "uuidv = rand(rand(uuid(), 10) join take(uuid(), 4), n);\n";
+            script += "ippaddrv = rand(rand(ipaddr(), 1000) join take(ipaddr(), 4), n)\n";
+            script += "int128v = rand(rand(int128(), 1000) join take(int128(), 4), n);\n";
+            //script += "complexv = rand(complex(rand(100, 1000), rand(100, 1000)) join NULL, n);\n";
+            //script += "pointv = rand(point(rand(100, 1000), rand(100, 1000)) join NULL, n);\n";
+            script += "t = table(intv,uuidv,ippaddrv,int128v)\n";
+            script += "dbPath = \"dfs://tableAppenderTest\"\n";
+            script += "if(existsDatabase(dbPath))\n";
+            script += "dropDatabase(dbPath)\n";
+            script += "db=database(dbPath,VALUE, 1..10,engine='TSDB')\n";
+            script += "pt = db.createPartitionedTable(t,`pt,`intv,,`intv)\n";
+            conn.run(script);
+            BasicTable re = (BasicTable)conn.run("select * from t;");
+            IDBConnectionPool pool = new ExclusiveDBConnectionPool(SERVER, PORT, USER, PASSWORD, 5, true, true);
+            PartitionedTableAppender appender = new PartitionedTableAppender("dfs://tableAppenderTest", "pt", "intv", pool);
+            int res = appender.append(re);
+            BasicTable ua = (BasicTable)conn.run("select * from loadTable(\"dfs://tableAppenderTest\",`pt);");
+            Assert.AreEqual(100, ua.rows());
+            compareBasicTable(re, ua);
+            conn.close();
         }
 
         [TestMethod]

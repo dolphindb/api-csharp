@@ -34,7 +34,7 @@ namespace dolphindb.data
         }
         protected internal BasicByteVector(DATA_FORM df, int size) : base(df)
         {
-           
+
             values = new List<byte>(size);
             values.AddRange(new byte[size]);
         }
@@ -72,7 +72,7 @@ namespace dolphindb.data
             {
                 values[index] = value.getNumber().byteValue();
             }
-            
+
         }
 
         public virtual void setByte(int index, byte value)
@@ -237,11 +237,6 @@ namespace dolphindb.data
         public override IEntity getEntity(int index)
         {
             return new BasicByte(values[index]);
-        }
-
-        public override int getExtraParamForType()
-        {
-            throw new NotImplementedException();
         }
     }
 

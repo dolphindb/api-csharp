@@ -299,7 +299,7 @@ namespace dolphindb.data
             }
             else
             {
-                //123.5.5 
+                //123.5.5
                 throw new FormatException("decimal data form is not correct: " + data);
             }
 
@@ -354,6 +354,10 @@ namespace dolphindb.data
             hashCode = hashCode * -1521134295 + scale_.GetHashCode();
             hashCode = hashCode * -1521134295 + value_.GetHashCode();
             return hashCode;
+        }
+
+        public override int getExtraParamForType(){
+            return scale_;
         }
     }
 }

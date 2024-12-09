@@ -24,14 +24,14 @@ namespace dolphindb
     /// <summary>
     /// Sets up a connection to DolphinDB server through TCP/IP protocol
     /// Executes DolphinDB scripts
-    /// 
+    ///
     /// Example:
-    /// 
+    ///
     /// import dolphindb;
     /// DBConnection conn = new DBConnection();
     /// boolean success = conn.connect("localhost", 8080);
     /// conn.run("sum(1..100)");
-    /// 
+    ///
     /// </summary>
 
     public class DBConnection
@@ -254,9 +254,18 @@ namespace dolphindb
                     @in = littleEndian_ ? new LittleEndianDataInputStream(new BufferedStream(new NetworkStream(socket_))) :
                         (ExtendedDataInput)new BigEndianDataInputStream(new BufferedStream(new NetworkStream(socket_)));
                 }
-
                 isConnected_ = true;
 
+                if (!asynTask_)
+                {
+                    if (!((BasicBoolean)run("iif(getNodeType() == 0 or getNodeType() == 3 or getNodeType() == 4, isDataNodeInitialized(), bool(1))")).getValue())
+                    {
+                        System.Console.WriteLine("data node is not initialized. ");
+                        socket_.Close();
+                        isConnected_ = false;
+                        return false;
+                    }
+                }
 
                 if (userId_ != null && userId_.Length > 0 && password_.Length > 0)
                 {
@@ -331,6 +340,9 @@ namespace dolphindb
 
                     if (parallelism <= 0 || parallelism > 64)
                         throw new InvalidOperationException("parallelism must be greater than 0 and less than 65");
+
+                    if (priority < 0 || priority > 8)
+                        throw new InvalidOperationException("priority must be greater than -1 and less than 9");
 
                     script = script.Replace(Environment.NewLine, "\n");
 
@@ -1211,30 +1223,32 @@ namespace dolphindb
 
         ExceptionType parseException(string msg, out string host, out int port)
         {
+            host = "";
+            port = 0;
             int index = msg.IndexOf("<NotLeader>");
             if (index != -1)
             {
+                System.Console.WriteLine("check exception message: " + msg);
                 index = msg.IndexOf(">");
-                string ipport = msg.Substring(index + 1);
-                parseIpPort(ipport, out host, out port);
+                string ipPort = msg.Substring(index + 1);
+                parseIpPort(ipPort, out host, out port);
                 Console.Out.WriteLine(string.Format("New leader is {0}:{1}.", host, port));
                 return ExceptionType.ET_NEWLEADER;
             }
-            else if((index = msg.IndexOf("<DataNodeNotAvail>")) != -1)
+            else if((index = msg.IndexOf("<DataNodeNotAvail>")) != -1 || (index = msg.IndexOf("<DataNodeNotReady>")) != -1)
             {
-                index = msg.IndexOf(">");
-                string ipPort = msg.Substring(index + 1);
-                string newIp;
-                int newPort;
-                parseIpPort(ipPort, out newIp, out newPort);
-                string lastHost;
-                int lastPort;
-                conn_.getHostPort(out lastHost, out lastPort);
+                System.Console.WriteLine("check exception message: " + msg);
+                // index = msg.IndexOf(">");
+                // string ipPort = msg.Substring(index + 1);
+                // string newIp;
+                // int newPort;
+                // parseIpPort(ipPort, out newIp, out newPort);
+                // string lastHost;
+                // int lastPort;
+                // conn_.getHostPort(out lastHost, out lastPort);
                 //if (lastHost == newIp && lastPort == newPort)
                 //{
-                host = "";
-                port = 0;
-                Console.Out.WriteLine(msg);
+                //Console.Out.WriteLine(msg);
                 return ExceptionType.ET_NODENOTAVAIL;
                 //}
                 //else
@@ -1247,31 +1261,31 @@ namespace dolphindb
             }
             else if((index = msg.IndexOf("The datanode isn't initialized yet. Please try again later")) != -1 || (index = msg.IndexOf("DFS is not enabled or the script was not executed on a data node.")) != -1)
             {
-                host = "";
-                port = 0;
+                System.Console.WriteLine("check exception message: " + msg);
                 return ExceptionType.ET_NOINITIALIZED;
             }
             else if ((index = msg.IndexOf("Data type")) != -1 && (index = msg.IndexOf("is not supported")) != -1)
             {
-                host = "";
-                port = 0;
+                System.Console.WriteLine("check exception message: " + msg);
                 return ExceptionType.ET_NOTSUPPORT;
             }
             else
             {
-                host = "";
-                port = 0;
+                System.Console.WriteLine("exception thrown in run: " + msg);
                 return ExceptionType.ET_UNKNOW;
             }
         }
 
         void parseIpPort(string ipPort, out string ip, out int port)
         {
+            ip = "";
+            port = 0;
             string[] v = ipPort.Split(':');
             if (v.Length < 2)
             {
-                throw new InvalidOperationException("The format of highAvailabilitySite " + ipPort +
-                    " is incorrect, should be host:port, e.g. 192.168.1.1:8848");
+                return;
+                // throw new InvalidOperationException("The format of highAvailabilitySite " + ipPort +
+                //     " is incorrect, should be host:port, e.g. 192.168.1.1:8848");
             }
             ip = v[0];
             port = int.Parse(v[1]);

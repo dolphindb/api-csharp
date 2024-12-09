@@ -72,7 +72,12 @@ namespace dolphindb.data
 
         public virtual DataTable toDataTable()
         {
-            throw new NotImplementedException("The scalar can not be convert to datatable");
+            DataTable dt = new DataTable();
+            dt.Columns.Add("dolphinScalar", Utils.getSystemType(getDataType()));
+            DataRow dr = dt.NewRow();
+            dr[0] = Utils.getRowDataTableObject(this);
+            dt.Rows.Add(dr);
+            return dt;
         }
 
         public abstract object getObject();
@@ -89,6 +94,10 @@ namespace dolphindb.data
         public virtual int getScale()
         {
             throw new NotImplementedException();
+        }
+
+        public virtual int getExtraParamForType(){
+            return 0;
         }
     }
 }

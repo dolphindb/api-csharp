@@ -251,13 +251,17 @@ namespace dolphindb.streaming
 
         protected BlockingCollection<List<IMessage>> subscribeInternal(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter)
         {
-            return subscribeInternal(host, port, tableName, actionName, handler, offset, reconnect, filter, null, "", "", true);
+            return subscribeInternal(host, port, tableName, actionName, handler, offset, reconnect, filter, null, "", "", true, false);
         }
 
 
         protected BlockingCollection<List<IMessage>> subscribeInternal(string host, int port, string tableName, string actionName, MessageHandler handler, long offset, bool reconnect, IVector filter,
-        StreamDeserializer deserializer, string user, string password, bool createSubInfo)
+        StreamDeserializer deserializer, string user, string password, bool createSubInfo, bool msgAsTable)
         {
+            if (deserializer != null && msgAsTable)
+            {
+                throw new Exception("Cannot set deserializer when msgAsTable is true. ");
+            }
             checkServerVersion(host, port);
             string topic = "";
             IEntity re;
@@ -302,6 +306,15 @@ namespace dolphindb.streaming
 
                 re = dbConn.run("getSubscriptionTopic", @params);
                 topic = ((BasicAnyVector)re).getEntity(0).getString();
+                List<string> colsName = new List<string>();
+                if(!(((BasicAnyVector)re).getEntity(1) is data.Void))
+                {
+                    AbstractVector paramCols = (AbstractVector)((BasicAnyVector)re).getEntity(1);
+                    for (int i = 0; i < paramCols.rows(); ++i)
+                    {
+                        colsName.Add(paramCols.getEntity(i).getString());
+                    }
+                }
                 @params.Clear();
 
                 @params.Add(new BasicString(localIP));
@@ -343,7 +356,7 @@ namespace dolphindb.streaming
                                 HATopicToTrueTopic_[topic] = topic;
                             }
                         }
-                        SubscribeInfo subscribeInfo = new SubscribeInfo(DateTime.Now, new BlockingCollection<List<IMessage>>(4096), sites, topic, offset - 1, reconnect, filter, handler, tableName, actionName, deserializer, user, password);
+                        SubscribeInfo subscribeInfo = new SubscribeInfo(DateTime.Now, new BlockingCollection<List<IMessage>>(4096), sites, topic, offset - 1, reconnect, filter, handler, tableName, actionName, deserializer, user, password, msgAsTable, colsName);
                         subscribeInfo.setConnectState(ConnectState.REQUEST);
                         queue = subscribeInfo.getQueue();
                         if (subscribeInfos_.ContainsKey(topic))

@@ -246,7 +246,7 @@ namespace dolphindb.data
                     @out.writeString(str);
                 }
             }
-            
+
         }
 
         public  int serialize(byte[] buf, int bufSize, int start, int elementCount, out int offect)
@@ -342,7 +342,7 @@ namespace dolphindb.data
                 {
                     sub[i] = blobValues[indices[i]];
                 }
-                return new BasicStringVector(sub);                                                      
+                return new BasicStringVector(sub);
             }
             else {
                 String[] sub = new String[length];
@@ -511,11 +511,6 @@ namespace dolphindb.data
         public override IEntity getEntity(int index)
         {
             return get(index);
-        }
-
-        public override int getExtraParamForType()
-        {
-            throw new NotImplementedException();
         }
     }
 

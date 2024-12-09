@@ -141,7 +141,18 @@ namespace dolphindb.streaming
                 dataStream.readInt();
                 BasicAnyVector ret = new BasicAnyVector(columns);
                 for (int i = 0; i < columns; ++i)
-                    ret.setEntity(i, basicEntityFactory.createEntity(DATA_FORM.DF_SCALAR, colTypes_[i], dataStream, false));
+                {
+                    if ((int)colTypes_[i] < AbstractVector.ARRAY_VECTOR_BASE)
+                    {
+                        ret.setEntity(i, basicEntityFactory.createEntity(DATA_FORM.DF_SCALAR, colTypes_[i], dataStream, false));
+                    }
+                    else
+                    {
+                        BasicArrayVector basicArrayVector = new BasicArrayVector(colTypes_[i], -1);
+                        basicArrayVector.deserialize(1, dataStream);
+                        ret.setEntity(i, basicArrayVector);
+                    }
+                }
                 return ret;
             }
         }

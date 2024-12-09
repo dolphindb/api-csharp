@@ -68,7 +68,7 @@ namespace dolphindb_csharp_api_test.data_test
             Assert.AreEqual(0, bcv.hashBucket(0, 1));
             int[] indices = new int[10];
             bcv.getSubVector(indices);
-            Assert.AreEqual("[,2,1,4,5,6,7]", bcv.getString());
+            Assert.AreEqual("[, 2, 1, 4, 5, 6, 7]", bcv.getString());
             IScalar scalar = (IScalar)conn.run("6");
             Assert.AreEqual(5, bcv.asof(scalar));
             //ExtendedDataInput extendedDataInput = (ExtendedDataInput)conn.run("1");
@@ -280,7 +280,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicDateHourVector bcv = new BasicDateHourVector(args);
             IScalar tt = new BasicDateHour(2);
             bcv.append(tt);
-            Assert.AreEqual("[1970.01.01T01,1970.01.01T02]", bcv.getString());
+            Assert.AreEqual("[1970.01.01T01, 1970.01.01T02]", bcv.getString());
         }
 
         [TestMethod]
@@ -355,7 +355,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicDateTimeVector bdtv = new BasicDateTimeVector(arr);
             IScalar tt = new BasicDateTime(2);
             bdtv.append(tt);
-            Assert.AreEqual("[1970.01.01T00:00:01,1970.01.01T00:00:00,1970.01.01T00:00:02]", bdtv.getString());
+            Assert.AreEqual("[1970.01.01T00:00:01, 1970.01.01T00:00:00, 1970.01.01T00:00:02]", bdtv.getString());
         }
 
         [TestMethod]
@@ -417,7 +417,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicDateVector bcv = new BasicDateVector(args);
             IScalar tt = new BasicDate(2);
             bcv.append(tt);
-            Assert.AreEqual("[1970.01.02,1970.01.03]", bcv.getString());
+            Assert.AreEqual("[1970.01.02, 1970.01.03]", bcv.getString());
         }
 
         [TestMethod]
@@ -478,7 +478,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicDoubleVector bdv = new BasicDoubleVector(args);
             IScalar tt = new BasicDouble(2);
             bdv.append(tt);
-            Assert.AreEqual("[1.50000000,2.00000000]", bdv.getString());
+            Assert.AreEqual("[1.50000000, 2.00000000]", bdv.getString());
         }
 
             [TestMethod]
@@ -540,7 +540,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicFloatVector bfv = new BasicFloatVector(args);
             IScalar tt = new BasicFloat(2);
             bfv.append(tt);
-            Assert.AreEqual("[1.50000000,2.00000000]", bfv.getString());
+            Assert.AreEqual("[1.50000000, 2.00000000]", bfv.getString());
         }
 
 
@@ -581,7 +581,7 @@ namespace dolphindb_csharp_api_test.data_test
             IScalar tt = new BasicIPAddr((long)1, (long)1);
             biv.append(tt);
             Console.WriteLine(biv.getString());
-            Assert.AreEqual("[0.0.0.0,0::1:0:0:0:1]", biv.getString());
+            Assert.AreEqual("[, 0::1:0:0:0:1]", biv.getString());
         }
 
         [TestMethod]
@@ -619,7 +619,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicIntVector biv = new BasicIntVector(1);
             IScalar tt = new BasicInt(1);
             biv.append(tt);
-            Assert.AreEqual("[0,1]", biv.getString());
+            Assert.AreEqual("[0, 1]", biv.getString());
         }
 
 
@@ -665,7 +665,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicLongVector biv = new BasicLongVector(1);
             IScalar tt = new BasicLong(1);
             biv.append(tt);
-            Assert.AreEqual("[0,1]", biv.getString());
+            Assert.AreEqual("[0, 1]", biv.getString());
         }
 
         [TestMethod]
@@ -728,7 +728,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicMinuteVector biv = new BasicMinuteVector(1);
             IScalar tt = new BasicMinute(1);
             biv.append(tt);
-            Assert.AreEqual("[00:00:00,00:01:00]", biv.getString());
+            Assert.AreEqual("[00:00:00, 00:01:00]", biv.getString());
         }
 
         [TestMethod]
@@ -750,7 +750,7 @@ namespace dolphindb_csharp_api_test.data_test
             Assert.AreEqual(new DateTime(0001, 12, 01), blv.getMonth(0));
             blv.set(0, "wesdsd");
             Console.Out.WriteLine(blv.getString());
-            Assert.AreEqual("[,2012.06M]", blv.getString());
+            Assert.AreEqual("[, 2012.06M]", blv.getString());
             try
             {
                 blv.set(0, (IScalar)conn.run("2018"));
@@ -877,7 +877,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicNanoTimeVector biv = new BasicNanoTimeVector(1);
             IScalar tt = new BasicNanoTime(1);
             biv.append(tt);
-            Assert.AreEqual("[00:00:00.000000000,00:00:00.000000001]", biv.getString());
+            Assert.AreEqual("[00:00:00.000000000, 00:00:00.000000001]", biv.getString());
         }
 
         [TestMethod]
@@ -1025,7 +1025,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicSecondVector biv = new BasicSecondVector(1);
             IScalar tt = new BasicSecond(1);
             biv.append(tt);
-            Assert.AreEqual("[00:00:00,00:00:01]", biv.getString());
+            Assert.AreEqual("[00:00:00, 00:00:01]", biv.getString());
         }
 
         [TestMethod]
@@ -1080,7 +1080,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicShortVector biv = new BasicShortVector(1);
             IScalar tt = new BasicShort(1);
             biv.append(tt);
-            Assert.AreEqual("[0,1]", biv.getString());
+            Assert.AreEqual("[0, 1]", biv.getString());
         }
 
         [TestMethod]
@@ -1117,15 +1117,12 @@ namespace dolphindb_csharp_api_test.data_test
 
             biv.add((IScalar)conn.run("blob(\"hello\")"));
             //Assert.AreEqual("hello", biv.getString(1));
-
             biv.addRange(new List<string> { "1qaz", "2wsx", "1!@#$%^&*()_+QWERTYUIOP{}|\\\":LKJHGFDSAZXCVBNM<>?/.,;'[]\\=-0987654321`~" });
             Assert.AreEqual(5, biv.rows());
             Assert.AreEqual("1qaz", biv.getString(2));
             Assert.AreEqual("2wsx", biv.getString(3));
             Assert.AreEqual("1!@#$%^&*()_+QWERTYUIOP{}|\\\":LKJHGFDSAZXCVBNM<>?/.,;'[]\\=-0987654321`~", biv.getString(4));
-
-            Console.Out.WriteLine(biv.getSubVector(new int[] { 1, 2, 3 }).ToString());
-
+            Assert.AreEqual("[1234, 1qaz, 2wsx]", biv.getSubVector(new int[] { 0, 2, 3 }).getString());
             int i = 0;
             Stream outStream = new MemoryStream();
             ExtendedDataOutput out1 = new BigEndianDataOutputStream(outStream);
@@ -1174,7 +1171,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicStringVector biv = new BasicStringVector(1);
             IScalar tt = new BasicString("1");
             biv.append(tt);
-            Assert.AreEqual("[,1]", biv.getString());
+            Assert.AreEqual("[, 1]", biv.getString());
         }
 
         [TestMethod]
@@ -1261,9 +1258,7 @@ namespace dolphindb_csharp_api_test.data_test
                 Assert.AreEqual(true, ex.Message.Contains("未实现该方法或操作。") || ex.Message.Contains("The method or operation is not implemented."));
             }
 
-
-            Console.Out.WriteLine(biv.getSubVector(new int[] { 1, 2, 3 }).ToString());
-
+            Assert.AreEqual("[A1, A2, A3]", biv.getSubVector(new int[] { 1, 2, 3 }).getString());
             Assert.AreEqual("LITERAL", biv.getDataCategory().ToString());
             Assert.AreEqual("dolphindb.data.BasicString", biv.getElementClass().ToString());
             Assert.AreEqual("DT_SYMBOL", biv.getDataType().ToString());
@@ -1276,7 +1271,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicSymbolVector biv = new BasicSymbolVector(1);
             IScalar tt = new BasicString("1");
             biv.append(tt);
-            Assert.AreEqual("[,1]", biv.getString());
+            Assert.AreEqual("[, 1]", biv.getString());
         }
 
         [TestMethod]
@@ -1325,7 +1320,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicTimeVector biv = new BasicTimeVector(1);
             IScalar tt = new BasicTime(1);
             biv.append(tt);
-            Assert.AreEqual("[00:00:00.000,00:00:00.001]", biv.getString());
+            Assert.AreEqual("[00:00:00.000, 00:00:00.001]", biv.getString());
         }
 
         [TestMethod]
@@ -1337,7 +1332,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicUuidVector buv1 = new BasicUuidVector(values);
             buv1.append(entities);
             //Console.WriteLine(buv1.getString());
-            Assert.AreEqual("[00000000-0000-0001-0000-000000000003,00000000-0000-0001-0000-000000000003]", buv1.getString());
+            Assert.AreEqual("[00000000-0000-0001-0000-000000000003, 00000000-0000-0001-0000-000000000003]", buv1.getString());
         }
 
         [TestMethod]
@@ -2120,19 +2115,19 @@ namespace dolphindb_csharp_api_test.data_test
         {
             String[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal32Vector tmp_32_v = new BasicDecimal32Vector(tmp_string_v, 4);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_32_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_32_v.getString());
 
             String[] tmp_string_v1 = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal32Vector tmp_32_v1 = new BasicDecimal32Vector(tmp_string_v1, 0);
-            Assert.AreEqual("[0,-123,132,100]", tmp_32_v1.getString());
+            Assert.AreEqual("[0, -123, 132, 100]", tmp_32_v1.getString());
 
             String[] tmp_string_v2 = { "0.49", "-123.49", "132.99", "-0.51" };
             BasicDecimal32Vector tmp_32_v2 = new BasicDecimal32Vector(tmp_string_v2, 0);
-            Assert.AreEqual("[0,-123,133,-1]", tmp_32_v2.getString());
+            Assert.AreEqual("[0, -123, 133, -1]", tmp_32_v2.getString());
 
             String[] tmp_string_v3 = { "0.0", "-1.00000001", "1.00000001", "9.99999999", "-9.99999999" };
             BasicDecimal32Vector tmp_32_v3 = new BasicDecimal32Vector(tmp_string_v3, 8);
-            Assert.AreEqual("[0.00000000,-1.00000001,1.00000001,9.99999999,-9.99999999]", tmp_32_v3.getString());
+            Assert.AreEqual("[0.00000000, -1.00000001, 1.00000001, 9.99999999, -9.99999999]", tmp_32_v3.getString());
 
             String[] tmp_string_v4 = { };
             BasicDecimal32Vector tmp_32_v4 = new BasicDecimal32Vector(tmp_string_v4, 4);
@@ -2141,19 +2136,19 @@ namespace dolphindb_csharp_api_test.data_test
             List<String> list_string_v = new List<String>() { "0.0", "-123.00432", "132.204234", "100.0" };
 
             BasicDecimal32Vector list_64_v = new BasicDecimal32Vector(list_string_v, 4);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", list_64_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", list_64_v.getString());
 
             List<String> list_string_v1 = new List<String>() { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal32Vector list_64_v1 = new BasicDecimal32Vector(list_string_v1, 0);
-            Assert.AreEqual("[0,-123,132,100]", list_64_v1.getString());
+            Assert.AreEqual("[0, -123, 132, 100]", list_64_v1.getString());
 
             List<String> list_string_v2 = new List<String>() { "0.49", "-123.49", "132.99", "-0.51" };
             BasicDecimal32Vector list_64_v2 = new BasicDecimal32Vector(list_string_v2, 0);
-            Assert.AreEqual("[0,-123,133,-1]", list_64_v2.getString());
+            Assert.AreEqual("[0, -123, 133, -1]", list_64_v2.getString());
 
             List<String> list_string_v3 = new List<String>() { "0.0", "-1.00000001", "1.00000001", "9.99999999", "-9.99999999" };
             BasicDecimal32Vector list_64_v3 = new BasicDecimal32Vector(list_string_v3, 8);
-            Assert.AreEqual("[0.00000000,-1.00000001,1.00000001,9.99999999,-9.99999999]", list_64_v3.getString());
+            Assert.AreEqual("[0.00000000, -1.00000001, 1.00000001, 9.99999999, -9.99999999]", list_64_v3.getString());
 
             List<String> list_string_v4 = new List<String>() { };
             BasicDecimal32Vector list_64_v4 = new BasicDecimal32Vector(list_string_v4, 4);
@@ -2165,19 +2160,19 @@ namespace dolphindb_csharp_api_test.data_test
         {
             decimal[] tmp_decimal_v = { 0.0m, -123.00432m, 132.204234m, 100.0m };
             BasicDecimal32Vector tmp_32_v = new BasicDecimal32Vector(tmp_decimal_v, 4);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_32_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_32_v.getString());
 
             decimal[] tmp_decimal_v1 = { 0.0m, -123.00432m, 132.204234m, 100.0m };
             BasicDecimal32Vector tmp_32_v1 = new BasicDecimal32Vector(tmp_decimal_v1, 0);
-            Assert.AreEqual("[0,-123,132,100]", tmp_32_v1.getString());
+            Assert.AreEqual("[0, -123, 132, 100]", tmp_32_v1.getString());
 
             decimal[] tmp_decimal_v2 = { 0.49m, -123.49m, 132.99m, -0.51m };
             BasicDecimal32Vector tmp_32_v2 = new BasicDecimal32Vector(tmp_decimal_v2, 0);
-            Assert.AreEqual("[0,-123,133,-1]", tmp_32_v2.getString());
+            Assert.AreEqual("[0, -123, 133, -1]", tmp_32_v2.getString());
 
             decimal[] tmp_decimal_v3 = { 0.0m, -1.00000001m, 1.00000001m, 9.99999999m, -9.99999999m };
             BasicDecimal32Vector tmp_32_v3 = new BasicDecimal32Vector(tmp_decimal_v3, 8);
-            Assert.AreEqual("[0.00000000,-1.00000001,1.00000001,9.99999999,-9.99999999]", tmp_32_v3.getString());
+            Assert.AreEqual("[0.00000000, -1.00000001, 1.00000001, 9.99999999, -9.99999999]", tmp_32_v3.getString());
 
             decimal[] tmp_decimal_v4 = { };
             BasicDecimal32Vector tmp_32_v4 = new BasicDecimal32Vector(tmp_decimal_v4, 4);
@@ -2186,19 +2181,19 @@ namespace dolphindb_csharp_api_test.data_test
             List<decimal> list_decimal_v = new List<decimal>() { 0.0m, -123.00432m, 132.204234m, 100.0m };
 
             BasicDecimal32Vector list_32_v = new BasicDecimal32Vector(list_decimal_v, 4);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", list_32_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", list_32_v.getString());
 
             List<decimal> list_decimal_v1 = new List<decimal>() { 0.0m, -123.00432m, 132.204234m, 100.0m };
             BasicDecimal32Vector list_32_v1 = new BasicDecimal32Vector(list_decimal_v1, 0);
-            Assert.AreEqual("[0,-123,132,100]", list_32_v1.getString());
+            Assert.AreEqual("[0, -123, 132, 100]", list_32_v1.getString());
 
             List<decimal> list_decimal_v2 = new List<decimal>() { 0.49m, -123.49m, 132.99m, -0.51m };
             BasicDecimal32Vector list_32_v2 = new BasicDecimal32Vector(list_decimal_v2, 0);
-            Assert.AreEqual("[0,-123,133,-1]", list_32_v2.getString());
+            Assert.AreEqual("[0, -123, 133, -1]", list_32_v2.getString());
 
             List<decimal> list_decimal_v3 = new List<decimal>() { 0.0m, -1.00000001m, 1.00000001m, 9.99999999m, -9.99999999m };
             BasicDecimal32Vector list_32_v3 = new BasicDecimal32Vector(list_decimal_v3, 8);
-            Assert.AreEqual("[0.00000000,-1.00000001,1.00000001,9.99999999,-9.99999999]", list_32_v3.getString());
+            Assert.AreEqual("[0.00000000, -1.00000001, 1.00000001, 9.99999999, -9.99999999]", list_32_v3.getString());
 
             List<decimal> list_decimal_v4 = new List<decimal>() { };
             BasicDecimal32Vector list_32_v4 = new BasicDecimal32Vector(list_decimal_v4, 4);
@@ -2261,15 +2256,15 @@ namespace dolphindb_csharp_api_test.data_test
         {
             String[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal32Vector tmp_32_v = new BasicDecimal32Vector(tmp_string_v, 0);
-            Assert.AreEqual("[0,-123,132,100]", tmp_32_v.getString());
+            Assert.AreEqual("[0, -123, 132, 100]", tmp_32_v.getString());
 
             String[] tmp_string_v1 = { "0.49", "-123.44", "132.50", "-0.51" };
             BasicDecimal32Vector tmp_32_v1 = new BasicDecimal32Vector(tmp_string_v1, 0);
-            Assert.AreEqual("[0,-123,133,-1]", tmp_32_v1.getString());
+            Assert.AreEqual("[0, -123, 133, -1]", tmp_32_v1.getString());
 
             String[] tmp_string_v2 = { "0.0", "-1.00000001", "1.00000001", "9.99999999", "-9.99999999" };
             BasicDecimal32Vector tmp_32_v2 = new BasicDecimal32Vector(tmp_string_v2, 8);
-            Assert.AreEqual("[0.00000000,-1.00000001,1.00000001,9.99999999,-9.99999999]", tmp_32_v2.getString());
+            Assert.AreEqual("[0.00000000, -1.00000001, 1.00000001, 9.99999999, -9.99999999]", tmp_32_v2.getString());
 
             String[] tmp_string_v3 = { };
             BasicDecimal32Vector tmp_32_v3 = new BasicDecimal32Vector(tmp_string_v3, 4);
@@ -2297,11 +2292,11 @@ namespace dolphindb_csharp_api_test.data_test
             String[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal32Vector tmp_32_v = new BasicDecimal32Vector(tmp_string_v, 4);
             tmp_32_v.add("1.11223");
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000,1.1122]", tmp_32_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000, 1.1122]", tmp_32_v.getString());
             tmp_32_v.add("0.0");
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000,1.1122,0.0000]", tmp_32_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000, 1.1122, 0.0000]", tmp_32_v.getString());
             tmp_32_v.add(999.999999m);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000,1.1122,0.0000,1000.0000]", tmp_32_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000, 1.1122, 0.0000, 1000.0000]", tmp_32_v.getString());
         }
 
         [TestMethod]
@@ -2313,17 +2308,17 @@ namespace dolphindb_csharp_api_test.data_test
             args.Add("123");
             args.Add("123.123456");
             bdv.addRange(args);
-            Assert.AreEqual("[1.00530,123.00000,123.12346]", bdv.getString());
+            Assert.AreEqual("[1.00530, 123.00000, 123.12346]", bdv.getString());
 
             string[] args1 = new string[] { "-0.123456", "-0.123", "8778.000001", "8778.0011" };
             bdv.addRange(args1);
-            Assert.AreEqual("[1.00530,123.00000,123.12346,-0.12346,-0.12300,8778.00000,8778.00110]", bdv.getString());
+            Assert.AreEqual("[1.00530, 123.00000, 123.12346, -0.12346, -0.12300, 8778.00000, 8778.00110]", bdv.getString());
 
             String[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal32Vector tmp_32_v = new BasicDecimal32Vector(tmp_string_v, 4);
             String[] tmp_string1_v = { };
             tmp_32_v.addRange(tmp_string1_v);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_32_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_32_v.getString());
         }
 
         [TestMethod]
@@ -2335,20 +2330,20 @@ namespace dolphindb_csharp_api_test.data_test
             args.Add(123m);
             args.Add(123.123456m);
             bdv.addRange(args);
-            Assert.AreEqual("[1.00530,123.00000,123.12346]", bdv.getString());
+            Assert.AreEqual("[1.00530, 123.00000, 123.12346]", bdv.getString());
 
             BasicDecimal32Vector tmp_32_v = new BasicDecimal32Vector(0, 4);
             decimal[] tmp_decimal_v = { 0.0m, -123.00432m, 132.204234m, 100.0m };
             tmp_32_v.addRange(tmp_decimal_v);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_32_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_32_v.getString());
 
             decimal[] tmp_decimal_v2 = { };
             tmp_32_v.addRange(tmp_decimal_v2);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_32_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_32_v.getString());
 
             List<decimal> tmp_decimal_v3 = new List<decimal>() { -99999.9999m, 99999.9999m };
             tmp_32_v.addRange(tmp_decimal_v3);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000,-99999.9999,99999.9999]", tmp_32_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000, -99999.9999, 99999.9999]", tmp_32_v.getString());
 
             List<double> tmp_v3 = new List<double>() { -99999, 99999 };
 
@@ -2376,7 +2371,7 @@ namespace dolphindb_csharp_api_test.data_test
 
             IVector v = (IVector)conn.run("decimal32(symbol(`3000`234),2)");
             bdv.append(v);
-            Assert.AreEqual("[-234.33000,3000.00000,234.00000]", bdv.getString());
+            Assert.AreEqual("[-234.33000, 3000.00000, 234.00000]", bdv.getString());
 
             BasicDecimal32 basicDecimal32 = new BasicDecimal32(0, 0);
             basicDecimal32.setNull();
@@ -2388,13 +2383,13 @@ namespace dolphindb_csharp_api_test.data_test
             string[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal32Vector tmp_32_v2 = new BasicDecimal32Vector(tmp_string_v, 3);
             tmp_32_v.append(tmp_32_v2);
-            Assert.AreEqual("[0.0000,-123.0040,132.2040,100.0000]", tmp_32_v.getString());
+            Assert.AreEqual("[0.0000, -123.0040, 132.2040, 100.0000]", tmp_32_v.getString());
 
             BasicDecimal32Vector tmp_32_v1 = new BasicDecimal32Vector(0, 4);
             String[] tmp_string_v1 = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal32Vector tmp_32_v21 = new BasicDecimal32Vector(tmp_string_v1, 3);
             tmp_32_v1.append(tmp_32_v21);
-            Assert.AreEqual("[0.0000,-123.0040,132.2040,100.0000]", tmp_32_v1.getString());
+            Assert.AreEqual("[0.0000, -123.0040, 132.2040, 100.0000]", tmp_32_v1.getString());
 
             conn.close();
         }
@@ -2510,9 +2505,9 @@ namespace dolphindb_csharp_api_test.data_test
             string[] tmp_string_v = { "0.0", "-123.00432", "132.204254", "100.0" };
             BasicDecimal32Vector tmp_32_v = new BasicDecimal32Vector(tmp_string_v, 4);
             tmp_32_v.set(0, new BasicDecimal32("2.9999", 2));
-            Assert.AreEqual("[3.0000,-123.0043,132.2043,100.0000]", tmp_32_v.getString());
+            Assert.AreEqual("[3.0000, -123.0043, 132.2043, 100.0000]", tmp_32_v.getString());
             tmp_32_v.set(0, new BasicDecimal32("2.990099", 6));
-            Assert.AreEqual("[2.9901,-123.0043,132.2043,100.0000]", tmp_32_v.getString());
+            Assert.AreEqual("[2.9901, -123.0043, 132.2043, 100.0000]", tmp_32_v.getString());
             conn.close();
         }
 
@@ -2530,7 +2525,7 @@ namespace dolphindb_csharp_api_test.data_test
             String[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal32Vector tmp_32_v = new BasicDecimal32Vector(tmp_string_v, 4);
             tmp_32_v.setNull(2);
-            Assert.AreEqual("[0.0000,-123.0043,,100.0000]", tmp_32_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, , 100.0000]", tmp_32_v.getString());
             Assert.AreEqual(true, tmp_32_v.isNull(2));
             conn.close();
         }
@@ -2570,8 +2565,8 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT);
             BasicDecimal32Vector re1 = (BasicDecimal32Vector)conn.run("decimal32([1.232,-12.43,123.53],6)");
-            Assert.AreEqual("[1.232000,-12.430000,123.530000]", re1.getString());
-            Assert.AreEqual("[1.232000,-12.430000,123.530000]", re1.getString());
+            Assert.AreEqual("[1.232000, -12.430000, 123.530000]", re1.getString());
+            Assert.AreEqual("[1.232000, -12.430000, 123.530000]", re1.getString());
             conn.close();
         }
 
@@ -2581,7 +2576,7 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT);
             BasicDecimal32Vector re1 = (BasicDecimal32Vector)conn.run("decimal32([1.232,-12.43,NULL],6)");
-            Assert.AreEqual("[1.232000,-12.430000,]", re1.getString());
+            Assert.AreEqual("[1.232000, -12.430000, ]", re1.getString());
             conn.close();
         }
 
@@ -2591,7 +2586,7 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT);
             BasicDecimal32Vector re1 = (BasicDecimal32Vector)conn.run("decimal32([int(),NULL,NULL],6)");
-            Assert.AreEqual("[,,]", re1.getString());
+            Assert.AreEqual("[, , ]", re1.getString());
             conn.close();
         }
 
@@ -2601,7 +2596,7 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT);
             BasicArrayVector re1 = (BasicArrayVector)conn.run("arr = array(DECIMAL32(2)[], 0, 10).append!([[9999999.99, NULL, 1000000.01, NULL, -9999998.99, -1000000.01], [], [00i], [1000000.01]]);arr1=add(arr, 1);arr1;");
-            Assert.AreEqual("[[10000000.99,,1000001.01,,-9999997.99,-999999.01],[],[],[1000001.01]]", re1.getString());
+            Assert.AreEqual("[[10000000.99, , 1000001.01, , -9999997.99, -999999.01], [], [], [1000001.01]]", re1.getString());
             conn.close();
         }
 
@@ -2642,19 +2637,19 @@ namespace dolphindb_csharp_api_test.data_test
         {
             String[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal64Vector tmp_64_v = new BasicDecimal64Vector(tmp_string_v, 4);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_64_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_64_v.getString());
 
             String[] tmp_string_v1 = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal64Vector tmp_64_v1 = new BasicDecimal64Vector(tmp_string_v1, 0);
-            Assert.AreEqual("[0,-123,132,100]", tmp_64_v1.getString());
+            Assert.AreEqual("[0, -123, 132, 100]", tmp_64_v1.getString());
 
             String[] tmp_string_v2 = { "0.49", "-123.49", "132.99", "-0.51" };
             BasicDecimal64Vector tmp_64_v2 = new BasicDecimal64Vector(tmp_string_v2, 0);
-            Assert.AreEqual("[0,-123,133,-1]", tmp_64_v2.getString());
+            Assert.AreEqual("[0, -123, 133, -1]", tmp_64_v2.getString());
 
             String[] tmp_string_v3 = { "0.0", "-1.00000000000000001", "1.00000000000000001", "9.99999999999999999", "-9.99999999999999999" };
             BasicDecimal64Vector tmp_64_v3 = new BasicDecimal64Vector(tmp_string_v3, 17);
-            Assert.AreEqual("[0.00000000000000000,-1.00000000000000001,1.00000000000000001,9.99999999999999999,-9.99999999999999999]", tmp_64_v3.getString());
+            Assert.AreEqual("[0.00000000000000000, -1.00000000000000001, 1.00000000000000001, 9.99999999999999999, -9.99999999999999999]", tmp_64_v3.getString());
 
             String[] tmp_string_v4 = { };
             BasicDecimal64Vector tmp_64_v4 = new BasicDecimal64Vector(tmp_string_v4, 4);
@@ -2663,19 +2658,19 @@ namespace dolphindb_csharp_api_test.data_test
             List<String> list_string_v = new List<String>() { "0.0", "-123.00432", "132.204234", "100.0" };
 
             BasicDecimal64Vector list_64_v = new BasicDecimal64Vector(list_string_v, 4);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", list_64_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", list_64_v.getString());
 
             List<String> list_string_v1 = new List<String>() { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal64Vector list_64_v1 = new BasicDecimal64Vector(list_string_v1, 0);
-            Assert.AreEqual("[0,-123,132,100]", list_64_v1.getString());
+            Assert.AreEqual("[0, -123, 132, 100]", list_64_v1.getString());
 
             List<String> list_string_v2 = new List<String>() { "0.49", "-123.49", "132.99", "-0.51" };
             BasicDecimal64Vector list_64_v2 = new BasicDecimal64Vector(list_string_v2, 0);
-            Assert.AreEqual("[0,-123,133,-1]", list_64_v2.getString());
+            Assert.AreEqual("[0, -123, 133, -1]", list_64_v2.getString());
 
             List<String> list_string_v3 = new List<String>() { "0.0", "-1.00000000000000001", "1.00000000000000001", "9.99999999999999999", "-9.99999999999999999" };
             BasicDecimal64Vector list_64_v3 = new BasicDecimal64Vector(list_string_v3, 17);
-            Assert.AreEqual("[0.00000000000000000,-1.00000000000000001,1.00000000000000001,9.99999999999999999,-9.99999999999999999]", list_64_v3.getString());
+            Assert.AreEqual("[0.00000000000000000, -1.00000000000000001, 1.00000000000000001, 9.99999999999999999, -9.99999999999999999]", list_64_v3.getString());
 
             List<String> list_string_v4 = new List<String>() { };
             BasicDecimal64Vector list_64_v4 = new BasicDecimal64Vector(list_string_v4, 4);
@@ -2687,19 +2682,19 @@ namespace dolphindb_csharp_api_test.data_test
         {
             decimal[] tmp_decimal_v = { 0.0m, -123.00432m, 132.204234m, 100.0m };
             BasicDecimal64Vector tmp_64_v = new BasicDecimal64Vector(tmp_decimal_v, 4);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_64_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_64_v.getString());
 
             decimal[] tmp_decimal_v1 = { 0.0m, -123.00432m, 132.204234m, 100.0m };
             BasicDecimal64Vector tmp_64_v1 = new BasicDecimal64Vector(tmp_decimal_v1, 0);
-            Assert.AreEqual("[0,-123,132,100]", tmp_64_v1.getString());
+            Assert.AreEqual("[0, -123, 132, 100]", tmp_64_v1.getString());
 
             decimal[] tmp_decimal_v2 = { 0.49m, -123.49m, 132.99m, -0.51m };
             BasicDecimal64Vector tmp_64_v2 = new BasicDecimal64Vector(tmp_decimal_v2, 0);
-            Assert.AreEqual("[0,-123,133,-1]", tmp_64_v2.getString());
+            Assert.AreEqual("[0, -123, 133, -1]", tmp_64_v2.getString());
 
             decimal[] tmp_decimal_v3 = { 0.0m, -1.00000000000000001m, 1.00000000000000001m, 9.99999999999999999m, -9.99999999999999999m };
             BasicDecimal64Vector tmp_64_v3 = new BasicDecimal64Vector(tmp_decimal_v3, 17);
-            Assert.AreEqual("[0.00000000000000000,-1.00000000000000001,1.00000000000000001,9.99999999999999999,-9.99999999999999999]", tmp_64_v3.getString());
+            Assert.AreEqual("[0.00000000000000000, -1.00000000000000001, 1.00000000000000001, 9.99999999999999999, -9.99999999999999999]", tmp_64_v3.getString());
 
             decimal[] tmp_decimal_v4 = { };
             BasicDecimal64Vector tmp_64_v4 = new BasicDecimal64Vector(tmp_decimal_v4, 4);
@@ -2708,19 +2703,19 @@ namespace dolphindb_csharp_api_test.data_test
             List<decimal> list_decimal_v = new List<decimal>() { 0.0m, -123.00432m, 132.204234m, 100.0m };
 
             BasicDecimal64Vector list_64_v = new BasicDecimal64Vector(list_decimal_v, 4);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", list_64_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", list_64_v.getString());
 
             List<decimal> list_decimal_v1 = new List<decimal>() { 0.0m, -123.00432m, 132.204234m, 100.0m };
             BasicDecimal64Vector list_64_v1 = new BasicDecimal64Vector(list_decimal_v1, 0);
-            Assert.AreEqual("[0,-123,132,100]", list_64_v1.getString());
+            Assert.AreEqual("[0, -123, 132, 100]", list_64_v1.getString());
 
             List<decimal> list_decimal_v2 = new List<decimal>() { 0.49m, -123.49m, 132.99m, -0.51m };
             BasicDecimal64Vector list_64_v2 = new BasicDecimal64Vector(list_decimal_v2, 0);
-            Assert.AreEqual("[0,-123,133,-1]", list_64_v2.getString());
+            Assert.AreEqual("[0, -123, 133, -1]", list_64_v2.getString());
 
             List<decimal> list_decimal_v3 = new List<decimal>() { 0.0m, -1.00000000000000001m, 1.00000000000000001m, 9.99999999999999999m, -9.99999999999999999m };
             BasicDecimal64Vector list_64_v3 = new BasicDecimal64Vector(list_decimal_v3, 17);
-            Assert.AreEqual("[0.00000000000000000,-1.00000000000000001,1.00000000000000001,9.99999999999999999,-9.99999999999999999]", list_64_v3.getString());
+            Assert.AreEqual("[0.00000000000000000, -1.00000000000000001, 1.00000000000000001, 9.99999999999999999, -9.99999999999999999]", list_64_v3.getString());
 
             List<decimal> list_decimal_v4 = new List<decimal>() { };
             BasicDecimal64Vector list_64_v4 = new BasicDecimal64Vector(list_decimal_v4, 4);
@@ -2759,8 +2754,8 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT);
             BasicDecimal64Vector re1 = (BasicDecimal64Vector)conn.run("decimal64([1.232,-12.43,123.53],6)");
-            Assert.AreEqual("[1.232000,-12.430000,123.530000]", re1.getString());
-            Assert.AreEqual("[1.232000,-12.430000,123.530000]", re1.getString());
+            Assert.AreEqual("[1.232000, -12.430000, 123.530000]", re1.getString());
+            Assert.AreEqual("[1.232000, -12.430000, 123.530000]", re1.getString());
             conn.close();
         }
 
@@ -2770,9 +2765,9 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT);
             BasicDecimal64Vector re1 = (BasicDecimal64Vector)conn.run("decimal64([1.232,-12.43,NULL],6)");
-            Assert.AreEqual("[1.232000,-12.430000,]", re1.getString());
+            Assert.AreEqual("[1.232000, -12.430000, ]", re1.getString());
             BasicDecimal64Vector re2 = (BasicDecimal64Vector)conn.run("decimal64([int(),NULL,NULL],6)");
-            Assert.AreEqual("[,,]", re2.getString());
+            Assert.AreEqual("[, , ]", re2.getString());
             conn.close();
         }
 
@@ -2789,9 +2784,9 @@ namespace dolphindb_csharp_api_test.data_test
             String[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal64Vector tmp_64_v = new BasicDecimal64Vector(tmp_string_v, 4);
             tmp_64_v.add("1.11223");
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000,1.1122]", tmp_64_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000, 1.1122]", tmp_64_v.getString());
             tmp_64_v.add("0.0");
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000,1.1122,0.0000]", tmp_64_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000, 1.1122, 0.0000]", tmp_64_v.getString());
         }
 
         [TestMethod]
@@ -2806,9 +2801,9 @@ namespace dolphindb_csharp_api_test.data_test
             decimal[] tmp_string_v = { 0.0m, -123.00432m, 132.204234m, 100.0m };
             BasicDecimal64Vector tmp_64_v = new BasicDecimal64Vector(tmp_string_v, 4);
             tmp_64_v.add("1.11223");
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000,1.1122]", tmp_64_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000, 1.1122]", tmp_64_v.getString());
             tmp_64_v.add("0.0");
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000,1.1122,0.0000]", tmp_64_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000, 1.1122, 0.0000]", tmp_64_v.getString());
 
             string re = null;
             try {
@@ -2830,27 +2825,27 @@ namespace dolphindb_csharp_api_test.data_test
             args.Add("123");
             args.Add("123.123456");
             bdv.addRange(args);
-            Assert.AreEqual("[1.00530,123.00000,123.12346]", bdv.getString());
+            Assert.AreEqual("[1.00530, 123.00000, 123.12346]", bdv.getString());
 
             BasicDecimal64Vector tmp_64_v = new BasicDecimal64Vector(0, 4);
             String[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             tmp_64_v.addRange(tmp_string_v);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_64_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_64_v.getString());
 
             String[] tmp_string_v1 = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal64Vector tmp_64_v1 = new BasicDecimal64Vector(tmp_string_v1, 4);
             tmp_64_v1.addRange(tmp_string_v1);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000,0.0000,-123.0043,132.2042,100.0000]", tmp_64_v1.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000, 0.0000, -123.0043, 132.2042, 100.0000]", tmp_64_v1.getString());
 
             String[] tmp_string1_v2 = { };
             tmp_64_v1.addRange(tmp_string1_v2);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000,0.0000,-123.0043,132.2042,100.0000]", tmp_64_v1.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000, 0.0000, -123.0043, 132.2042, 100.0000]", tmp_64_v1.getString());
 
             String[] tmp_string_v3 = { "-9223372036854775808", "9223372036854775807" };
             BasicDecimal64Vector tmp_64_v3 = new BasicDecimal64Vector(tmp_string_v3, 0);
             String[] tmp_string1_v3 = { };
             tmp_64_v3.addRange(tmp_string1_v3);
-            Assert.AreEqual("[,9223372036854775807]", tmp_64_v3.getString());
+            Assert.AreEqual("[, 9223372036854775807]", tmp_64_v3.getString());
         }
 
         [TestMethod]
@@ -2862,20 +2857,20 @@ namespace dolphindb_csharp_api_test.data_test
             args.Add(123m);
             args.Add(123.123456m);
             bdv.addRange(args);
-            Assert.AreEqual("[1.00530,123.00000,123.12346]", bdv.getString());
+            Assert.AreEqual("[1.00530, 123.00000, 123.12346]", bdv.getString());
 
             BasicDecimal64Vector tmp_64_v = new BasicDecimal64Vector(0, 4);
             decimal[] tmp_decimal_v = { 0.0m, -123.00432m, 132.204234m, 100.0m };
             tmp_64_v.addRange(tmp_decimal_v);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_64_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_64_v.getString());
 
             decimal[] tmp_decimal_v2 = { };
             tmp_64_v.addRange(tmp_decimal_v2);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_64_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_64_v.getString());
 
             List<decimal> tmp_decimal_v3 = new List<decimal> (){ -99999999999999.9999m, 99999999999999.9999m };
             tmp_64_v.addRange(tmp_decimal_v3);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000,-99999999999999.9999,99999999999999.9999]", tmp_64_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000, -99999999999999.9999, 99999999999999.9999]", tmp_64_v.getString());
 
             List<double> tmp_v3 = new List<double>() { -99999999999999.9999, 99999999999999.9999 };
 
@@ -2903,17 +2898,17 @@ namespace dolphindb_csharp_api_test.data_test
 
             IVector v = (IVector)conn.run("decimal64(symbol(`3000`234),2)");
             bdv.append(v);
-            Assert.AreEqual("[234.33000,3000.00000,234.00000]", bdv.getString());
+            Assert.AreEqual("[234.33000, 3000.00000, 234.00000]", bdv.getString());
 
             BasicDecimal64 a = new BasicDecimal64("-1.11223", 4);
             bdv.append(a);
-            Assert.AreEqual("[234.33000,3000.00000,234.00000,-1.11220]", bdv.getString());
+            Assert.AreEqual("[234.33000, 3000.00000, 234.00000, -1.11220]", bdv.getString());
 
             String[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal64Vector v2 = new BasicDecimal64Vector(tmp_string_v, 8);
 
             bdv.append(v2);
-            Assert.AreEqual("[234.33000,3000.00000,234.00000,-1.11220,0.00000,-123.00432,132.20423,100.00000]", bdv.getString());
+            Assert.AreEqual("[234.33000, 3000.00000, 234.00000, -1.11220, 0.00000, -123.00432, 132.20423, 100.00000]", bdv.getString());
 
             BasicDecimal64 basicDecimal64 = new BasicDecimal64("1", 0);
             basicDecimal64.setNull();
@@ -3101,8 +3096,8 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
             BasicDecimal64Vector re1 = (BasicDecimal64Vector)conn.run("decimal64([1.232,-12.43,123.53],6)");
-            Assert.AreEqual("[1.232000,-12.430000,123.530000]", re1.getString());
-            Assert.AreEqual("[1.232000,-12.430000,123.530000]", re1.getString());
+            Assert.AreEqual("[1.232000, -12.430000, 123.530000]", re1.getString());
+            Assert.AreEqual("[1.232000, -12.430000, 123.530000]", re1.getString());
             conn.close();
         }
 
@@ -3112,7 +3107,7 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
             BasicDecimal64Vector re1 = (BasicDecimal64Vector)conn.run("decimal64([1.232,-12.43,NULL],6)");
-            Assert.AreEqual("[1.232000,-12.430000,]", re1.getString());
+            Assert.AreEqual("[1.232000, -12.430000, ]", re1.getString());
             conn.close();
         }
 
@@ -3122,7 +3117,7 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
             BasicDecimal64Vector re1 = (BasicDecimal64Vector)conn.run("decimal64([int(),NULL,NULL],6)");
-            Assert.AreEqual("[,,]", re1.getString());
+            Assert.AreEqual("[, , ]", re1.getString());
             conn.close();
         }
 
@@ -3236,8 +3231,8 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT);
             BasicDecimal128Vector re1 = (BasicDecimal128Vector)conn.run("decimal128([1.232,-12.43,123.53],6)");
-            Assert.AreEqual("[1.232000,-12.430000,123.530000]", re1.getString());
-            Assert.AreEqual("[1.232000,-12.430000,123.530000]", re1.getString());
+            Assert.AreEqual("[1.232000, -12.430000, 123.530000]", re1.getString());
+            Assert.AreEqual("[1.232000, -12.430000, 123.530000]", re1.getString());
             conn.close();
         }
 
@@ -3247,7 +3242,7 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT);
             BasicDecimal128Vector re1 = (BasicDecimal128Vector)conn.run("decimal128([1.232,-12.43,NULL],6)");
-            Assert.AreEqual("[1.232000,-12.430000,]", re1.getString());
+            Assert.AreEqual("[1.232000, -12.430000, ]", re1.getString());
             conn.close();
         }
 
@@ -3257,7 +3252,7 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT);
             BasicDecimal128Vector re1 = (BasicDecimal128Vector)conn.run("decimal128([int(),NULL,NULL],6)");
-            Assert.AreEqual("[,,]", re1.getString());
+            Assert.AreEqual("[, , ]", re1.getString());
             conn.close();
         }
 
@@ -3305,37 +3300,37 @@ namespace dolphindb_csharp_api_test.data_test
             List<String> list_string_v = new List<String>() { "0.0", "-123.00432", "132.204234", "100.0" };
 
             BasicDecimal128Vector tmp_128_v = new BasicDecimal128Vector(tmp_string_v, 4);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_128_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_128_v.getString());
 
             BasicDecimal128Vector tmp_128_v1 = new BasicDecimal128Vector(list_string_v, 4);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_128_v1.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_128_v1.getString());
 
             String[] tmp_string_v1 = { "0.49", "-123.49", "132.99", "-0.51" };
             List<String> list_string_v1 = new List<String>() { "0.49", "-123.49", "132.99", "-0.51" };
 
             BasicDecimal128Vector tmp_128_v2 = new BasicDecimal128Vector(tmp_string_v1, 0);
-            Assert.AreEqual("[0,-123,133,-1]", tmp_128_v2.getString());
+            Assert.AreEqual("[0, -123, 133, -1]", tmp_128_v2.getString());
 
             BasicDecimal128Vector tmp_128_v3 = new BasicDecimal128Vector(list_string_v1, 0);
-            Assert.AreEqual("[0,-123,133,-1]", tmp_128_v3.getString());
+            Assert.AreEqual("[0, -123, 133, -1]", tmp_128_v3.getString());
 
             decimal[] tmp_decimal_v = { 0.0m, -123.00432m, 132.204234m, 100.0m};
             List<decimal> list_decimal_v = new List<decimal>() { 0.0m, -123.00432m, 132.204234m, 100.0m };
 
             BasicDecimal128Vector tmp_128_v4 = new BasicDecimal128Vector(tmp_decimal_v, 4);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_128_v4.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_128_v4.getString());
 
             BasicDecimal128Vector tmp_128_v5 = new BasicDecimal128Vector(list_decimal_v, 4);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_128_v5.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_128_v5.getString());
 
             decimal[] tmp_decimal_v1 = { 0.49m, -123.49m, 132.99m, -0.51m };
             List<decimal> list_decimal_v1 = new List<decimal>() { 0.49m, -123.49m, 132.99m, -0.51m };
 
             BasicDecimal128Vector tmp_128_v6 = new BasicDecimal128Vector(tmp_decimal_v1, 0);
-            Assert.AreEqual("[0,-123,133,-1]", tmp_128_v6.getString());
+            Assert.AreEqual("[0, -123, 133, -1]", tmp_128_v6.getString());
 
             BasicDecimal128Vector tmp_128_v7 = new BasicDecimal128Vector(list_decimal_v1, 0);
-            Assert.AreEqual("[0,-123,133,-1]", tmp_128_v7.getString());
+            Assert.AreEqual("[0, -123, 133, -1]", tmp_128_v7.getString());
         }
 
         [TestMethod]
@@ -3370,7 +3365,7 @@ namespace dolphindb_csharp_api_test.data_test
             String[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal128Vector tmp_128_v = new BasicDecimal128Vector(tmp_string_v, 4);
             tmp_128_v.setNull(2);
-            Assert.AreEqual("[0.0000,-123.0043,,100.0000]", tmp_128_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, , 100.0000]", tmp_128_v.getString());
             Assert.AreEqual(true, tmp_128_v.isNull(2));
         }
         [TestMethod]
@@ -3379,9 +3374,9 @@ namespace dolphindb_csharp_api_test.data_test
             String[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal128Vector tmp_128_v = new BasicDecimal128Vector(tmp_string_v, 4);
             tmp_128_v.set(0, new BasicDecimal128("2", 2));
-            Assert.AreEqual("[2.0000,-123.0043,132.2042,100.0000]", tmp_128_v.getString());
+            Assert.AreEqual("[2.0000, -123.0043, 132.2042, 100.0000]", tmp_128_v.getString());
             tmp_128_v.set(0, "-1212121");
-            Assert.AreEqual("[-1212121.0000,-123.0043,132.2042,100.0000]", tmp_128_v.getString());
+            Assert.AreEqual("[-1212121.0000, -123.0043, 132.2042, 100.0000]", tmp_128_v.getString());
 
             String ex = null;
             try
@@ -3421,10 +3416,10 @@ namespace dolphindb_csharp_api_test.data_test
             BasicDecimal128Vector tmp_128_v = new BasicDecimal128Vector(tmp_string_v, 4);
             BasicDecimal128 tmp_32 = new BasicDecimal128("3.032", 4);
             tmp_128_v.set(0, tmp_32);
-            Assert.AreEqual("[3.0320,-123.0043,132.2042,100.0000]", tmp_128_v.getString());
+            Assert.AreEqual("[3.0320, -123.0043, 132.2042, 100.0000]", tmp_128_v.getString());
 
             tmp_128_v.set(0, new BasicDecimal128("3.03266666", 6));
-            Assert.AreEqual("[3.0327,-123.0043,132.2042,100.0000]", tmp_128_v.getString());
+            Assert.AreEqual("[3.0327, -123.0043, 132.2042, 100.0000]", tmp_128_v.getString());
         }
 
         [TestMethod]
@@ -3436,7 +3431,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicDecimal128Vector tmp_128_v = new BasicDecimal128Vector(tmp_string_v, 4);
             BasicDecimal128 tmp_32 = (BasicDecimal128)conn.run("decimal128(NULL,4)");
             tmp_128_v.set(0, tmp_32);
-            Assert.AreEqual("[,-123.0043,132.2042,100.0000]", tmp_128_v.getString());
+            Assert.AreEqual("[, -123.0043, 132.2042, 100.0000]", tmp_128_v.getString());
             conn.close();
         }
 
@@ -3471,11 +3466,11 @@ namespace dolphindb_csharp_api_test.data_test
             String[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal128Vector tmp_128_v = new BasicDecimal128Vector(tmp_string_v, 4);
             tmp_128_v.add("1.1122");
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000,1.1122]", tmp_128_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000, 1.1122]", tmp_128_v.getString());
             tmp_128_v.add("0.0");
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000,1.1122,0.0000]", tmp_128_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000, 1.1122, 0.0000]", tmp_128_v.getString());
             tmp_128_v.add("12.42555");
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000,1.1122,0.0000,12.4256]", tmp_128_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000, 1.1122, 0.0000, 12.4256]", tmp_128_v.getString());
             String re = null;
             try
             {
@@ -3495,13 +3490,13 @@ namespace dolphindb_csharp_api_test.data_test
             BasicDecimal128Vector tmp_128_v = new BasicDecimal128Vector(0, 4);
             List<string> args = new List<string>(){ "0.0", "-123.00432", "132.204234", "100.0" };
             tmp_128_v.addRange(args);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_128_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_128_v.getString());
 
             String[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal128Vector tmp_128_v1 = new BasicDecimal128Vector(tmp_string_v, 4);
             String[] tmp = new String[] { "0.0", "-123.00432", "132.204234", "100.0" };
             tmp_128_v1.addRange(tmp);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000,0.0000,-123.0043,132.2042,100.0000]", tmp_128_v1.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000, 0.0000, -123.0043, 132.2042, 100.0000]", tmp_128_v1.getString());
         }
 
         [TestMethod]
@@ -3513,20 +3508,20 @@ namespace dolphindb_csharp_api_test.data_test
             args.Add(123m);
             args.Add(123.123456m);
             bdv.addRange(args);
-            Assert.AreEqual("[1.00530,123.00000,123.12346]", bdv.getString());
+            Assert.AreEqual("[1.00530, 123.00000, 123.12346]", bdv.getString());
 
             BasicDecimal128Vector tmp_128_v = new BasicDecimal128Vector(0, 4);
             decimal[] tmp_decimal_v = { 0.0m, -123.00432m, 132.204234m, 100.0m };
             tmp_128_v.addRange(tmp_decimal_v);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_128_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_128_v.getString());
 
             decimal[] tmp_decimal_v2 = { };
             tmp_128_v.addRange(tmp_decimal_v2);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_128_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_128_v.getString());
 
             List<decimal> tmp_decimal_v3 = new List<decimal>() { -99999999999999.9999m, 99999999999999.9999m };
             tmp_128_v.addRange(tmp_decimal_v3);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000,-99999999999999.9999,99999999999999.9999]", tmp_128_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000, -99999999999999.9999, 99999999999999.9999]", tmp_128_v.getString());
 
             List<double> tmp_v3 = new List<double>() { -99999999999999.9999, 99999999999999.9999 };
 
@@ -3549,7 +3544,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicDecimal128Vector tmp_128_v = new BasicDecimal128Vector(tmp_string_v, 4);
             String[] tmp = new String[] { };
             tmp_128_v.addRange(tmp);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_128_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_128_v.getString());
         }
 
         [TestMethod]
@@ -3568,7 +3563,7 @@ namespace dolphindb_csharp_api_test.data_test
             String[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal128Vector tmp_128_v2 = new BasicDecimal128Vector(tmp_string_v, 3);
             tmp_128_v.append(tmp_128_v2);
-            Assert.AreEqual("[0.0000,-123.0040,132.2040,100.0000]", tmp_128_v.getString());
+            Assert.AreEqual("[0.0000, -123.0040, 132.2040, 100.0000]", tmp_128_v.getString());
         }
 
         [TestMethod]
@@ -3578,7 +3573,7 @@ namespace dolphindb_csharp_api_test.data_test
             String[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal128Vector tmp_128_v2 = new BasicDecimal128Vector(tmp_string_v, 4);
             tmp_128_v.append(tmp_128_v2);
-            Assert.AreEqual("[0.0000,-123.0043,132.2042,100.0000]", tmp_128_v.getString());
+            Assert.AreEqual("[0.0000, -123.0043, 132.2042, 100.0000]", tmp_128_v.getString());
         }
         [TestMethod]
         public void test_BasicDecimal128Vector_append_null()
@@ -3660,7 +3655,7 @@ namespace dolphindb_csharp_api_test.data_test
             conn.connect(SERVER, PORT, "admin", "123456");
             BasicArrayVector re1 = (BasicArrayVector)conn.run("bigarray(DECIMAL128(2)[], 0, 10).append!(take([[92233720368547758, NULL, 100000000000000, NULL, -92233720368547758, -100000000000000], [], [00i], [92233720368547758]], 10)) * 10");
             Console.WriteLine(re1.getString());
-            Assert.AreEqual("[[922337203685477580.00,,1000000000000000.00,,-922337203685477580.00,-1000000000000000.00],[],[],[922337203685477580.00],[922337203685477580.00,,1000000000000000.00,,-922337203685477580.00,-1000000000000000.00],[],[],[922337203685477580.00],[922337203685477580.00,,1000000000000000.00,,-922337203685477580.00,-1000000000000000.00],[]]", re1.getString());
+            Assert.AreEqual("[[922337203685477580.00, , 1000000000000000.00, , -922337203685477580.00, -1000000000000000.00], [], [], [922337203685477580.00], [922337203685477580.00, , 1000000000000000.00, , -922337203685477580.00, -1000000000000000.00], [], [], [922337203685477580.00], [922337203685477580.00, , 1000000000000000.00, , -922337203685477580.00, -1000000000000000.00], []]", re1.getString());
             conn.close();
         }
         [TestMethod]
@@ -3669,8 +3664,8 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
             BasicDecimal128Vector re1 = (BasicDecimal128Vector)conn.run("decimal128([1.232,-12.43,123.53],6)");
-            Assert.AreEqual("[1.232000,-12.430000,123.530000]", re1.getString());
-            Assert.AreEqual("[1.232000,-12.430000,123.530000]", re1.getString());
+            Assert.AreEqual("[1.232000, -12.430000, 123.530000]", re1.getString());
+            Assert.AreEqual("[1.232000, -12.430000, 123.530000]", re1.getString());
             conn.close();
         }
 
@@ -3679,8 +3674,8 @@ namespace dolphindb_csharp_api_test.data_test
         {
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
-            BasicDecimal128Vector re1 = (BasicDecimal128Vector)conn.run("decimal128([1.232,-12.43,NULL],6)");
-            Assert.AreEqual("[1.232000,-12.430000,]", re1.getString());
+            BasicDecimal128Vector re1 = (BasicDecimal128Vector)conn.run("decimal128([1.232, -12.43, NULL],6)");
+            Assert.AreEqual("[1.232000, -12.430000, ]", re1.getString());
             conn.close();
         }
 
@@ -3690,17 +3685,17 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
             BasicDecimal128Vector re1 = (BasicDecimal128Vector)conn.run("decimal128([int(),NULL,NULL],6)");
-            Assert.AreEqual("[,,]", re1.getString());
+            Assert.AreEqual("[, , ]", re1.getString());
             conn.close();
         }
-        [TestMethod]
+        [TestMethod] 
         public void testBasicDecimal128_run_arrayvector1()
         {
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
             BasicArrayVector re1 = (BasicArrayVector)conn.run("bigarray(DECIMAL128(2)[], 0, 10).append!(take([[92233720368547758, NULL, 100000000000000, NULL, -92233720368547758, -100000000000000], [], [00i], [92233720368547758]], 10)) * 10");
             Console.WriteLine(re1.getString());
-            Assert.AreEqual("[[922337203685477580.00,,1000000000000000.00,,-922337203685477580.00,-1000000000000000.00],[],[],[922337203685477580.00],[922337203685477580.00,,1000000000000000.00,,-922337203685477580.00,-1000000000000000.00],[],[],[922337203685477580.00],[922337203685477580.00,,1000000000000000.00,,-922337203685477580.00,-1000000000000000.00],[]]", re1.getString());
+            Assert.AreEqual("[[922337203685477580.00, , 1000000000000000.00, , -922337203685477580.00, -1000000000000000.00], [], [], [922337203685477580.00], [922337203685477580.00, , 1000000000000000.00, , -922337203685477580.00, -1000000000000000.00], [], [], [922337203685477580.00], [922337203685477580.00, , 1000000000000000.00, , -922337203685477580.00, -1000000000000000.00], []]", re1.getString());
             conn.close();
         }
         [TestMethod]
@@ -3712,7 +3707,7 @@ namespace dolphindb_csharp_api_test.data_test
             Console.WriteLine(re1.getEntity(1).getString());
             Assert.AreEqual("[]", re1.getEntity(1).getString());
             Console.WriteLine(re1.getEntity(0).getString());
-            Assert.AreEqual("[10.000000000000000000000000000000000000,20.000000000000000000000000000000000000,30.000000000000000000000000000000000000,40.000000000000000000000000000000000000,50.000000000000000000000000000000000000,60.000000000000000000000000000000000000,70.000000000000000000000000000000000000,80.000000000000000000000000000000000000,90.000000000000000000000000000000000000,10.000000000000000000000000000000000000]", re1.getEntity(0).getString());
+            Assert.AreEqual("[10.000000000000000000000000000000000000, 20.000000000000000000000000000000000000, 30.000000000000000000000000000000000000, 40.000000000000000000000000000000000000, 50.000000000000000000000000000000000000, 60.000000000000000000000000000000000000, 70.000000000000000000000000000000000000, 80.000000000000000000000000000000000000, 90.000000000000000000000000000000000000, 10.000000000000000000000000000000000000]", re1.getEntity(0).getString());
             conn.close();
         }
         [TestMethod]
@@ -3721,7 +3716,7 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
             BasicArrayVector re1 = (BasicArrayVector)conn.run("arr = array(DECIMAL128(2)[], 0, 10).append!([[92233720368547758, NULL, 100000000000000, NULL, -92233720368547758, -100000000000000], [], [00i], [92233720368547758]]);arr1=add(arr, 1);arr1;");
-            Assert.AreEqual("[[92233720368547759.00,,100000000000001.00,,-92233720368547757.00,-99999999999999.00],[],[],[92233720368547759.00]]", re1.getString());
+            Assert.AreEqual("[[92233720368547759.00, , 100000000000001.00, , -92233720368547757.00, -99999999999999.00], [], [], [92233720368547759.00]]", re1.getString());
             conn.close();
         }
 
@@ -3732,7 +3727,7 @@ namespace dolphindb_csharp_api_test.data_test
             BasicDecimal128Vector tmp_128_v = new BasicDecimal128Vector(tmp_string_v, 4);
             BasicDecimal128 tmp_32 = new BasicDecimal128("3.032", 4);
             tmp_128_v.set(0, tmp_32);
-            Assert.AreEqual("[3.0320,-123.0043,132.2042,100.0000]", tmp_128_v.getString());
+            Assert.AreEqual("[3.0320, -123.0043, 132.2042, 100.0000]", tmp_128_v.getString());
         }
         [TestMethod]
         public void test_BasicDecimal128Vector_asof()

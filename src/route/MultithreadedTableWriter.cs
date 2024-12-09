@@ -181,7 +181,7 @@ namespace dolphindb.route
                 throw new Exception("NotifyOnSuccess has been set");
             if (ifCallback_)
                 throw new Exception("MultithreadedTableWriter has already open callback");
-            notifyOnSuccess_ = notifyOnSuccess; 
+            notifyOnSuccess_ = notifyOnSuccess;
             colInfos_.Add(new ColInfo());
             colInfos_[colInfos_.Count-1].dataType_ = type;
             int size = threads_.Count;
@@ -194,7 +194,7 @@ namespace dolphindb.route
                 }
             }
         }
-        
+
         public class ThreadStatus
         {
             public long threadId;
@@ -397,7 +397,7 @@ namespace dolphindb.route
                     sb.Append("}");
                     scriptTableInsert_ = sb.ToString();
                 }
-                
+
                 //else
                 //{
                 //    //string tempTableName = "tmp" + tableWriter_.tableName_;
@@ -583,7 +583,7 @@ namespace dolphindb.route
          */
         public MultithreadedTableWriter(string hostName, int port, string userId, string password,
                                 string dbName, string tableName, bool useSSL, bool enableHighAvailability = false, string[] pHighAvailabilitySites = null,
-                                int batchSize = 1, float throttle = 0.01f, int threadCount = 5, string partitionCol = "", int[] pCompressMethods = null, 
+                                int batchSize = 1, float throttle = 0.01f, int threadCount = 1, string partitionCol = "", int[] pCompressMethods = null,
                                 Mode mode = Mode.M_Append, string[] pModeOption = null, Callback callbackHandler = null)
         {
             hostName_ = hostName;

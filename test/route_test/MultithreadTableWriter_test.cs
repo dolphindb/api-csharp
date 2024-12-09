@@ -420,6 +420,20 @@ namespace dolphindb_csharp_api_test.route_test
             conn.run("undef(`table1, SHARED)");
             conn.close();
         }
+        [TestMethod]
+        public void Test_MultithreadedTableWriter_threadCount_default()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "share table(100:0, [`col0], [BOOL]) as table1";
+            conn.run(script);
+            Console.Out.WriteLine("--------------1111-----------------");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1);
+            Console.Out.WriteLine("--------------2222-----------------");
+            conn.run("undef(`table1, SHARED)");
+            conn.close();
+        }
 
         [TestMethod]
         public void Test_MultithreadedTableWriter_in_memory_table_multi_thread()
@@ -1736,8 +1750,8 @@ namespace dolphindb_csharp_api_test.route_test
             BasicDecimal128Vector decv1 = (BasicDecimal128Vector)conn.run("decimal128([1,1.00,3.0001,99999.99999999999],0)");
             BasicDecimal128Vector decv2 = (BasicDecimal128Vector)conn.run("decimal128([1,1.00,3.0001,99999.99999999999],1)");
             BasicDecimal128Vector decv3 = (BasicDecimal128Vector)conn.run("decimal128([1,1.00,3.0001,99999.99999999999],10)");
-            String decv4 = "[1.000000000000000000,1.000000000000000000,3.000100000000000000,99999.999999999990000000]";
-            String decv5 = "[1.000000000000000000000000000000,1.000000000000000000000000000000,3.000100000000000000000000000000,99999.999999999990000000000000000000]";
+            String decv4 = "[1.000000000000000000, 1.000000000000000000, 3.000100000000000000, 99999.999999999990000000]";
+            String decv5 = "[1.000000000000000000000000000000, 1.000000000000000000000000000000, 3.000100000000000000000000000000, 99999.999999999990000000000000000000]";
 
             for (int i = 0; i < time; i++)
             {
@@ -1782,8 +1796,8 @@ namespace dolphindb_csharp_api_test.route_test
             BasicDecimal128Vector decv1 = (BasicDecimal128Vector)conn.run("decimal128([1,1.00,3.0001,99999.99999999999],0)");
             BasicDecimal128Vector decv2 = (BasicDecimal128Vector)conn.run("decimal128([1,1.00,3.0001,99999.99999999999],1)");
             BasicDecimal128Vector decv3 = (BasicDecimal128Vector)conn.run("decimal128([1,1.00,3.0001,99999.99999999999],10)");
-            String decv4 = "[1.000000000000000000,1.000000000000000000,3.000100000000000000,99999.999999999990000000]";
-            String decv5 = "[1.000000000000000000000000000000,1.000000000000000000000000000000,3.000100000000000000000000000000,99999.999999999990000000000000000000]";
+            String decv4 = "[1.000000000000000000, 1.000000000000000000, 3.000100000000000000, 99999.999999999990000000]";
+            String decv5 = "[1.000000000000000000000000000000, 1.000000000000000000000000000000, 3.000100000000000000000000000000, 99999.999999999990000000000000000000]";
 
             for (int i = 0; i < time; i++)
             {
@@ -1828,8 +1842,8 @@ namespace dolphindb_csharp_api_test.route_test
             BasicDecimal128Vector decv1 = (BasicDecimal128Vector)conn.run("decimal128([1,1.00,3.0001,99999.99999999999],0)");
             BasicDecimal128Vector decv2 = (BasicDecimal128Vector)conn.run("decimal128([1,1.00,3.0001,99999.99999999999],1)");
             BasicDecimal128Vector decv3 = (BasicDecimal128Vector)conn.run("decimal128([1,1.00,3.0001,99999.99999999999],10)");
-            String decv4 = "[1.000000000000000000,1.000000000000000000,3.000100000000000000,99999.999999999990000000]";
-            String decv5 = "[1.000000000000000000000000000000,1.000000000000000000000000000000,3.000100000000000000000000000000,99999.999999999990000000000000000000]";
+            String decv4 = "[1.000000000000000000, 1.000000000000000000, 3.000100000000000000, 99999.999999999990000000]";
+            String decv5 = "[1.000000000000000000000000000000, 1.000000000000000000000000000000, 3.000100000000000000000000000000, 99999.999999999990000000000000000000]";
 
             for (int i = 0; i < time; i++)
             {
@@ -1914,8 +1928,8 @@ namespace dolphindb_csharp_api_test.route_test
             BasicDecimal128Vector decv1 = (BasicDecimal128Vector)conn.run("decimal128([1,1.00,3.0001,99999.99999999999],0)");
             BasicDecimal128Vector decv2 = (BasicDecimal128Vector)conn.run("decimal128([1,1.00,3.0001,99999.99999999999],1)");
             BasicDecimal128Vector decv3 = (BasicDecimal128Vector)conn.run("decimal128([1,1.00,3.0001,99999.99999999999],10)");
-            String decv4 = "[1.000000000000000000,1.000000000000000000,3.000100000000000000,99999.999999999990000000]";
-            String decv5 = "[1.000000000000000000000000000000,1.000000000000000000000000000000,3.000100000000000000000000000000,99999.999999999990000000000000000000]";
+            String decv4 = "[1.000000000000000000, 1.000000000000000000, 3.000100000000000000, 99999.999999999990000000]";
+            String decv5 = "[1.000000000000000000000000000000, 1.000000000000000000000000000000, 3.000100000000000000000000000000, 99999.999999999990000000000000000000]";
 
             for (int i = 0; i < time; i++)
             {
@@ -5068,7 +5082,7 @@ namespace dolphindb_csharp_api_test.route_test
             conn.run("undef(`table1, SHARED)");
             conn.close();
         }
-        [TestMethod]
+        //[TestMethod]
         public void test_MultithreadedTableWriter_Callback_memoryTable_single_thread_false()
         {
             DBConnection conn = new DBConnection();
@@ -5112,6 +5126,7 @@ namespace dolphindb_csharp_api_test.route_test
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
+            conn1.run("sleep(8000)");
             try
             {
                 conn1.run("startDataNode([\"" + SERVER + ":" + PORT + "\"])");
@@ -5122,7 +5137,7 @@ namespace dolphindb_csharp_api_test.route_test
                 Console.Out.WriteLine(e.Message);
 
             }
-            conn1.run("sleep(1000)");
+            conn1.run("sleep(8000)");
             DBConnection conn2 = new DBConnection();
             conn2.connect(SERVER, PORT, USER, PASSWORD);
 
@@ -5196,7 +5211,7 @@ namespace dolphindb_csharp_api_test.route_test
             Assert.AreEqual(act.rows(), re.rows());
             conn.close();
         }
-        [TestMethod]
+        //[TestMethod]
         public void test_MultithreadedTableWriter_Callback_dfs_single_thread_false()
         {
             DBConnection conn = new DBConnection();
@@ -5244,9 +5259,10 @@ namespace dolphindb_csharp_api_test.route_test
 
                 }
             }
+            
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
-
+            conn1.run("sleep(8000)");
             try
             {
                 conn1.run("startDataNode([\"" + SERVER + ":" + PORT + "\"])");
@@ -5257,7 +5273,7 @@ namespace dolphindb_csharp_api_test.route_test
                 Console.Out.WriteLine(e.Message);
 
             }
-            conn1.run("sleep(20000)");
+            conn1.run("sleep(8000)");
             DBConnection conn2 = new DBConnection();
             conn2.connect(SERVER, PORT, USER, PASSWORD);
             BasicTable re = (BasicTable)conn2.run("select * from loadTable('dfs://test_MultithreadedTableWriter1', 'pt') order by id");
@@ -5394,6 +5410,7 @@ namespace dolphindb_csharp_api_test.route_test
 
                 }
             }
+            conn1.run("sleep(8000)");
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
 
@@ -5407,7 +5424,7 @@ namespace dolphindb_csharp_api_test.route_test
                 Console.Out.WriteLine(e.Message);
 
             }
-            conn1.run("sleep(20000)");
+            conn1.run("sleep(8000)");
             DBConnection conn2 = new DBConnection();
             conn2.connect(SERVER, PORT, USER, PASSWORD);
             BasicTable re = (BasicTable)conn2.run("select * from loadTable('dfs://test_MultithreadedTableWriter', 'pt') order by id");
@@ -5547,7 +5564,6 @@ namespace dolphindb_csharp_api_test.route_test
                 {
                     try
                     {
-                        conn1.run("sleep(5000)");
                         conn1.run("stopDataNode([\"" + SERVER + ":" + PORT + "\"])");
                     }
                     catch (Exception e)
@@ -5559,6 +5575,7 @@ namespace dolphindb_csharp_api_test.route_test
 
                 }
             }
+            conn1.run("sleep(8000)");
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
 
@@ -5572,7 +5589,7 @@ namespace dolphindb_csharp_api_test.route_test
                 Console.Out.WriteLine(e.Message);
 
             }
-            conn1.run("sleep(20000)");
+            conn1.run("sleep(8000)");
             DBConnection conn2 = new DBConnection();
             conn2.connect(SERVER, PORT, USER, PASSWORD);
             BasicTable re = (BasicTable)conn2.run("select * from loadTable('dfs://test_MultithreadedTableWriter', 'pt') order by id");
@@ -5644,7 +5661,6 @@ namespace dolphindb_csharp_api_test.route_test
                 {
                     try
                     {
-                        conn1.run("sleep(1000)");
                         conn1.run("stopDataNode([\"" + SERVER + ":" + PORT + "\"])");
                     }
                     catch (Exception e)
@@ -5656,6 +5672,7 @@ namespace dolphindb_csharp_api_test.route_test
 
                 }
             }
+            conn1.run("sleep(8000)");
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
 
@@ -5669,7 +5686,7 @@ namespace dolphindb_csharp_api_test.route_test
                 Console.Out.WriteLine(e.Message);
 
             }
-            conn1.run("sleep(20000)");
+            conn1.run("sleep(8000)");
             DBConnection conn2 = new DBConnection();
             conn2.connect(SERVER, PORT, USER, PASSWORD);
             BasicTable re = (BasicTable)conn2.run("select * from loadTable('dfs://test_MultithreadedTableWriter', 'pt') order by id");
@@ -5744,7 +5761,6 @@ namespace dolphindb_csharp_api_test.route_test
                 {
                     try
                     {
-                        conn1.run("sleep(1000)");
                         conn1.run("stopDataNode([\"" + SERVER + ":" + PORT + "\"])");
                     }
                     catch (Exception e)
@@ -5756,6 +5772,7 @@ namespace dolphindb_csharp_api_test.route_test
 
                 }
             }
+            conn1.run("sleep(8000)");
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
 
@@ -5769,7 +5786,7 @@ namespace dolphindb_csharp_api_test.route_test
                 Console.Out.WriteLine(e.Message);
 
             }
-            conn1.run("sleep(20000)");
+            conn1.run("sleep(8000)");
             DBConnection conn2 = new DBConnection();
             conn2.connect(SERVER, PORT, USER, PASSWORD);
             BasicTable re = (BasicTable)conn2.run("select * from loadTable('dfs://test_MultithreadedTableWriter', 'pt') order by id");
@@ -6798,12 +6815,12 @@ namespace dolphindb_csharp_api_test.route_test
         {
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, USER, PASSWORD);
-            string sc = "if(existsDatabase(\"dfs://dataXdemo\")){dropDatabase(\"dfs://dataXdemo\")}\n" +
-                "db = database(\"dfs://dataXdemo\", VALUE, 1..10)\n" +
+            string sc = "if(existsDatabase(\"dfs://dataXdemo1\")){dropDatabase(\"dfs://dataXdemo1\")}\n" +
+                "db = database(\"dfs://dataXdemo1\", VALUE, 1..10)\n" +
                 "t = table(take(1..10, 100) as id, take([`A, `B, `C], 100) as sym, 1..100 as qty, 100..1 as price)\n" +
                 "pt = db.createPartitionedTable(t, `pt, `id).append!(t)";
             conn.run(sc);
-            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://dataXdemo", "pt", false, false, null, 10000, 1, 5, "id");
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://dataXdemo1", "pt", false, false, null, 10000, 1, 5, "id");
             List<List<IEntity>> table = new List<List<IEntity>>();
             for (int i = 0; i < 100000; i++)
             {

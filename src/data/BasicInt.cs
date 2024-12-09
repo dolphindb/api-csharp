@@ -97,7 +97,12 @@ namespace dolphindb.data
 
         public override string getString()
         {
-            return value.ToString(formatStr);
+            if(isNull())
+            {
+                return "";
+            }else{
+                return value.ToString(formatStr);
+            }
         }
         public override object getObject()
         {

@@ -202,11 +202,11 @@ namespace dolphindb_csharp_api_test.cep_test
 
             public void doEvent(String eventType, List<IEntity> attribute)
             {
-                Console.Out.WriteLine("eventType: " + eventType);
-                for (int i = 0; i < attribute.Count; i++)
-                {
-                    Console.Out.WriteLine(attribute[i].ToString());
-                }
+                //Console.Out.WriteLine("eventType: " + eventType);
+                //for (int i = 0; i < attribute.Count; i++)
+                //{
+                //    Console.Out.WriteLine(attribute[i].getString());
+                //}
 
                 try
                 {
@@ -225,77 +225,81 @@ namespace dolphindb_csharp_api_test.cep_test
             public void doEvent(String eventType, List<IEntity> attributes)
             {
                 Console.WriteLine("eventType: " + eventType);
-                String boolv = attributes[0].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                String charv = attributes[1].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                String shortv = attributes[2].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                String intv = attributes[3].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                String longv = attributes[4].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                String doublev = attributes[5].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                String floatv = attributes[6].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                String datev = attributes[7].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                String monthv = attributes[8].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                String timev = attributes[9].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                String minutev = attributes[10].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                String secondv = attributes[11].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                String datetimev = attributes[12].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                String timestampv = attributes[13].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                String nanotimev = attributes[14].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                String nanotimestampv = attributes[15].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                String datehourv = attributes[16].getString().Replace("[", "[\"").Replace("]", "\"]").Replace(",", "\",\"").Replace("\"\"", "NULL");
-                String uuidv = attributes[17].getString().Replace("[", "[\"").Replace("]", "\"]").Replace(",", "\",\"").Replace("\"\"", "NULL");
-                String ippaddrv = attributes[18].getString().Replace("[", "[\"").Replace("]", "\"]").Replace(",", "\",\"").Replace("\"\"", "NULL");
-                String int128v = attributes[19].getString().Replace("[", "[\"").Replace("]", "\"]").Replace(",", "\",\"").Replace("\"\"", "NULL");
-                //String pointv = attributes[20].getString().Replace("(,)", "(NULL,NULL)");
-                //pointv = pointv.Substring(1, pointv.Length - 1);
-                //String[] separators = { "),(" };
-                //String[] point1 = pointv.Split(separators, StringSplitOptions.None);
-                //String point2 = null;
-                //StringBuilder re1 = new StringBuilder();
-                //StringBuilder re2 = new StringBuilder();
-                //for (int i = 0; i < point1.Length; i++)
+                //for (int i = 0; i < attributes.Count; i++)
                 //{
-                //    point2 = point1[i];
-                //    String[] dataType3 = point2.Split(',');
-                //    re1.Append(dataType3[0]);
-                //    re1.Append(' ');
-                //    re2.Append(dataType3[1]);
-                //    re2.Append(' ');
+                //    //attributes[i].getString();
+                //    Console.WriteLine(attributes[i].getString());
                 //}
-                //pointv = re1 + "," + re2;
-                //pointv = pointv.Replace("(", "").Replace(")", "");
+                var cols = new List<IVector>() { };
+                var colNames = new List<String>() { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "datehourv", "uuidv", "ippaddrv", "int128v" };
+                BasicArrayVector boolv = new BasicArrayVector(DATA_TYPE.DT_BOOL_ARRAY);
+                boolv.append((IVector)attributes[0]);
+                BasicArrayVector charv = new BasicArrayVector(DATA_TYPE.DT_BYTE_ARRAY);
+                charv.append((IVector)attributes[1]);
+                BasicArrayVector shortv = new BasicArrayVector(DATA_TYPE.DT_SHORT_ARRAY);
+                shortv.append((IVector)attributes[2]);
+                BasicArrayVector intv = new BasicArrayVector(DATA_TYPE.DT_INT_ARRAY);
+                intv.append((IVector)attributes[3]);
+                BasicArrayVector longv = new BasicArrayVector(DATA_TYPE.DT_LONG_ARRAY);
+                longv.append((IVector)attributes[4]);
+                BasicArrayVector doublev = new BasicArrayVector(DATA_TYPE.DT_DOUBLE_ARRAY);
+                doublev.append((IVector)attributes[5]);
+                BasicArrayVector floatv = new BasicArrayVector(DATA_TYPE.DT_FLOAT_ARRAY);
+                floatv.append((IVector)attributes[6]);
+                BasicArrayVector datev = new BasicArrayVector(DATA_TYPE.DT_DATE_ARRAY);
+                datev.append((IVector)attributes[7]);
+                BasicArrayVector monthv = new BasicArrayVector(DATA_TYPE.DT_MONTH_ARRAY);
+                monthv.append((IVector)attributes[8]);
+                BasicArrayVector timev = new BasicArrayVector(DATA_TYPE.DT_TIME_ARRAY);
+                timev.append((IVector)attributes[9]);
+                BasicArrayVector minutev = new BasicArrayVector(DATA_TYPE.DT_MINUTE_ARRAY);
+                minutev.append((IVector)attributes[10]);
+                BasicArrayVector secondv = new BasicArrayVector(DATA_TYPE.DT_SECOND_ARRAY);
+                secondv.append((IVector)attributes[11]);
+                BasicArrayVector datetimev = new BasicArrayVector(DATA_TYPE.DT_DATETIME_ARRAY);
+                datetimev.append((IVector)attributes[12]);
+                BasicArrayVector timestampv = new BasicArrayVector(DATA_TYPE.DT_TIMESTAMP_ARRAY);
+                timestampv.append((IVector)attributes[13]);
+                BasicArrayVector nanotimev = new BasicArrayVector(DATA_TYPE.DT_NANOTIME_ARRAY);
+                nanotimev.append((IVector)attributes[14]);
+                BasicArrayVector nanotimestampv = new BasicArrayVector(DATA_TYPE.DT_NANOTIMESTAMP_ARRAY);
+                nanotimestampv.append((IVector)attributes[15]);
+                BasicArrayVector datehourv = new BasicArrayVector(DATA_TYPE.DT_DATEHOUR_ARRAY);
+                datehourv.append((IVector)attributes[16]);
+                BasicArrayVector uuidv = new BasicArrayVector(DATA_TYPE.DT_UUID_ARRAY);
+                uuidv.append((IVector)attributes[17]);
+                BasicArrayVector ippaddrv = new BasicArrayVector(DATA_TYPE.DT_IPADDR_ARRAY);
+                ippaddrv.append((IVector)attributes[18]);
+                BasicArrayVector int128v = new BasicArrayVector(DATA_TYPE.DT_INT128_ARRAY);
+                int128v.append((IVector)attributes[19]);
 
-                //String complex1 = attributes[21].getString().Replace(",,", ",NULL+NULL,").Replace("[,", "[NULL+NULL,").Replace(",]", ",NULL+NULL]");
-                //complex1 = complex1.Substring(1, complex1.Length - 1);
-                //String[] complex2 = complex1.Split(',');
-                //String complex3 = null;
-                //StringBuilder re11 = new StringBuilder();
-                //StringBuilder re21 = new StringBuilder();
-                //for (int i = 0; i < complex2.Length; i++)
-                //{
-                //    complex3 = complex2[i];
-                //    String[] complex4 = complex3.Split('+');
-                //    re11.Append(complex4[0]);
-                //    re11.Append(' ');
-                //    re21.Append(complex4[1]);
-                //    re21.Append(' ');
-                //}
-                //complex1 = re11 + "," + re21;
-                //String complexv = complex1.Replace("i", "");
+                cols.Add(boolv);
+                cols.Add(charv);
+                cols.Add(shortv);
+                cols.Add(intv);
+                cols.Add(longv);
+                cols.Add(doublev);
+                cols.Add(floatv);
+                cols.Add(datev);
+                cols.Add(monthv);
+                cols.Add(timev);
+                cols.Add(minutev);
+                cols.Add(secondv);
+                cols.Add(datetimev);
+                cols.Add(timestampv);
+                cols.Add(nanotimev);
+                cols.Add(nanotimestampv);
+                cols.Add(datehourv);
+                cols.Add(uuidv);
+                cols.Add(ippaddrv);
+                cols.Add(int128v);
 
-                //String decimal32v = attributes[20].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-               // String decimal64v = attributes[21].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-                //String decimal128v = attributes[22].getString().Replace(",,", ",NULL,").Replace("[,", "[NULL,").Replace(",]", ",NULL]").Replace(',', ' ');
-
-                for (int i = 0; i < attributes.Count; i++)
-                {
-                    //attributes[i].getString();
-                    Console.WriteLine(attributes[i].getString());
-                }
-                String script = null;
-                //script = String.Format("insert into outputTable values( {0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},[datehour({0})],[uuid({0})],[ipaddr({0})],[int128({0})],[point({0})],[complex({0})],{0},{0},{0})", boolv, charv, shortv, intv, longv, doublev, floatv, datev, monthv, timev, minutev, secondv, datetimev, timestampv, nanotimev, nanotimestampv, datehourv, uuidv, ippaddrv, int128v, pointv, complexv, decimal32v, decimal64v, decimal128v);
-                script = String.Format("insert into outputTable values( {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},[datehour({16})],[uuid({17})],[ipaddr({18})],[int128({19})])", boolv, charv, shortv, intv, longv, doublev, floatv, datev, monthv, timev, minutev, secondv, datetimev, timestampv, nanotimev, nanotimestampv, datehourv, uuidv, ippaddrv, int128v);
-                Console.WriteLine(script);
-                conn.run(script);
+                BasicTable bt = new BasicTable(colNames, cols);
+                //Console.WriteLine("-------------" + bt.getString());
+                var variable = new Dictionary<string, IEntity>();
+                variable.Add("table_tmp", bt);
+                conn.upload(variable);
+                conn.run("outputTable.tableInsert(table_tmp)");
             }
         };
 
@@ -1052,7 +1056,7 @@ namespace dolphindb_csharp_api_test.cep_test
             eventSchemas.Add(scheme);
             List<String> eventTimeFields = new List<string>();
             List<String> commonFields = new List<string>() { "time", "market" };
-            DBConnection conn1 = new DBConnection(false, true, true);
+            DBConnection conn1 = new DBConnection(false, false, true);
             conn1.connect(SERVER, PORT);
             EventSender sender = new EventSender(conn1, "inputTable", eventSchemas, eventTimeFields, commonFields);
 
@@ -1076,7 +1080,7 @@ namespace dolphindb_csharp_api_test.cep_test
             eventSchemas.Add(scheme);
             List<String> eventTimeFields = new List<string>();
             List<String> commonFields = new List<string>() { "time", "market" };
-            DBConnection conn1 = new DBConnection(false, true, true);
+            DBConnection conn1 = new DBConnection(false, false, true);
             conn1.connect(SERVER, PORT, "user1", "123456");
             EventSender sender = new EventSender(conn1, "inputTable", eventSchemas, eventTimeFields, commonFields);
 
@@ -2023,10 +2027,10 @@ namespace dolphindb_csharp_api_test.cep_test
                 }
                 sender.sendEvent("event_all_dateType", attributes);
             }
-            Console.WriteLine(bt.columns());
+            Console.WriteLine("bt.columns()" + bt.columns());
             BasicTable bt1 = (BasicTable)conn.run("select * from inputTable;");
             Assert.AreEqual(100000, bt1.rows());
-            Thread.Sleep(20000);
+            Thread.Sleep(30000);
             BasicTable bt2 = (BasicTable)conn.run("select * from outputTable;");
             Assert.AreEqual(100000, bt2.rows());
             checkData(bt, bt2);
@@ -2060,15 +2064,15 @@ namespace dolphindb_csharp_api_test.cep_test
                 for (int j = 0; j < bt.columns(); j++)
                 {
                     IEntity pt = bt.getColumn(j).getEntity(i);
-                    Console.WriteLine(pt.getDataType());
-                    Console.WriteLine(i + "行， " + j + "列：" + pt.getString());
+                    //Console.WriteLine(pt.getDataType());
+                    //Console.WriteLine(i + "行， " + j + "列：" + pt.getString());
                     attributes.Add(pt);
                 }
                 sender.sendEvent("event_all_array_dateType", attributes);
             }
             BasicTable bt1 = (BasicTable)conn.run("select * from inputTable;");
             Assert.AreEqual(10, bt1.rows());
-            Thread.Sleep(10000);
+            Thread.Sleep(5000);
             BasicTable bt2 = (BasicTable)conn.run("select * from outputTable;");
             Assert.AreEqual(10, bt2.rows());
             checkData(bt, bt2);

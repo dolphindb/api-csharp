@@ -36,9 +36,11 @@ namespace dolphindb.streaming
         private StreamDeserializer deserializer_;
         private string user_;
         private string password_;
+        private bool msgAsTable_;
+        private List<string> colsName_;
 
         public SubscribeInfo(DateTime activate, BlockingCollection<List<IMessage>> queue, Site[] sites, string topic, long msgId, bool reconnect, IVector filter, 
-            MessageHandler messageHandler, string tableName, string actionName, StreamDeserializer deserializer, string user, string password)
+            MessageHandler messageHandler, string tableName, string actionName, StreamDeserializer deserializer, string user, string password, bool msgAsTable_, List<string> colsName)
         {
             lastActivateTime_ = activate;
             this.queue_ = queue;
@@ -54,6 +56,8 @@ namespace dolphindb.streaming
             deserializer_ = deserializer;
             user_ = user;
             password_ = password;
+            this.msgAsTable_ = msgAsTable_;
+            this.colsName_ = colsName;
         }
 
         public string getTopic()
@@ -143,6 +147,16 @@ namespace dolphindb.streaming
         public string getPassword()
         {
             return password_;
+        }
+
+        public bool getMsgAsTable()
+        {
+            return msgAsTable_;
+        }
+
+        public List<string> getColsName()
+        {
+            return colsName_;
         }
     }
 

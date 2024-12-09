@@ -26,18 +26,23 @@ namespace dolphindb.data
 
         public override String getString()
         {
-            ulong c = (ulong)0xffffffff << 32;
-            //ulong a = 0xffffffff;
-            ulong t = (ulong)value.high & c;
-            ulong uHigh = (ulong)value.high;
-            ulong uLow = (ulong)value.low;
-            byte[] buffer = new byte[8];
-            for (int i = 0; i < 8; ++i)
+            if(isNull())
             {
-                buffer[i] = (byte)(uLow >> ((7 - i) * 8));
+                return "";
+            }else{
+                ulong c = (ulong)0xffffffff << 32;
+                //ulong a = 0xffffffff;
+                ulong t = (ulong)value.high & c;
+                ulong uHigh = (ulong)value.high;
+                ulong uLow = (ulong)value.low;
+                byte[] buffer = new byte[8];
+                for (int i = 0; i < 8; ++i)
+                {
+                    buffer[i] = (byte)(uLow >> ((7 - i) * 8));
+                }
+                return new Guid((int)(uHigh >> 32 & 0xffffffff), (short)(uHigh >> 16 & 0xffff),
+                    (short)(uHigh & 0xffff), buffer).ToString();
             }
-            return new Guid((int)(uHigh >> 32 & 0xffffffff), (short)(uHigh >> 16 & 0xffff),
-                (short)(uHigh & 0xffff), buffer).ToString();
         }
 
         public static new BasicUuid fromString(String name)

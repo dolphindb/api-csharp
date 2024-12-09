@@ -440,7 +440,7 @@ namespace dolphindb_csharp_api_test
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
             Assert.AreEqual("5d212a78-cc48-e3b1-4235-b4d91473ee87", ((BasicUuid)db.run("uuid('5d212a78-cc48-e3b1-4235-b4d91473ee87')")).getString());
-            Assert.AreEqual("00000000-0000-0000-0000-000000000000", ((BasicUuid)db.run("uuid()")).getString());
+            Assert.AreEqual("", ((BasicUuid)db.run("uuid()")).getString());
             db.close();
         }
 
@@ -450,7 +450,7 @@ namespace dolphindb_csharp_api_test
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
             Assert.AreEqual("e1671797c52e15f763380b45e841ec32", ((BasicInt128)db.run("int128('e1671797c52e15f763380b45e841ec32')")).getString());
-            Assert.AreEqual("00000000000000000000000000000000", ((BasicInt128)db.run("int128()")).getString());
+            Assert.AreEqual("", ((BasicInt128)db.run("int128()")).getString());
             db.close();
         }
 
@@ -460,7 +460,7 @@ namespace dolphindb_csharp_api_test
             DBConnection db = new DBConnection();
             db.connect(SERVER, PORT);
             Assert.AreEqual("192.168.1.13", ((BasicIPAddr)db.run("ipaddr('192.168.1.13')")).getString());
-            Assert.AreEqual("0.0.0.0", ((BasicIPAddr)db.run("ipaddr()")).getString());
+            Assert.AreEqual("", ((BasicIPAddr)db.run("ipaddr()")).getString());
             db.close();
         }
         [TestMethod]
@@ -1243,7 +1243,9 @@ namespace dolphindb_csharp_api_test
             BasicArrayVector v1 = (BasicArrayVector)db.run("f");
             BasicString v4 = (BasicString)db.run("typestr(f)");
             Console.Out.WriteLine(v4.getString());
+            Console.WriteLine(v1.getString());
             BasicIntVector v2 = (BasicIntVector)v1.getSubVector(1);
+            Console.WriteLine(v2.getString());
             Assert.AreEqual(5, ((BasicInt)v2.get(0)).getValue());
             Assert.AreEqual(4, ((BasicInt)v2.get(7)).getValue());
             Console.Out.WriteLine(v2.getString());
@@ -2078,7 +2080,7 @@ namespace dolphindb_csharp_api_test
             IEntity tb = (IEntity)db.run("1:2");
             if (tb.isPair())
             {
-                Assert.AreEqual("[1,2]", tb.getString());
+                Assert.AreEqual("[1, 2]", tb.getString());
             }
             db.close();
         }
@@ -2767,13 +2769,13 @@ namespace dolphindb_csharp_api_test
             Console.WriteLine(res.getString());
             Assert.AreEqual(7, res.columns());
             Assert.AreEqual(4, res.rows());
-            Assert.AreEqual("[[1,3,100000],[-1,0,0],[1,3,100000],[-1,0,0]]", res.getColumn(0).getString());
-            Assert.AreEqual("[[1.0,3.0,100000.0],[-1.0,0.0,0.1],[1.0,3.0,100000.0],[-1.0,0.0,0.1]]", res.getColumn(1).getString());
-            Assert.AreEqual("[[1.000,3.000,100000.000],[-1.000,0.000,0.123],[1.000,3.000,100000.000],[-1.000,0.000,0.123]]", res.getColumn(2).getString());
-            Assert.AreEqual("[[1,3,100000],[-1,0,0],[1,3,100000],[-1,0,0]]", res.getColumn(3).getString());
-            Assert.AreEqual("[[1.0,3.0,100000.0],[-1.0,0.0,0.1],[1.0,3.0,100000.0],[-1.0,0.0,0.1]]", res.getColumn(4).getString());
-            Assert.AreEqual("[[1.0000,3.0000,100000.0000],[-1.0000,0.0000,0.1235],[1.0000,3.0000,100000.0000],[-1.0000,0.0000,0.1235]]", res.getColumn(5).getString());
-            Assert.AreEqual("[[1.00000000,3.00001000,100000.00000000],[-1.00000000,0.00000000,0.12345679],[1.00000000,3.00001000,100000.00000000],[-1.00000000,0.00000000,0.12345679]]", res.getColumn(6).getString());
+            Assert.AreEqual("[[1, 3, 100000], [-1, 0, 0], [1, 3, 100000], [-1, 0, 0]]", res.getColumn(0).getString());
+            Assert.AreEqual("[[1.0, 3.0, 100000.0], [-1.0, 0.0, 0.1], [1.0, 3.0, 100000.0], [-1.0, 0.0, 0.1]]", res.getColumn(1).getString());
+            Assert.AreEqual("[[1.000, 3.000, 100000.000], [-1.000, 0.000, 0.123], [1.000, 3.000, 100000.000], [-1.000, 0.000, 0.123]]", res.getColumn(2).getString());
+            Assert.AreEqual("[[1, 3, 100000], [-1, 0, 0], [1, 3, 100000], [-1, 0, 0]]", res.getColumn(3).getString());
+            Assert.AreEqual("[[1.0, 3.0, 100000.0], [-1.0, 0.0, 0.1], [1.0, 3.0, 100000.0], [-1.0, 0.0, 0.1]]", res.getColumn(4).getString());
+            Assert.AreEqual("[[1.0000, 3.0000, 100000.0000], [-1.0000, 0.0000, 0.1235], [1.0000, 3.0000, 100000.0000], [-1.0000, 0.0000, 0.1235]]", res.getColumn(5).getString());
+            Assert.AreEqual("[[1.00000000, 3.00001000, 100000.00000000], [-1.00000000, 0.00000000, 0.12345679], [1.00000000, 3.00001000, 100000.00000000], [-1.00000000, 0.00000000, 0.12345679]]", res.getColumn(6).getString());
             Console.WriteLine(res.getColumn(0).getString());
 
         }
@@ -2800,10 +2802,10 @@ namespace dolphindb_csharp_api_test
             Console.WriteLine(res.getString());
             Assert.AreEqual(4, res.columns());
             Assert.AreEqual(4, res.rows());
-            Assert.AreEqual("[[1,3,100000],[-1,0,0],[1,3,100000],[-1,0,0]]", res.getColumn(0).getString());
-            Assert.AreEqual("[[1.0,3.0,100000.0],[-1.0,0.0,0.1],[1.0,3.0,100000.0],[-1.0,0.0,0.1]]", res.getColumn(1).getString());
-            Assert.AreEqual("[[1.0000000000,3.0000100000,100000.0000000000],[-1.0000000000,0.0000000000,0.1234567890],[1.0000000000,3.0000100000,100000.0000000000],[-1.0000000000,0.0000000000,0.1234567890]]", res.getColumn(2).getString());
-            Assert.AreEqual("[[1.000000000000000000000000000000,3.000010000000000339718860439552,99999.999999999978416622034208423936],[-1.000000000000000000000000000000,0.000000000000000000000000000000,0.123456788999999991885143736320],[1.000000000000000000000000000000,3.000010000000000339718860439552,99999.999999999978416622034208423936],[-1.000000000000000000000000000000,0.000000000000000000000000000000,0.123456788999999991885143736320]]", res.getColumn(3).getString());
+            Assert.AreEqual("[[1, 3, 100000], [-1, 0, 0], [1, 3, 100000], [-1, 0, 0]]", res.getColumn(0).getString());
+            Assert.AreEqual("[[1.0, 3.0, 100000.0], [-1.0, 0.0, 0.1], [1.0, 3.0, 100000.0], [-1.0, 0.0, 0.1]]", res.getColumn(1).getString());
+            Assert.AreEqual("[[1.0000000000, 3.0000100000, 100000.0000000000], [-1.0000000000, 0.0000000000, 0.1234567890], [1.0000000000, 3.0000100000, 100000.0000000000], [-1.0000000000, 0.0000000000, 0.1234567890]]", res.getColumn(2).getString());
+            Assert.AreEqual("[[1.000000000000000000000000000000, 3.000010000000000339718860439552, 99999.999999999978416622034208423936], [-1.000000000000000000000000000000, 0.000000000000000000000000000000, 0.123456788999999991885143736320], [1.000000000000000000000000000000, 3.000010000000000339718860439552, 99999.999999999978416622034208423936], [-1.000000000000000000000000000000, 0.000000000000000000000000000000, 0.123456788999999991885143736320]]", res.getColumn(3).getString());
             Console.WriteLine(res.getColumn(0).getString());
         }
         [TestMethod]
@@ -2831,13 +2833,13 @@ namespace dolphindb_csharp_api_test
             Console.WriteLine(res.getString());
             Assert.AreEqual(7, res.columns());
             Assert.AreEqual(4, res.rows());
-            Assert.AreEqual("[[1,3,100000],[-1,0,0],[1,3,100000],[-1,0,0]]", res.getColumn(0).getString());
-            Assert.AreEqual("[[1.0,3.0,100000.0],[-1.0,0.0,0.1],[1.0,3.0,100000.0],[-1.0,0.0,0.1]]", res.getColumn(1).getString());
-            Assert.AreEqual("[[1.000,3.000,100000.000],[-1.000,0.000,0.123],[1.000,3.000,100000.000],[-1.000,0.000,0.123]]", res.getColumn(2).getString());
-            Assert.AreEqual("[[1,3,100000],[-1,0,0],[1,3,100000],[-1,0,0]]", res.getColumn(3).getString());
-            Assert.AreEqual("[[1.0,3.0,100000.0],[-1.0,0.0,0.1],[1.0,3.0,100000.0],[-1.0,0.0,0.1]]", res.getColumn(4).getString());
-            Assert.AreEqual("[[1.0000,3.0000,100000.0000],[-1.0000,0.0000,0.1235],[1.0000,3.0000,100000.0000],[-1.0000,0.0000,0.1235]]", res.getColumn(5).getString());
-            Assert.AreEqual("[[1.00000000,3.00001000,100000.00000000],[-1.00000000,0.00000000,0.12345679],[1.00000000,3.00001000,100000.00000000],[-1.00000000,0.00000000,0.12345679]]", res.getColumn(6).getString());
+            Assert.AreEqual("[[1, 3, 100000], [-1, 0, 0], [1, 3, 100000], [-1, 0, 0]]", res.getColumn(0).getString());
+            Assert.AreEqual("[[1.0, 3.0, 100000.0], [-1.0, 0.0, 0.1], [1.0, 3.0, 100000.0], [-1.0, 0.0, 0.1]]", res.getColumn(1).getString());
+            Assert.AreEqual("[[1.000, 3.000, 100000.000], [-1.000, 0.000, 0.123], [1.000, 3.000, 100000.000], [-1.000, 0.000, 0.123]]", res.getColumn(2).getString());
+            Assert.AreEqual("[[1, 3, 100000], [-1, 0, 0], [1, 3, 100000], [-1, 0, 0]]", res.getColumn(3).getString());
+            Assert.AreEqual("[[1.0, 3.0, 100000.0], [-1.0, 0.0, 0.1], [1.0, 3.0, 100000.0], [-1.0, 0.0, 0.1]]", res.getColumn(4).getString());
+            Assert.AreEqual("[[1.0000, 3.0000, 100000.0000], [-1.0000, 0.0000, 0.1235], [1.0000, 3.0000, 100000.0000], [-1.0000, 0.0000, 0.1235]]", res.getColumn(5).getString());
+            Assert.AreEqual("[[1.00000000, 3.00001000, 100000.00000000], [-1.00000000, 0.00000000, 0.12345679], [1.00000000, 3.00001000, 100000.00000000], [-1.00000000, 0.00000000, 0.12345679]]", res.getColumn(6).getString());
             Console.WriteLine(res.getColumn(0).getString());
         }
         [TestMethod]
@@ -2862,10 +2864,10 @@ namespace dolphindb_csharp_api_test
             Console.WriteLine(res.getString());
             Assert.AreEqual(4, res.columns());
             Assert.AreEqual(4, res.rows());
-            Assert.AreEqual("[[1,3,100000],[-1,0,0],[1,3,100000],[-1,0,0]]", res.getColumn(0).getString());
-            Assert.AreEqual("[[1.0,3.0,100000.0],[-1.0,0.0,0.1],[1.0,3.0,100000.0],[-1.0,0.0,0.1]]", res.getColumn(1).getString());
-            Assert.AreEqual("[[1.0000000000,3.0000100000,100000.0000000000],[-1.0000000000,0.0000000000,0.1234567890],[1.0000000000,3.0000100000,100000.0000000000],[-1.0000000000,0.0000000000,0.1234567890]]", res.getColumn(2).getString());
-            Assert.AreEqual("[[1.000000000000000000000000000000,3.000010000000000339718860439552,99999.999999999978416622034208423936],[-1.000000000000000000000000000000,0.000000000000000000000000000000,0.123456788999999991885143736320],[1.000000000000000000000000000000,3.000010000000000339718860439552,99999.999999999978416622034208423936],[-1.000000000000000000000000000000,0.000000000000000000000000000000,0.123456788999999991885143736320]]", res.getColumn(3).getString());
+            Assert.AreEqual("[[1, 3, 100000], [-1, 0, 0], [1, 3, 100000], [-1, 0, 0]]", res.getColumn(0).getString());
+            Assert.AreEqual("[[1.0, 3.0, 100000.0], [-1.0, 0.0, 0.1], [1.0, 3.0, 100000.0], [-1.0, 0.0, 0.1]]", res.getColumn(1).getString());
+            Assert.AreEqual("[[1.0000000000, 3.0000100000, 100000.0000000000], [-1.0000000000, 0.0000000000, 0.1234567890], [1.0000000000, 3.0000100000, 100000.0000000000], [-1.0000000000, 0.0000000000, 0.1234567890]]", res.getColumn(2).getString());
+            Assert.AreEqual("[[1.000000000000000000000000000000, 3.000010000000000339718860439552, 99999.999999999978416622034208423936], [-1.000000000000000000000000000000, 0.000000000000000000000000000000, 0.123456788999999991885143736320], [1.000000000000000000000000000000, 3.000010000000000339718860439552, 99999.999999999978416622034208423936], [-1.000000000000000000000000000000, 0.000000000000000000000000000000, 0.123456788999999991885143736320]]", res.getColumn(3).getString());
             Console.WriteLine(res.getColumn(0).getString());
 
         }
@@ -2890,13 +2892,13 @@ namespace dolphindb_csharp_api_test
             Console.WriteLine(res.getString());
             Assert.AreEqual(7, res.columns());
             Assert.AreEqual(2, res.rows());
-            Assert.AreEqual("[[1,3,100000],[-1,0,0]]", res.getColumn(0).getString());
-            Assert.AreEqual("[[1.0,3.0,100000.0],[-1.0,0.0,0.1]]", res.getColumn(1).getString());
-            Assert.AreEqual("[[1.000,3.000,100000.000],[-1.000,0.000,0.123]]", res.getColumn(2).getString());
-            Assert.AreEqual("[[1,3,100000],[-1,0,0]]", res.getColumn(3).getString());
-            Assert.AreEqual("[[1.0,3.0,100000.0],[-1.0,0.0,0.1]]", res.getColumn(4).getString());
-            Assert.AreEqual("[[1.0000,3.0000,100000.0000],[-1.0000,0.0000,0.1235]]", res.getColumn(5).getString());
-            Assert.AreEqual("[[1.00000000,3.00001000,100000.00000000],[-1.00000000,0.00000000,0.12345679]]", res.getColumn(6).getString());
+            Assert.AreEqual("[[1, 3, 100000], [-1, 0, 0]]", res.getColumn(0).getString());
+            Assert.AreEqual("[[1.0, 3.0, 100000.0], [-1.0, 0.0, 0.1]]", res.getColumn(1).getString());
+            Assert.AreEqual("[[1.000, 3.000, 100000.000], [-1.000, 0.000, 0.123]]", res.getColumn(2).getString());
+            Assert.AreEqual("[[1, 3, 100000], [-1, 0, 0]]", res.getColumn(3).getString());
+            Assert.AreEqual("[[1.0, 3.0, 100000.0], [-1.0, 0.0, 0.1]]", res.getColumn(4).getString());
+            Assert.AreEqual("[[1.0000, 3.0000, 100000.0000], [-1.0000, 0.0000, 0.1235]]", res.getColumn(5).getString());
+            Assert.AreEqual("[[1.00000000, 3.00001000, 100000.00000000], [-1.00000000, 0.00000000, 0.12345679]]", res.getColumn(6).getString());
 
         }
         [TestMethod]
@@ -2916,9 +2918,9 @@ namespace dolphindb_csharp_api_test
             Console.WriteLine(res.getString());
             Assert.AreEqual(3, res.columns());
             Assert.AreEqual(2, res.rows());
-            Assert.AreEqual("[[1,3,100000],[-1,0,0]]", res.getColumn(0).getString());
-            Assert.AreEqual("[[1.0,3.0,100000.0],[-1.0,0.0,0.1]]", res.getColumn(1).getString());
-            Assert.AreEqual("[[1.000000000000000000000000000000,3.000010000000000339718860439552,99999.999999999978416622034208423936],[-1.000000000000000000000000000000,0.000000000000000000000000000000,0.123456788999999991885143736320]]", res.getColumn(2).getString());
+            Assert.AreEqual("[[1, 3, 100000], [-1, 0, 0]]", res.getColumn(0).getString());
+            Assert.AreEqual("[[1.0, 3.0, 100000.0], [-1.0, 0.0, 0.1]]", res.getColumn(1).getString());
+            Assert.AreEqual("[[1.000000000000000000000000000000, 3.000010000000000339718860439552, 99999.999999999978416622034208423936], [-1.000000000000000000000000000000, 0.000000000000000000000000000000, 0.123456788999999991885143736320]]", res.getColumn(2).getString());
         }
 
         [TestMethod]
@@ -3708,31 +3710,44 @@ a";
             connection.close();
 
         }
-        //[TestMethod]
+
+        [TestMethod]
         public void Test_sqlList_priority()
         {
             DBConnection connection = new DBConnection();
-            connection.connect("192.168.1.167", 8851, "admin", "123456");
-            List<string> sqlList = new List<string>() { "m = 30000;", "n = 100;", "exTable0 = table(n:0, `symbolv`ID`timestampx`stringv`boolv`intv`datev`datetimev`timestampv`floatv, [SYMBOL, INT, TIMESTAMP, STRING, BOOL[], INT[], DATE[], DATETIME[], TIMESTAMP[], FLOAT[]]);", "symbol_vector=take(`A, n);", "ID_vector=take(100, n);", "timestampx_vector=take(temporalAdd(2020.01.01T12:23:24.345, (1..n), `m), n);", "stringv_vector=rand(`name + string(1..100), n);", "bool_vector=take([take(take(true, 5) join take(false, 5), 10)], n);", "int_vector=take([int(take([40,48,4,3,52,18,21,73,82,67], m)), int(take([36,98,95,69,41,60,78,92,78,21], m)), int(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "date_vector=take([date(take([40,48,4,3,52,18,21,73,82,67], m)), date(take([36,98,95,69,41,60,78,92,78,21], m)), date(take([92,40,13,93,9,34,86,60,43,64],m))], n);", "datetime_vector=take([datetime(take([40,48,4,3,52,18,21,73,82,67], m)), datetime(take([36,98,95,69,41,60,78,92,78,21], m)), datetime(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "timestamp_vector=take([timestamp(take([40,48,4,3,52,18,21,73,82,67], m)), timestamp(take([36,98,95,69,41,60,78,92,78,21], m)), timestamp(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "float_vector=take([float(take([40,48,4,3,52,18,21,73,82,67], m)), float(take([36,98,95,69,41,60,78,92,78,21], m)), float(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "exTable0.tableInsert(symbol_vector, ID_vector, timestampx_vector, stringv_vector, bool_vector, int_vector, date_vector, datetime_vector, timestamp_vector, float_vector);", "share exTable0 as ptt;", "select count(*) from ptt", "select ID from ptt", "select * from ptt", "select intv from ptt" };
-
-            DBConnection connection1 = new DBConnection();
-            connection1.connect("192.168.1.167", 8851, "admin", "123456");
-            List<string> sqlList1 = new List<string>() { "m = 30000;", "n = 100;", "exTable1 = table(n:0, `symbolv`ID`timestampx`stringv`boolv`intv`datev`datetimev`timestampv`floatv, [SYMBOL, INT, TIMESTAMP, STRING, BOOL[], INT[], DATE[], DATETIME[], TIMESTAMP[], FLOAT[]]);", "symbol_vector=take(`A, n);", "ID_vector=take(100, n);", "timestampx_vector=take(temporalAdd(2020.01.01T12:23:24.345, (1..n), `m), n);", "stringv_vector=rand(`name + string(1..100), n);", "bool_vector=take([take(take(true, 5) join take(false, 5), 10)], n);", "int_vector=take([int(take([40,48,4,3,52,18,21,73,82,67], m)), int(take([36,98,95,69,41,60,78,92,78,21], m)), int(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "date_vector=take([date(take([40,48,4,3,52,18,21,73,82,67], m)), date(take([36,98,95,69,41,60,78,92,78,21], m)), date(take([92,40,13,93,9,34,86,60,43,64],m))], n);", "datetime_vector=take([datetime(take([40,48,4,3,52,18,21,73,82,67], m)), datetime(take([36,98,95,69,41,60,78,92,78,21], m)), datetime(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "timestamp_vector=take([timestamp(take([40,48,4,3,52,18,21,73,82,67], m)), timestamp(take([36,98,95,69,41,60,78,92,78,21], m)), timestamp(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "float_vector=take([float(take([40,48,4,3,52,18,21,73,82,67], m)), float(take([36,98,95,69,41,60,78,92,78,21], m)), float(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "exTable1.tableInsert(symbol_vector, ID_vector, timestampx_vector, stringv_vector, bool_vector, int_vector, date_vector, datetime_vector, timestamp_vector, float_vector);", "share exTable1 as ptt1;", "select count(*) from ptt1", "select ID from ptt1", "select * from ptt1", "select intv from ptt1" };
-            List<IEntity> entities = connection.run(sqlList,0);
-            foreach (IEntity entity in entities)
+            connection.connect(SERVER, PORT, "admin", "123456");
+            List<string> sqlList = new List<string>() { "getConsoleJobs();" };
+            var re1 = connection.run(sqlList, 4);
+            Console.Out.WriteLine(((BasicTable)re1[0]).getColumn(5).get(0).getString());
+            Assert.AreEqual("4", ((BasicTable)re1[0]).getColumn(5).get(0).getString());
+            var re2 = connection.run(sqlList, 0);
+            Console.Out.WriteLine(((BasicTable)re2[0]).getColumn(5).get(0).getString());
+            Assert.AreEqual("0", ((BasicTable)re2[0]).getColumn(5).get(0).getString());
+            var re3 = connection.run(sqlList, 8);
+            Console.Out.WriteLine(((BasicTable)re3[0]).getColumn(5).get(0).getString());
+            Assert.AreEqual("8", ((BasicTable)re3[0]).getColumn(5).get(0).getString());
+            String re4 = null;
+            try
             {
-                Console.Out.WriteLine(entity.getString());
-                entity.getString();
+                connection.run(sqlList, -1);
             }
-            List<IEntity> entities1 = connection1.run(sqlList, 8);
-            foreach (IEntity entity in entities1)
+            catch (Exception ex)
             {
-                Console.Out.WriteLine(entity.getString());
-                entity.getString();
+                re4 = ex.Message;
             }
-            connection.close();
-            connection1.close();
+            Assert.AreEqual(re4, "priority must be greater than -1 and less than 9");
+            String re5 = null;
+            try
+            {
+                connection.run(sqlList, 9);
+            }
+            catch (Exception ex)
+            {
+                re5 = ex.Message;
+            }
+            Assert.AreEqual(re5, "priority must be greater than -1 and less than 9");
         }
+
         public void PrepareUser(String userName, String password)
         {
             DBConnection conn = new DBConnection();

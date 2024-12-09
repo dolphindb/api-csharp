@@ -260,7 +260,7 @@ namespace dolphindb_csharp_api_test
             pool = new ExclusiveDBConnectionPool(SERVER, PORT, USER, PASSWORD, 1, false, false);
 
             Assert.AreEqual("5d212a78-cc48-e3b1-4235-b4d91473ee87", ((BasicUuid)pool.runAsync("uuid('5d212a78-cc48-e3b1-4235-b4d91473ee87')").Result).getString());
-            Assert.AreEqual("00000000-0000-0000-0000-000000000000", ((BasicUuid)pool.runAsync("uuid()").Result).getString());
+            Assert.AreEqual("", ((BasicUuid)pool.runAsync("uuid()").Result).getString());
             
         }
 
@@ -270,7 +270,7 @@ namespace dolphindb_csharp_api_test
             pool = new ExclusiveDBConnectionPool(SERVER, PORT, USER, PASSWORD, 1, false, false);
 
             Assert.AreEqual("e1671797c52e15f763380b45e841ec32", ((BasicInt128)pool.runAsync("int128('e1671797c52e15f763380b45e841ec32')").Result).getString());
-            Assert.AreEqual("00000000000000000000000000000000", ((BasicInt128)pool.runAsync("int128()").Result).getString());
+            Assert.AreEqual("", ((BasicInt128)pool.runAsync("int128()").Result).getString());
             
         }
 
@@ -284,7 +284,7 @@ namespace dolphindb_csharp_api_test
             Assert.AreEqual("192.168.1.13", v.getString());
             Task<IEntity> result2 = pool.runAsync("ipaddr()");
             BasicIPAddr v2 = (BasicIPAddr)result2.Result;
-            Assert.AreEqual("0.0.0.0", v2.getString());
+            Assert.AreEqual("", v2.getString());
             
         }
         //[TestMethod]

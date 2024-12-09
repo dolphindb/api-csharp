@@ -27,7 +27,12 @@ namespace dolphindb.data
 
         public override String getString()
         {
-            return getString(value);
+            if(isNull())
+            {
+                return "";
+            }else{
+                return getString(value);
+            }
         }
 
         public static String getString(Long2 value)

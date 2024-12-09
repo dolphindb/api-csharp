@@ -316,7 +316,7 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
             BasicIPAddr sc = (BasicIPAddr)conn.run("ipaddr()");
-            Assert.AreEqual("0.0.0.0", sc.getString());
+            Assert.AreEqual("", sc.getString());
             BasicIPAddr sc1 = (BasicIPAddr)conn.run("ipaddr(\"192.168.1.253\")");
             Assert.AreEqual("192.168.1.253", sc1.getString());
             Assert.AreEqual(false, sc1.Equals(sc));
@@ -329,7 +329,7 @@ namespace dolphindb_csharp_api_test.data_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
             BasicIPAddr sc = new BasicIPAddr((long)0, (long)0);
-            Assert.AreEqual("0.0.0.0", sc.getString());
+            Assert.AreEqual("", sc.getString());
             BasicIPAddr sc1 = new BasicIPAddr((long)192, (long)253); ;
             Assert.AreEqual("0::c0:0:0:0:fd", sc1.getString());
             Assert.AreEqual(false, sc1.Equals(sc));

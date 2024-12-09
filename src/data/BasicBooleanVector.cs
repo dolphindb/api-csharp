@@ -37,7 +37,7 @@ namespace dolphindb.data
 
         protected internal BasicBooleanVector(DATA_FORM df, int size) : base(df)
         {
-           
+
             values = new List<byte>(size);
             values.AddRange(new byte[size]);
         }
@@ -213,11 +213,6 @@ namespace dolphindb.data
         public override IEntity getEntity(int index)
         {
             return new BasicBoolean(values[index]);
-        }
-
-        public override int getExtraParamForType()
-        {
-            throw new NotImplementedException();
         }
     }
 
