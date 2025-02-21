@@ -99,7 +99,7 @@ namespace dolphindb_csharp_api_test
 
             try
             {
-                pool = new ExclusiveDBConnectionPool(SERVER, PORT, "q1qaz", PASSWORD, 10, true, true);
+                pool = new ExclusiveDBConnectionPool(SERVER, PORT, "q1qaz", PASSWORD, 10, false, false);
             }
             catch (Exception ex)
             {

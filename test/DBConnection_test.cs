@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using dolphindb_config;
-
+using dolphindb.io;
 
 namespace dolphindb_csharp_api_test
 {
@@ -451,6 +451,16 @@ namespace dolphindb_csharp_api_test
             db.connect(SERVER, PORT);
             Assert.AreEqual("e1671797c52e15f763380b45e841ec32", ((BasicInt128)db.run("int128('e1671797c52e15f763380b45e841ec32')")).getString());
             Assert.AreEqual("", ((BasicInt128)db.run("int128()")).getString());
+            db.close();
+        }
+
+        [TestMethod]
+        public void Test_run_return_scalar_complex()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            Assert.AreEqual("-1-10i", ((BasicComplex)db.run("complex(-1,-10)")).getString());
+            Assert.AreEqual("0+0i", ((BasicComplex)db.run("complex(0,0)")).getString());
             db.close();
         }
 
@@ -1105,6 +1115,32 @@ namespace dolphindb_csharp_api_test
         }
 
         [TestMethod]
+        public void Test_run_return_vector_complex()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            IVector v = (IVector)db.run("[complex(1,10), complex(-1,-10), complex(0,0),NULL ]");
+            Assert.IsTrue(v.isVector());
+            Assert.AreEqual(4, v.rows());
+            Assert.AreEqual("1+10i", ((BasicComplex)v.get(0)).getString());
+            Assert.AreEqual("-1-10i", ((BasicComplex)v.get(1)).getString());
+            Assert.AreEqual("0+0i", ((BasicComplex)v.get(2)).getString());
+            Assert.AreEqual("", ((BasicComplex)v.get(3)).getString());
+            Assert.AreEqual("1+10i", ((BasicComplex)v.getEntity(0)).getString());
+            Assert.AreEqual("-1-10i", ((BasicComplex)v.getEntity(1)).getString());
+            Assert.AreEqual("0+0i", ((BasicComplex)v.getEntity(2)).getString());
+            Assert.AreEqual("", ((BasicComplex)v.getEntity(3)).getString());
+
+            IVector v2 = (IVector)db.run("complex(take(0..9999,10000),take(0..9999,10000))");
+            for (int i = 0; i < 10000; i++)
+            {
+                Assert.AreEqual(i+"+"+i+"i", ((BasicComplex)v2.get(i)).getString());
+                Assert.AreEqual(i + "+" + i + "i", ((BasicComplex)v2.getEntity(i)).getString());
+            }
+            db.close();
+        }
+
+        [TestMethod]
         public void Test_run_return_vector_decimal64()
         {
             DBConnection db = new DBConnection();
@@ -1606,6 +1642,31 @@ namespace dolphindb_csharp_api_test
         }
 
         [TestMethod]
+        public void Test_run_return_matrix_complex()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT);
+            BasicComplexMatrix matrix = (BasicComplexMatrix)conn.run("matrix(COMPLEX,1,1, ,);");
+            Assert.AreEqual(1, matrix.rows());
+            Assert.AreEqual(1, matrix.columns());
+            Assert.AreEqual("", matrix.get(0, 0).getString());
+
+            BasicComplexMatrix matrix1 = (BasicComplexMatrix)conn.run("[complex(1,10), complex(-1,-10), complex(0,0),NULL]$2:2");
+            Assert.AreEqual("#0     #1  \n" +
+                    "1+10i  0+0i\n" +
+                    "-1-10i     \n", matrix1.getString());
+
+            BasicComplexMatrix matrix2 = (BasicComplexMatrix)conn.run("matrix([complex(1,10), complex(-1,-10), complex(0,0) ],[complex(1.999,10.555), NULL, complex(1121,-1333)])");
+            Assert.AreEqual(3, matrix2.rows());
+            Assert.AreEqual(2, matrix2.columns());
+            Console.WriteLine(matrix2.getString());
+            Assert.AreEqual("#0     #1           \n" +
+                    "1+10i  1.999+10.555i\n" +
+                    "-1-10i              \n" +
+                    "0+0i   1121-1333i   \n", matrix2.getString());
+        }
+
+        [TestMethod]
         public void Test_upload_matrix_decimal32()
         {
             DBConnection conn = new DBConnection();
@@ -1762,6 +1823,18 @@ namespace dolphindb_csharp_api_test
             BasicDictionary dict = (BasicDictionary)db.run("a");
             BasicDecimal128 v = (BasicDecimal128)dict.get(new BasicInt(2));
             Assert.AreEqual("2.000", v.getString());
+            db.close();
+        }
+
+        [TestMethod]
+        public void Test_run_return_dict_complex()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            db.run("x = 1 2 3;\n y = [complex(1.44,2.88),complex(-1.44,-2.88),complex(0,0)];\n a  = dict(x,y);");
+            BasicDictionary dict = (BasicDictionary)db.run("a");
+            BasicComplex v = (BasicComplex)dict.get(new BasicInt(2));
+            Assert.AreEqual("-1.44-2.88i", v.getString());
             db.close();
         }
 
@@ -2745,6 +2818,50 @@ namespace dolphindb_csharp_api_test
         }
 
         [TestMethod]
+        public void Test_BasicTable_complex_upload()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "admin", "123456");
+            conn.run("try{undef(`table1,SHARED)}\n catch(ex){}\n");
+            var cols = new List<IVector>() { };
+            var colNames = new List<String>() { "complex"};
+            cols.Add(new BasicComplexVector(new Double2[] { new Double2(-1.44, 0.33), new Double2(1.44, -0.33), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) }));
+            
+            var bt = new BasicTable(colNames, cols);
+            var variable = new Dictionary<string, IEntity>();
+            variable.Add("table1", bt);
+            conn.upload(variable);
+            BasicTable re = (BasicTable)conn.run("table1");
+            Console.WriteLine(re.getString());
+            Assert.AreEqual(cols[0].getString(), re.getColumn(0).getString());
+            conn.close();
+        }
+
+        [TestMethod]
+        public void test_tableInsert_complex_arrayvector()
+        {
+            DBConnection connection = new DBConnection(false, false, false);
+            connection.connect(SERVER, PORT, "admin", "123456");
+            connection.run("\n" +
+                    "t = table(1000:0, `col0`col1, [COMPLEX[],COMPLEX[]])\n" +
+                    "share t as ptt;\n" +
+                    "col0=[[complex(1,10), complex(-1,-10), complex(0,0) ],[complex(1.999,10.555), NULL, complex(1121,-1333)]]\n" +
+                    "col1=[[complex(1,10), complex(-1,-10), complex(0,0) ],[complex(1.999,10.555), NULL, complex(1121,-1333)]]\n" +
+                    "t.tableInsert(col0, col1)\n" +
+                    "\n");
+            BasicTable arr = (BasicTable)connection.run("t");
+            Console.WriteLine(arr.getString());
+            List<IEntity> ags = new List<IEntity>() { arr };
+            connection.run("tableInsert{t}", ags);
+            BasicTable res = (BasicTable)connection.run("t");
+            Console.WriteLine(res.getString());
+            Assert.AreEqual(2, res.columns());
+            Assert.AreEqual(4, res.rows());
+            Assert.AreEqual("[[1+10i, -1-10i, 0+0i], [1.999+10.555i, , 1121-1333i], [1+10i, -1-10i, 0+0i], [1.999+10.555i, , 1121-1333i]]", res.getColumn(0).getString());
+            Console.WriteLine(res.getColumn(0).getString());
+        }
+
+        [TestMethod]
         public void test_tableInsert_decimal_arrayvector()
         {
             DBConnection connection = new DBConnection(false, false, false);
@@ -2930,7 +3047,7 @@ namespace dolphindb_csharp_api_test
             conn.connect(SERVER, PORT, "admin", "123456");
             conn.run("try{undef(`table1,SHARED)}\n catch(ex){}\n");
             var cols = new List<IVector>() { };
-            var colNames = new List<String>() { "intv", "boolv", "charv", "shortv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "symbolv", "stringv", "uuidv", "datehourv", "ippaddrv", "int128v", "blobv", "decimal32v", "decimal64v", "decimal128v" };
+            var colNames = new List<String>() { "intv", "boolv", "charv", "shortv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "symbolv", "stringv", "uuidv", "datehourv", "ippaddrv", "int128v", "complexv", "blobv", "decimal32v", "decimal64v", "decimal128v" };
             int rowNum = 0;
             cols.Add(new BasicIntVector(rowNum));
             cols.Add(new BasicBooleanVector(rowNum));
@@ -2954,6 +3071,7 @@ namespace dolphindb_csharp_api_test
             cols.Add(new BasicDateHourVector(rowNum));
             cols.Add(new BasicIPAddrVector(rowNum));
             cols.Add(new BasicInt128Vector(rowNum));
+            cols.Add(new BasicComplexVector(rowNum));
             cols.Add(new BasicStringVector(new List<string>(),true));
             cols.Add(new BasicDecimal32Vector(rowNum,2));
             cols.Add(new BasicDecimal64Vector(rowNum, 2));
@@ -2973,7 +3091,7 @@ namespace dolphindb_csharp_api_test
             conn.connect(SERVER, PORT, "admin", "123456");
             conn.run("try{undef(`table1,SHARED)}\n catch(ex){}\n");
             var cols = new List<IVector>() { };
-            var colNames = new List<String>() { "id", "intv", "boolv", "charv", "shortv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "uuidv", "datehourv", "ippaddrv", "int128v", "decimal32v", "decimal64v", "decimal128v" };
+            var colNames = new List<String>() { "id", "intv", "boolv", "charv", "shortv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "uuidv", "datehourv", "ippaddrv", "int128v", "complexv", "decimal32v", "decimal64v", "decimal128v" };
             int rowNum = 0;
             cols.Add(new BasicIntVector(rowNum));
             cols.Add(new BasicArrayVector(DATA_TYPE.DT_INT_ARRAY));
@@ -2996,6 +3114,7 @@ namespace dolphindb_csharp_api_test
             cols.Add(new BasicArrayVector(DATA_TYPE.DT_DATEHOUR_ARRAY));
             cols.Add(new BasicArrayVector(DATA_TYPE.DT_IPADDR_ARRAY));
             cols.Add(new BasicArrayVector(DATA_TYPE.DT_INT128_ARRAY));
+            cols.Add(new BasicArrayVector(DATA_TYPE.DT_COMPLEX_ARRAY));
             cols.Add(new BasicArrayVector(DATA_TYPE.DT_DECIMAL32_ARRAY, 1));
             cols.Add(new BasicArrayVector(DATA_TYPE.DT_DECIMAL64_ARRAY, 2));
             cols.Add(new BasicArrayVector(DATA_TYPE.DT_DECIMAL128_ARRAY, 10));

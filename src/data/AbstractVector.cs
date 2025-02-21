@@ -194,6 +194,7 @@ namespace dolphindb.data
                             case DATA_TYPE.DT_NANOTIMESTAMP:
 
                             case DATA_TYPE.DT_INT128:
+                            case DATA_TYPE.DT_COMPLEX:
                             case DATA_TYPE.DT_UUID:
                             case DATA_TYPE.DT_IPADDR:
                             case DATA_TYPE.DT_FLOAT:
@@ -264,6 +265,7 @@ namespace dolphindb.data
                     unitLength = 8;
                     break;
                 case DATA_TYPE.DT_INT128:
+                case DATA_TYPE.DT_COMPLEX:
                 case DATA_TYPE.DT_UUID:
                 case DATA_TYPE.DT_IPADDR:
                 case DATA_TYPE.DT_DECIMAL128:

@@ -358,6 +358,26 @@ namespace dolphindb_csharp_api_test.streamReverse_test
             conn1.connect(SERVER, PORT, "admin", "123456");
             conn1.run(script);
         }
+
+        public void PrepareStreamTable_allDateType(String dataType, int rows)
+        {
+            try
+            {
+                String script = "share streamTable(1000000:0, `permno`dateType, [INT," + dataType + "]) as Trades;\n" +
+                "setStreamTableFilterColumn(Trades, `permno); \n" +
+                "permno = take(1..10," + rows + "); \n" +
+                "dateType_COMPLEX =  rand(complex(rand(100, 1000), rand(100, 1000)) join NULL,  " + rows + "); \n" +
+                "share table(permno,dateType_" + dataType + ") as pub_t\n" +
+                "share streamTable(1000000:0, `permno`dateType, [INT," + dataType + "]) as sub1;\n";
+                DBConnection conn1 = new DBConnection();
+                conn1.connect(SERVER, PORT, "admin", "123456");
+                conn1.run(script);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.StackTrace);
+            }
+        }
         public void PrepareStreamTableDecimal(String dataType, int scale, int rows)
         {
             try
@@ -2083,6 +2103,44 @@ namespace dolphindb_csharp_api_test.streamReverse_test
             client.unsubscribe(SERVER, PORT, "Trades", "sub1");
         }
 
+        //public void Handler_array_COMPLEX(List<IMessage> messages)
+        //{
+        //    for (int i = 0; i < messages.Count; i++)
+        //    {
+        //        try
+        //        {
+        //            IMessage msg = messages[i];
+        //            Console.WriteLine("msg:" + msg.getEntity(1).getString());
+        //            String complex1 = msg.getEntity(1).getString().Replace(", ,", ",NULL+NULL,").Replace("[,", "[NULL+NULL,").Replace(",]", ",NULL+NULL]");
+        //            Console.WriteLine("complex1:" + complex1);
+        //            complex1 = complex1.Substring(1).Substring(complex1.Length - 1);
+        //            String[] complex2 = complex1.Split(',');
+        //            String complex3 = null;
+        //            StringBuilder re1 = new StringBuilder();
+        //            StringBuilder re2 = new StringBuilder();
+        //            for (int j = 0; j < complex2.Length; i++)
+        //            {
+        //                complex3 = complex2[j];
+        //                String[] complex4 = complex3.Split('+');
+        //                re1.Append(complex4[0]);
+        //                re1.Append(' ');
+        //                re2.Append(complex4[1]);
+        //                re2.Append(' ');
+        //            }
+        //            complex1 = re1 + "," + re2;
+        //            complex1 = complex1.Replace("i", "");
+        //            Console.WriteLine("complex1111:" + complex1);
+        //            String script = String.Format("insert into sub1 values( {0},[complex({1})])", msg.getEntity(0).getString(), complex1);
+        //            conn.run(script);
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            Console.Out.WriteLine(e.ToString());
+        //        }
+        //    }
+        //}
+
+
         public void Handler_array_COMPLEX(List<IMessage> messages)
         {
             for (int i = 0; i < messages.Count; i++)
@@ -2090,26 +2148,13 @@ namespace dolphindb_csharp_api_test.streamReverse_test
                 try
                 {
                     IMessage msg = messages[i];
-                    String complex1 = msg.getEntity(1).getString().Replace(",,", ",NULL+NULL,").Replace("[,", "[NULL+NULL,").Replace(",]", ",NULL+NULL]");
-                    //System.out.println(complex1);
-                    complex1 = complex1.Substring(1).Substring(complex1.Length - 1);
-                    String[] complex2 = complex1.Split(',');
-                    String complex3 = null;
-                    StringBuilder re1 = new StringBuilder();
-                    StringBuilder re2 = new StringBuilder();
-                    for (int j = 0; j < complex2.Length; i++)
-                    {
-                        complex3 = complex2[j];
-                        String[] complex4 = complex3.Split('+');
-                        re1.Append(complex4[0]);
-                        re1.Append(' ');
-                        re2.Append(complex4[1]);
-                        re2.Append(' ');
-                    }
-                    complex1 = re1 + "," + re2;
-                    complex1 = complex1.Replace("i", "");
-                    String script = String.Format("insert into sub1 values( {0},[complex({1})])", msg.getEntity(0).getString(), complex1);
-                    conn.run(script);
+                    var cols = new List<IEntity>() { };
+                    var colNames = new List<String>() { "permno", "dateType" };
+                     BasicArrayVector dateType = new BasicArrayVector(DATA_TYPE.DT_COMPLEX_ARRAY);
+                    dateType.append((IVector)msg.getEntity(1));
+                    cols.Add(msg.getEntity(0));
+                    cols.Add(dateType);
+                    conn.run("tableInsert{sub1}", cols);
                 }
                 catch (Exception e)
                 {
@@ -2117,7 +2162,8 @@ namespace dolphindb_csharp_api_test.streamReverse_test
                 }
             }
         }
-        //[TestMethod]not support
+
+        [TestMethod]
         public void Test_PollingClient_subscribe_arrayVector_COMPLEX()
         {
             PrepareStreamTable_array("COMPLEX");
@@ -2177,6 +2223,57 @@ namespace dolphindb_csharp_api_test.streamReverse_test
             checkResult(conn);
             client.unsubscribe(SERVER, PORT, "Trades", "sub1");
         }
+
+        public void Handler_COMPLEX(List<IMessage> messages)
+        {
+            for (int i = 0; i < messages.Count; i++)
+            {
+                try
+                {
+                    IMessage msg = messages[i];
+                    var cols = new List<IEntity>() { };
+                    cols.Add(msg.getEntity(0));
+                    cols.Add(msg.getEntity(1));
+                    conn.run("tableInsert{sub1}", cols);
+                }
+                catch (Exception e)
+                {
+                    Console.Out.WriteLine(e.ToString());
+                }
+            }
+        }
+        [TestMethod]
+        public void Test_PollingClient_subscribe_COMPLEX()
+        {
+            PrepareStreamTable_allDateType("COMPLEX", 1000);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
+            conn.run("Trades.append!(pub_t);");
+            //write 1000 rows after subscribe
+            List<IMessage> messages = poller.poll(1000, 1000);
+            Handler_COMPLEX(messages);
+            BasicTable res = (BasicTable)conn.run("select * from  sub1 order by permno");
+            Console.WriteLine(res.rows());
+            checkResult(conn);
+            client.unsubscribe(SERVER, PORT, "Trades", "sub1");
+        }
+        [TestMethod]
+        public void Test_PollingClient_subscribe_COMPLEX_1()
+        {
+            PrepareStreamTable_allDateType("COMPLEX", 1);
+            TopicPoller poller = client.subscribe(SERVER, PORT, "Trades", "sub1", 0, true);
+            conn.run("Trades.append!(pub_t);");
+            //write 1000 rows after subscribe
+            List<IMessage> messages = poller.poll(1000, 1000);
+            Handler_COMPLEX(messages);
+            BasicTable except = (BasicTable)conn.run("select * from  Trades order by permno");
+            BasicTable res = (BasicTable)conn.run("select * from  sub1 order by permno");
+            Assert.AreEqual(1, res.rows());
+            Assert.AreEqual(1, except.rows());
+            Assert.AreEqual(except.getColumn(1).getEntity(0).getString(), res.getColumn(1).getEntity(0).getString());
+            client.unsubscribe(SERVER, PORT, "Trades", "sub1");
+        }
+
+
         [TestMethod]
         public void Test_PollingClient_subscribe_DECIMAL32()
         {

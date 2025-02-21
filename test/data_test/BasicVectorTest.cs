@@ -15,6 +15,7 @@ using System.Configuration;
 using dolphindb_config;
 using dolphindb_csharpapi_net_core.src;
 using System.Numerics;
+using System.Linq;
 
 namespace dolphindb_csharp_api_test.data_test
 {
@@ -3736,6 +3737,178 @@ namespace dolphindb_csharp_api_test.data_test
             BasicDecimal128Vector tmp_128_v = new BasicDecimal128Vector(tmp_string_v, 4);
             IScalar sc = new BasicDecimal128("1", 2);
             Assert.AreEqual(-1, tmp_128_v.asof(sc));
+        }
+
+        [TestMethod]
+        public void test_BasicComplexVector()
+        {
+            BasicComplexVector bcv = new BasicComplexVector(0);
+            Assert.AreEqual(DATA_CATEGORY.BINARY, bcv.getDataCategory());
+            Assert.AreEqual(DATA_TYPE.DT_COMPLEX, bcv.getDataType());
+            Assert.AreEqual(typeof(BasicComplex), bcv.getElementClass());
+            Assert.AreEqual(16, bcv.getUnitLength());
+            Assert.AreEqual("[]", bcv.getString());
+            Assert.AreEqual(0, bcv.rows());
+        }
+
+        [TestMethod]
+        public void test_BasicComplexVector_list()
+        {
+            List<Double2> list = new List<Double2>();
+            list.Add(new Double2(1.0, 9.2));
+            list.Add(new Double2(-3.8, -7.4));
+            list.Add(new Double2(0, 0));
+            list.Add(new Double2(double.MinValue, double.MinValue));
+            BasicComplexVector bcv = new BasicComplexVector(list);
+            Assert.AreEqual(4, bcv.rows());
+            Assert.AreEqual("0+0i", bcv.get(2).getString());
+            Assert.AreEqual(new BasicComplex(0, 0), bcv.get(2));
+            Assert.AreEqual(new BasicComplex(double.MinValue, double.MinValue), bcv.get(3));
+            Assert.AreEqual("[1+9.2i, 0+0i, -3.8-7.4i, 0+0i]", bcv.getSubVector(new int[] { 0, 2, 1, 2 }).getString());
+
+            Assert.AreEqual(list.ToString(), bcv.getDataArray().ToString());
+            Assert.AreEqual(new BasicComplex(1.0, 9.2), bcv.getEntity(0));
+            Assert.AreEqual(new BasicComplex(-3.8, -7.4), bcv.getEntity(1));
+            Assert.AreEqual("", bcv.getEntity(3).getString());
+        }
+
+        [TestMethod]
+        public void test_BasicComplexVector_array()
+        {
+        Double2[] array = { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) };
+        BasicComplexVector bcv = new BasicComplexVector(array);
+        Assert.AreEqual("0+0i",bcv.get(2).getString());
+        Assert.AreEqual(new BasicComplex(0,0),bcv.get(2));
+        Assert.AreEqual("[1+9.2i, 0+0i, -3.8-7.4i, 0+0i]", bcv.getSubVector(new int[]{0,2,1,2}).getString());
+        Assert.AreEqual("[1+9.2i, -3.8-7.4i, 0+0i, ]", bcv.getSubVector(new int[] { 0, 1, 2, 3 }).getString());
+        Assert.AreEqual(array.ToList().ToString(), bcv.getDataArray().ToString());
+        }
+
+        [TestMethod]
+        public void test_BasicComplexVector_set()
+        {
+            Double2[] array = { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) };
+            BasicComplexVector bcv = new BasicComplexVector(array);
+            Assert.AreEqual(new BasicComplex(1.0, 9.2), bcv.get(0));
+            bcv.set(0, new BasicComplex(0, 0));
+            Assert.AreEqual(new BasicComplex(0, 0), bcv.get(0));
+            String re = null;
+            try
+            {
+                bcv.set(0, new BasicBoolean(true));
+
+            }
+            catch (Exception e)
+            {
+                re = e.Message;
+            }
+            Assert.AreEqual(true, re.Contains("The value must be a complex scalar. "));
+        }
+
+        [TestMethod]
+        public void test_BasicComplexVector_setComplex()
+        {
+            Double2[] array = { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) };
+            BasicComplexVector bcv = new BasicComplexVector(array);
+            Assert.AreEqual(1.0, bcv.getDouble2(0).x);
+            Assert.AreEqual(9.2, bcv.getDouble2(0).y);
+            bcv.setComplex(0, 0, 0);
+            Assert.AreEqual(0, bcv.getDouble2(0).x);
+            Assert.AreEqual(0, bcv.getDouble2(0).y);
+            Assert.AreEqual(double.MinValue, bcv.getDouble2(3).x);
+            Assert.AreEqual(double.MinValue, bcv.getDouble2(3).y);
+        }
+
+        [TestMethod]
+        public void test_BasicComplexVector_setNull()
+        {
+            Double2[] array = { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) };
+            BasicComplexVector bcv = new BasicComplexVector(array);
+            Assert.IsFalse(bcv.isNull(1));
+            bcv.setNull(2);
+            Assert.IsTrue(bcv.isNull(2));
+            Assert.AreEqual("[1+9.2i, -3.8-7.4i, , ]", bcv.getString());
+        }
+
+        [TestMethod]
+        public void test_BasicComplexVector_not_support()
+        {
+            Double2[] array = { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) };
+            BasicComplexVector bcv = new BasicComplexVector(array);
+            String re = null;
+            try
+            {
+                bcv.set(0, "12");
+            }
+            catch (Exception e)
+            {
+                re = e.Message;
+            }
+            Assert.AreEqual(true, re.Contains("The method or operation is not implemented.") || re.Contains("未实现该方法或操作。"));
+
+            String re1 = null;
+            try
+            {
+                bcv.add("12");
+            }
+            catch (Exception e)
+            {
+                re1 = e.Message;
+            }
+            Assert.AreEqual(true, re1.Contains("The method or operation is not implemented.") || re1.Contains("未实现该方法或操作。"));
+
+            String re2 = null;
+            try
+            {
+                bcv.addRange("12");
+            }
+            catch (Exception e)
+            {
+                re2 = e.Message;
+            }
+            Assert.AreEqual(true, re2.Contains("The method or operation is not implemented.") || re2.Contains("未实现该方法或操作。"));
+
+            String re3 = null;
+            try
+            {
+                bcv.asof(new BasicComplex(1.1, 2.1));
+            }
+            catch (Exception e)
+            {
+                re3 = e.Message;
+            }
+            Assert.AreEqual(true, re3.Contains("BasicComplexVector.asof not supported."));
+        }
+
+        [TestMethod]
+        public void test_BasicComplexVector_hashBucket()
+        {
+            Double2[] array = { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) };
+            BasicComplexVector bcv = new BasicComplexVector(array);
+            Assert.AreEqual(-1, bcv.hashBucket(0, 1));
+        }
+
+        [TestMethod]
+        public void test_BasicComplexVector_append()
+        {   
+            BasicComplexVector bcv = new BasicComplexVector(0);
+            BasicComplex bc = new BasicComplex(25.14, 42.33);
+            BasicComplex bc1 = new BasicComplex(-25.14, -42.33);
+            BasicComplex bc2 = new BasicComplex(-25.14, -42.33);
+            bc2.setNull();
+            bcv.append(bc);
+            bcv.append(bc1);
+            bcv.append(bc2);
+            Assert.AreEqual("[25.14+42.33i, -25.14-42.33i, ]", bcv.getString());
+
+            Double2[] array = { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) };
+            BasicComplexVector bcv0 = new BasicComplexVector(array);
+            bcv.append(bcv0);
+            Assert.AreEqual("[25.14+42.33i, -25.14-42.33i, , 1+9.2i, -3.8-7.4i, 0+0i, ]", bcv.getString());
+
+            BasicComplexVector bcv1 = new BasicComplexVector(0);
+            bcv.append(bcv1);
+            Assert.AreEqual("[25.14+42.33i, -25.14-42.33i, , 1+9.2i, -3.8-7.4i, 0+0i, ]", bcv.getString());
         }
     }
 }

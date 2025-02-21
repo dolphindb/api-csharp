@@ -2696,6 +2696,102 @@ namespace dolphindb_csharp_api_test.data_test
             BasicDecimal128 re5 = Utils.createBasicDecimal128(BigInteger.Parse("0"), 38);
             Assert.AreEqual("0.00000000000000000000000000000000000000", re5.getString());
         }
+        [TestMethod]
+        public void test_BasicComplex()
+        {
+            BasicComplex bc = new BasicComplex(25.14, 42.33);
+            Assert.AreEqual(DATA_CATEGORY.BINARY, bc.getDataCategory());
+            Assert.AreEqual(DATA_TYPE.DT_COMPLEX, bc.getDataType());
+            Assert.AreEqual(25.14, bc.getDouble2().x, 0);
+            Assert.AreEqual(42.33, bc.getDouble2().y, 0);
+            Assert.AreEqual("25.14+42.33i", bc.getString());
+            Assert.AreEqual(25.14, bc.getReal());
+            Assert.AreEqual(42.33, bc.getImage());
+            Assert.AreEqual(25.14, bc.getValue().x, 0);
+            Assert.AreEqual(42.33, bc.getValue().y, 0);
+            Assert.IsFalse(bc.isNull());
+            Assert.IsFalse(bc.equals(null));
+            bc.setNull();
+            Assert.IsTrue(bc.isNull());
+            Assert.AreEqual("", bc.getString());
+            Assert.AreEqual(double.MinValue, bc.getDouble2().x, 0);
+            Assert.AreEqual(double.MinValue, bc.getDouble2().y, 0);
+
+            BasicComplex bc1 = new BasicComplex(-25.14, -42.33);
+            Assert.AreEqual("-25.14-42.33i", bc1.getString());
+        }
+
+        [TestMethod]
+        public void test_BasicComplex_not_support()
+        {
+            BasicComplex bc = new BasicComplex(25.14, 42.33);
+            String re = null;
+            try
+            {
+                bc.getNumber();
+            }
+            catch (Exception e)
+            {
+                re = e.Message;
+            }
+            Assert.AreEqual(true, re.Contains("Imcompatible data type"));
+
+            String re1 = null;
+            try
+            {
+                bc.getObject();
+            }
+            catch (Exception e)
+            {
+                re1 = e.Message;
+            }
+            Assert.AreEqual(true, re1.Contains("The method or operation is not implemented.") || re1.Contains("未实现该方法或操作。"));
+            
+            String re2 = null;
+            try
+            {
+                bc.setObject(0);
+            }
+            catch (Exception e)
+            {
+                re2 = e.Message;
+            }
+            Assert.AreEqual(true, re2.Contains("The method or operation is not implemented.") || re2.Contains("未实现该方法或操作。"));
+            
+            String re3 = null;
+            try
+            {
+                bc.getTemporal();
+            }
+            catch (Exception e)
+            {
+                re3 = e.Message;
+            }
+            Assert.AreEqual(true, re3.Contains("Imcompatible data type"));
+        }
+
+        [TestMethod]
+        public void test_BasicComplex_Equals()
+        {
+            BasicComplex bc = new BasicComplex(25.14, 42.33);
+            BasicComplex bc1 = new BasicComplex(-25.14, -42.33);
+            Assert.IsTrue(bc.Equals(bc));
+            Assert.IsFalse(bc.Equals(bc1));
+        }
+
+        [TestMethod]
+        public void test_BasicComplex_hashBucket()
+        {
+            BasicComplex bc = new BasicComplex(25.14, 42.33);
+            Assert.AreEqual(-1, bc.hashBucket(1));
+            Assert.AreEqual(-1, bc.hashBucket(2));
+        }
+        [TestMethod]
+        public void test_BasicComplex_GetHashCode()
+        {
+            BasicComplex bc = new BasicComplex(25.14, 42.33);
+            Assert.AreEqual(2061676100, bc.GetHashCode());
+        }
 
     }
 }

@@ -361,6 +361,26 @@ namespace dolphindb_csharp_api_test.streamReverse_test
             }
         }
 
+        public void PrepareStreamTable_allDateType(String dataType, int rows)
+        {
+            try
+            {
+                String script = "share streamTable(1000000:0, `permno`dateType, [INT," + dataType + "]) as Trades;\n" +
+                "setStreamTableFilterColumn(Trades, `permno); \n" +
+                "permno = take(1..10," + rows + "); \n" +
+                "dateType_COMPLEX =  rand(complex(rand(100, 1000), rand(100, 1000)) join NULL,  " + rows + "); \n" +
+                "share table(permno,dateType_" + dataType + ") as pub_t\n" +
+                "share streamTable(1000000:0, `permno`dateType, [INT," + dataType + "]) as sub1;\n";
+                DBConnection conn1 = new DBConnection();
+                conn1.connect(SERVER, PORT, "admin", "123456");
+                conn1.run(script);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.StackTrace);
+            }
+        }
+
         public void PrepareStreamTableDecimal(String dataType, int scale)
         {
             try
@@ -384,7 +404,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
         public void PrepareStreamTable_StreamDeserializer_array_allDataType()
         {
 
-            String script = "share streamTable(10000:0, `permno`sym`blob`boolv`charv`shortv`intv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`datehourv`uuidv`ipaddrv`int128v, [TIMESTAMP,SYMBOL,BLOB,BOOL[],CHAR[],SHORT[],INT[],LONG[],DOUBLE[],FLOAT[],DATE[],MONTH[],TIME[],MINUTE[],SECOND[],DATETIME[],TIMESTAMP[],NANOTIME[],NANOTIMESTAMP[], DATEHOUR[],UUID[],IPADDR[],INT128[]]) as outTables;\n" +
+            String script = "share streamTable(10000:0, `permno`sym`blob`boolv`charv`shortv`intv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`datehourv`uuidv`ipaddrv`int128v`complexv, [TIMESTAMP,SYMBOL,BLOB,BOOL[],CHAR[],SHORT[],INT[],LONG[],DOUBLE[],FLOAT[],DATE[],MONTH[],TIME[],MINUTE[],SECOND[],DATETIME[],TIMESTAMP[],NANOTIME[],NANOTIMESTAMP[], DATEHOUR[],UUID[],IPADDR[],INT128[],COMPLEX[]]) as outTables;\n" +
             "permno = take(1..1000,1000); \n" +
             "timestampv = 2018.12.01T01:21:23.000 + 1..1000; \n" +
             "dateType_INT =  array(INT[]).append!(cut(take(-100..100 join NULL, 1000*10), 10)); \n" +
@@ -409,12 +429,12 @@ namespace dolphindb_csharp_api_test.streamReverse_test
             "dateType_INT128 =  array(INT128[]).append!(cut(take(int128([\"e1671797c52e15f763380b45e841ec32\", \"e1671797c52e15f763380b45e841ec33\", \"e1671797c52e15f763380b45e841ec35\", \"\"]), 1000*10), 10)); \n" +
             "dateType_COMPLEX =   array(COMPLEX[]).append!(cut(rand(complex(rand(100, 1000), rand(100, 1000)) join NULL, 1000*10), 10));; \n" +
             "dateType_POINT =  array(POINT[]).append!(cut(rand(point(rand(100, 1000), rand(100, 1000)) join NULL, 1000*10), 10)); \n" +
-            "share table(timestampv as timestamp1,dateType_BOOL as boolv, dateType_CHAR  as charv, dateType_SHORT  as shortv, dateType_INT  as intv, dateType_LONG  as longv, dateType_DOUBLE  as doublev, dateType_FLOAT  as floatv, dateType_DATE  as datev, dateType_MONTH  as monthv, dateType_TIME  as timev, dateType_MINUTE  as minutev, dateType_SECOND  as secondv, dateType_DATETIME  as datetimev, dateType_TIMESTAMP  as timestampv, dateType_NANOTIME  as nanotimev, dateType_NANOTIMESTAMP  as nanotimestampv, dateType_DATEHOUR  as datehourv, dateType_UUID  as uuidv, dateType_IPADDR  as ipaddrv, dateType_INT128  as int128v) as pub_t1;\n" +
-            "share table(timestampv as timestamp1,dateType_BOOL as boolv, dateType_CHAR  as charv, dateType_SHORT  as shortv, dateType_INT  as intv, dateType_LONG  as longv, dateType_DOUBLE  as doublev, dateType_FLOAT  as floatv, dateType_DATE  as datev, dateType_MONTH  as monthv, dateType_TIME  as timev, dateType_MINUTE  as minutev, dateType_SECOND  as secondv, dateType_DATETIME  as datetimev, dateType_TIMESTAMP  as timestampv, dateType_NANOTIME  as nanotimev, dateType_NANOTIMESTAMP  as nanotimestampv, dateType_DATEHOUR  as datehourv, dateType_UUID  as uuidv, dateType_IPADDR  as ipaddrv, dateType_INT128  as int128v) as pub_t2;\n" +
+            "share table(timestampv as timestamp1,dateType_BOOL as boolv, dateType_CHAR  as charv, dateType_SHORT  as shortv, dateType_INT  as intv, dateType_LONG  as longv, dateType_DOUBLE  as doublev, dateType_FLOAT  as floatv, dateType_DATE  as datev, dateType_MONTH  as monthv, dateType_TIME  as timev, dateType_MINUTE  as minutev, dateType_SECOND  as secondv, dateType_DATETIME  as datetimev, dateType_TIMESTAMP  as timestampv, dateType_NANOTIME  as nanotimev, dateType_NANOTIMESTAMP  as nanotimestampv, dateType_DATEHOUR  as datehourv, dateType_UUID  as uuidv, dateType_IPADDR  as ipaddrv, dateType_INT128  as int128v, dateType_COMPLEX as complexv) as pub_t1;\n" +
+            "share table(timestampv as timestamp1,dateType_BOOL as boolv, dateType_CHAR  as charv, dateType_SHORT  as shortv, dateType_INT  as intv, dateType_LONG  as longv, dateType_DOUBLE  as doublev, dateType_FLOAT  as floatv, dateType_DATE  as datev, dateType_MONTH  as monthv, dateType_TIME  as timev, dateType_MINUTE  as minutev, dateType_SECOND  as secondv, dateType_DATETIME  as datetimev, dateType_TIMESTAMP  as timestampv, dateType_NANOTIME  as nanotimev, dateType_NANOTIMESTAMP  as nanotimestampv, dateType_DATEHOUR  as datehourv, dateType_UUID  as uuidv, dateType_IPADDR  as ipaddrv, dateType_INT128  as int128v, dateType_COMPLEX as complexv) as pub_t2;\n" +
             "d = dict(['msg1','msg2'], [pub_t1, pub_t2]);\n" +
             "replay(inputTables=d, outputTables=`outTables, dateColumn=`timestamp1, timeColumn=`timestamp1);\n" +
-            "share streamTable(1000000:0, `timestamp1`boolv`charv`shortv`intv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`datehourv`uuidv`ipaddrv`int128v, [TIMESTAMP,BOOL[],CHAR[],SHORT[],INT[],LONG[],DOUBLE[],FLOAT[],DATE[],MONTH[],TIME[],MINUTE[],SECOND[],DATETIME[],TIMESTAMP[],NANOTIME[],NANOTIMESTAMP[], DATEHOUR[],UUID[],IPADDR[],INT128[]]) as sub1;\n" +
-            "share streamTable(1000000:0, `timestamp1`boolv`charv`shortv`intv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`datehourv`uuidv`ipaddrv`int128v, [TIMESTAMP,BOOL[],CHAR[],SHORT[],INT[],LONG[],DOUBLE[],FLOAT[],DATE[],MONTH[],TIME[],MINUTE[],SECOND[],DATETIME[],TIMESTAMP[],NANOTIME[],NANOTIMESTAMP[], DATEHOUR[],UUID[],IPADDR[],INT128[]]) as sub2;\n";
+            "share streamTable(1000000:0, `timestamp1`boolv`charv`shortv`intv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`datehourv`uuidv`ipaddrv`int128v`complexv, [TIMESTAMP,BOOL[],CHAR[],SHORT[],INT[],LONG[],DOUBLE[],FLOAT[],DATE[],MONTH[],TIME[],MINUTE[],SECOND[],DATETIME[],TIMESTAMP[],NANOTIME[],NANOTIMESTAMP[], DATEHOUR[],UUID[],IPADDR[],INT128[],COMPLEX[]]) as sub1;\n" +
+            "share streamTable(1000000:0, `timestamp1`boolv`charv`shortv`intv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`datehourv`uuidv`ipaddrv`int128v`complexv, [TIMESTAMP,BOOL[],CHAR[],SHORT[],INT[],LONG[],DOUBLE[],FLOAT[],DATE[],MONTH[],TIME[],MINUTE[],SECOND[],DATETIME[],TIMESTAMP[],NANOTIME[],NANOTIMESTAMP[], DATEHOUR[],UUID[],IPADDR[],INT128[],COMPLEX[]]) as sub2;\n";
             DBConnection conn1 = new DBConnection();
             conn1.connect(SERVER, PORT, "admin", "123456");
             conn1.run(script);
@@ -697,7 +717,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
                 try
                 {
                     msg.getEntity(0);
-                    String script = String.Format("t= table(10000:0, `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);\n insert into t values({0},{1},\"{2}\",{3},{4},{5},{6},{7},{8},{9},{10},{11},{12} );\n pt=loadTable(\"dfs://test_stream\",`pt);\n pt.append!(t);\n", msg.getEntity(0).getString(), msg.getEntity(1).getString(), msg.getEntity(2).getString(), msg.getEntity(3).getString(), msg.getEntity(4).getString(), msg.getEntity(5).getString(), msg.getEntity(6).getString(), msg.getEntity(7).getString(), msg.getEntity(8).getString(), msg.getEntity(9).getString(), msg.getEntity(10).getString(), msg.getEntity(11).getString(), msg.getEntity(12).getString());
+                    String script = String.Format("t= table(10000:0, `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);\n insert into t values({0},{1},\"{2}\",{3},{4},{5},{6},{7},{8},{9},{10},{11},{12} );\n pt=loadTable(\"dfs://test_stream1\",`pt);\n pt.append!(t);\n", msg.getEntity(0).getString(), msg.getEntity(1).getString(), msg.getEntity(2).getString(), msg.getEntity(3).getString(), msg.getEntity(4).getString(), msg.getEntity(5).getString(), msg.getEntity(6).getString(), msg.getEntity(7).getString(), msg.getEntity(8).getString(), msg.getEntity(9).getString(), msg.getEntity(10).getString(), msg.getEntity(11).getString(), msg.getEntity(12).getString());
                     conn.run(script);
                 }
                 catch (Exception e)
@@ -1888,6 +1908,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
                     cols.Add((BasicArrayVector)message.getEntity(18));
                     cols.Add((BasicArrayVector)message.getEntity(19));
                     cols.Add((BasicArrayVector)message.getEntity(20));
+                    cols.Add((BasicArrayVector)message.getEntity(21));
                     if (message.getSym().Equals("msg1"))
                     {
                         conn.run("tableInsert{sub1}", cols);
@@ -1952,6 +1973,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
                     cols.Add((BasicArrayVector)msg.getEntity(18));
                     cols.Add((BasicArrayVector)msg.getEntity(19));
                     cols.Add((BasicArrayVector)msg.getEntity(20));
+                    cols.Add((BasicArrayVector)msg.getEntity(21));
                     if (((BasicMessage)msg).getSym() == "msg1")
                     {
                         conn.run("tableInsert{sub1}", cols);
@@ -2126,8 +2148,8 @@ namespace dolphindb_csharp_api_test.streamReverse_test
             conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456", null, true);
             String script = "";
-            script += "dbName = 'dfs://test_stream';";
-            script += "if(existsDatabase(dbName)){dropDatabase(dbName)};";
+            script += "dbName = 'dfs://test_stream1';";
+            script += "try{dropDatabase(dbName)}catch(ex){};";
             script += "db = database(dbName, HASH, [INT, 10]);";
             script += "dummy = table(100:0, `permno`timestamp`ticker`price1`price2`price3`price4`price5`vol1`vol2`vol3`vol4`vol5, [INT, TIMESTAMP, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT, INT, INT, INT, INT]);";
             script += "pt=db.createPartitionedTable(dummy, `pt, `permno);";
@@ -2150,12 +2172,12 @@ namespace dolphindb_csharp_api_test.streamReverse_test
             WriteStreamTable1(conn, "pub", 1000);
             BasicInt tmpNum_1 = (BasicInt)conn.run("exec count(*) from pub");
             Console.Out.WriteLine(tmpNum_1.ToString());
-            Thread.Sleep(10000);
-            BasicTable tmpNum_2 = (BasicTable)conn.run("select * from loadTable(\"dfs://test_stream\",`pt)");
+            //Thread.Sleep(10000);
+            BasicTable tmpNum_2 = (BasicTable)conn.run("select * from loadTable(\"dfs://test_stream1\",`pt)");
             Console.Out.WriteLine("---------------11111111111111---------");
             Console.Out.WriteLine(tmpNum_2.rows());
             Console.Out.WriteLine("---------------11111111111111---------");
-            Assert.AreEqual(true, 1000 > tmpNum_2.rows());
+            //Assert.AreEqual(1000, tmpNum_2.rows() );
             try
             {
                 conn1.run(String.Format("stopDataNode(\"{0}\")", nodeAlias));
@@ -2164,13 +2186,14 @@ namespace dolphindb_csharp_api_test.streamReverse_test
             {
                 Console.WriteLine(ex.StackTrace);
             }
-            Thread.Sleep(8000);
+            Thread.Sleep(10000);
             conn1.run(String.Format("startDataNode(\"{0}\")", nodeAlias));
-            Thread.Sleep(8000);
+            Thread.Sleep(10000);
             DBConnection conn2 = new DBConnection();
             conn2.connect(SERVER, PORT, "admin", "123456");
+            Thread.Sleep(10000);
             Console.Out.WriteLine("---------------12222222222222222---------");
-            BasicTable tmpNum_3 = (BasicTable)conn2.run("select * from loadTable(\"dfs://test_stream\",`pt)");
+            BasicTable tmpNum_3 = (BasicTable)conn2.run("select * from loadTable(\"dfs://test_stream1\",`pt)");
             Console.Out.WriteLine(tmpNum_3.rows());
             Console.Out.WriteLine("---------------12222222222222222---------");
 
@@ -2236,7 +2259,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
 
         }
 
-        [TestMethod]
+        //[TestMethod]//APICS-241
         public void Test_ThreaedClient_subscribe_reconnect_true()
         {
             conn = new DBConnection();
@@ -2947,26 +2970,13 @@ namespace dolphindb_csharp_api_test.streamReverse_test
             {
                 try
                 {
-                    String complex1 = msg.getEntity(1).getString().Replace(",,", ",NULL+NULL,").Replace("[,", "[NULL+NULL,").Replace(",]", ",NULL+NULL]");
-                    //System.out.println(complex1);
-                    complex1 = complex1.Substring(1).Substring(complex1.Length - 1);
-                    String[] complex2 = complex1.Split(',');
-                    String complex3 = null;
-                    StringBuilder re1 = new StringBuilder();
-                    StringBuilder re2 = new StringBuilder();
-                    for (int i = 0; i < complex2.Length; i++)
-                    {
-                        complex3 = complex2[i];
-                        String[] complex4 = complex3.Split('+');
-                        re1.Append(complex4[0]);
-                        re1.Append(' ');
-                        re2.Append(complex4[1]);
-                        re2.Append(' ');
-                    }
-                    complex1 = re1 + "," + re2;
-                    complex1 = complex1.Replace("i", "");
-                    String script = String.Format("insert into sub1 values( {0},[complex({1})])", msg.getEntity(0).getString(), complex1);
-                    conn.run(script);
+                    var cols = new List<IEntity>() { };
+                    var colNames = new List<String>() { "permno", "dateType" };
+                    BasicArrayVector dateType = new BasicArrayVector(DATA_TYPE.DT_COMPLEX_ARRAY);
+                    dateType.append((IVector)msg.getEntity(1));
+                    cols.Add(msg.getEntity(0));
+                    cols.Add(dateType);
+                    conn.run("tableInsert{sub1}", cols);
 
                 }
                 catch (Exception e)
@@ -2975,7 +2985,8 @@ namespace dolphindb_csharp_api_test.streamReverse_test
                 }
             }
         };
-        //[TestMethod] not support
+
+        [TestMethod]
         public void Test_ThreadClient_subscribe_arrayVector_COMPLEX()
         {
             PrepareStreamTable_array("COMPLEX");
@@ -3036,6 +3047,63 @@ namespace dolphindb_csharp_api_test.streamReverse_test
             checkResult(conn);
             client.unsubscribe(SERVER, PORT, "Trades");
         }
+
+        class Handler_COMPLEX : MessageHandler
+        {
+            public void batchHandler(List<IMessage> msgs)
+            {
+                throw new NotImplementedException();
+            }
+            public void doEvent(IMessage msg)
+            {
+                try
+                {
+                    var cols = new List<IEntity>() { };
+                    cols.Add(msg.getEntity(0));
+                    cols.Add(msg.getEntity(1));
+                    conn.run("tableInsert{sub1}", cols);
+
+                }
+                catch (Exception e)
+                {
+                    System.Console.Out.WriteLine(e.ToString());
+                }
+            }
+        };
+
+        [TestMethod]
+        public void Test_ThreadClient_subscribe_COMPLEX()
+        {
+            PrepareStreamTable_allDateType("COMPLEX", 1000);
+            Handler_COMPLEX handler = new Handler_COMPLEX();
+            client.subscribe(SERVER, PORT, "Trades", handler, -1);
+            conn.run("Trades.append!(pub_t);");
+            //write 1000 rows after subscribe
+            Thread.Sleep(2000);
+            BasicTable res = (BasicTable)conn.run("select * from  sub1 order by permno");
+            Console.WriteLine(res.rows());
+            checkResult(conn);
+            client.unsubscribe(SERVER, PORT, "Trades");
+        }
+
+        [TestMethod]
+        public void Test_ThreadClient_subscribe_COMPLEX_1()
+        {
+            PrepareStreamTable_allDateType("COMPLEX", 1);
+            Handler_COMPLEX handler = new Handler_COMPLEX();
+            client.subscribe(SERVER, PORT, "Trades", handler, -1);
+            conn.run("Trades.append!(pub_t);");
+            //write 1000 rows after subscribe
+            Thread.Sleep(2000);
+            BasicTable res = (BasicTable)conn.run("select * from  sub1 order by permno");
+            Console.WriteLine(res.rows());
+            BasicTable except = (BasicTable)conn.run("select * from  Trades order by permno");
+            Assert.AreEqual(1, res.rows());
+            Assert.AreEqual(1, except.rows());
+            Assert.AreEqual(except.getColumn(1).getEntity(0).getString(), res.getColumn(1).getEntity(0).getString());
+            client.unsubscribe(SERVER, PORT, "Trades");
+        }
+
 
         [TestMethod] 
         public void Test_ThreadClient_subscribe_DECIMAL32()

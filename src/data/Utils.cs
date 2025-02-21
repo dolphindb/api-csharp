@@ -30,7 +30,7 @@ namespace dolphindb.data
         private static readonly int[] cumLeapMonthDays = new int[] { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 };
         private static readonly int[] monthDays = new int[] { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
         private static readonly int[] leapMonthDays = new int[] { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-        private static string API_VERSION = "3.00.2.0";
+        private static string API_VERSION = "3.00.2.1";
 
         public static string getAPIVersion()
         {
@@ -640,7 +640,7 @@ namespace dolphindb.data
                 return DATA_CATEGORY.FLOATING;
             else if (type == DATA_TYPE.DT_STRING || type == DATA_TYPE.DT_SYMBOL || type == DATA_TYPE.DT_BLOB)
                 return DATA_CATEGORY.LITERAL;
-            else if (type == DATA_TYPE.DT_INT128 || type == DATA_TYPE.DT_UUID || type == DATA_TYPE.DT_IPADDR)
+            else if (type == DATA_TYPE.DT_INT128 || type == DATA_TYPE.DT_UUID || type == DATA_TYPE.DT_IPADDR || type == DATA_TYPE.DT_COMPLEX)
                 return DATA_CATEGORY.BINARY;
             else if (type == DATA_TYPE.DT_ANY)
                 return DATA_CATEGORY.MIXED;
@@ -986,6 +986,8 @@ namespace dolphindb.data
                     return "DATETIME";
                 case DATA_TYPE.DT_INT128:
                     return "INT128";
+                case DATA_TYPE.DT_COMPLEX:
+                    return "COMPLEX";
                 case DATA_TYPE.DT_IPADDR:
                     return "IPADDR";
                 case DATA_TYPE.DT_UUID:
