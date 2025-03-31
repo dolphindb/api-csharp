@@ -106,7 +106,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_bool()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.IsTrue(((BasicBoolean)db.runAsync("true").Result).getValue());
             Assert.IsFalse(((BasicBoolean)db.runAsync("false").Result).getValue());
             Assert.IsFalse(((BasicBoolean)db.runAsync("1==2").Result).getValue());
@@ -119,7 +119,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_byte()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.AreEqual(97, ((BasicByte)db.runAsync("'a'").Result).getValue());
             Assert.AreEqual("'c'", ((BasicByte)db.runAsync("'c'").Result).getString());
             Assert.AreEqual(128,  ((BasicByte)db.runAsync("char()").Result).getValue());
@@ -131,7 +131,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_short()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.AreEqual(1, ((BasicShort)db.runAsync("1h").Result).getValue());
             Assert.AreEqual(256, ((BasicShort)db.runAsync("256h").Result).getValue());
             Assert.AreEqual(1024, ((BasicShort)db.runAsync("1024h").Result).getValue());
@@ -146,7 +146,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_int()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.AreEqual(63,  ((BasicInt)db.runAsync("63").Result).getValue());
             Assert.AreEqual(129, ((BasicInt)db.runAsync("129").Result).getValue());
             Assert.AreEqual(255, ((BasicInt)db.runAsync("255").Result).getValue());
@@ -165,7 +165,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_long()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.AreEqual(1,  ((BasicLong)db.runAsync("1l").Result).getValue());
             Assert.AreEqual(0,  ((BasicLong)db.runAsync("long(0)").Result).getValue());
             Assert.AreEqual(-100, ((BasicLong)db.runAsync("long(-100)").Result).getValue());
@@ -178,7 +178,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_date()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.AreEqual(new DateTime(2018, 03, 14),  ((BasicDate)db.runAsync("2018.03.14").Result).getValue());
             Assert.AreEqual(new DateTime(1970, 01, 01),  ((BasicDate)db.runAsync("1970.01.01").Result).getValue());
             Assert.AreEqual(new DateTime(1969, 01, 01),  ((BasicDate)db.runAsync("1969.01.01").Result).getValue());
@@ -190,7 +190,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_month()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.AreEqual(new DateTime(2018, 03, 01),  ((BasicMonth)db.runAsync("2018.03M").Result).getValue());
             Assert.AreEqual(new DateTime(1970, 01, 01),  ((BasicMonth)db.runAsync("1970.01M").Result).getValue());
             Assert.AreEqual(new DateTime(1969, 01, 01),  ((BasicMonth)db.runAsync("1969.01M").Result).getValue());
@@ -202,7 +202,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_time()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.AreEqual(new DateTime(1970, 01, 01, 15, 41, 45, 123).TimeOfDay,  ((BasicTime)db.runAsync("15:41:45.123").Result).getValue());
             Assert.AreEqual(new DateTime(1970, 01, 01, 00, 00, 00, 000).TimeOfDay,  ((BasicTime)db.runAsync("00:00:00.000").Result).getValue());
             Assert.AreEqual(new DateTime(1970, 01, 01, 23, 59, 59, 999).TimeOfDay,  ((BasicTime)db.runAsync("23:59:59.999").Result).getValue());
@@ -214,7 +214,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_minute()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.AreEqual(new DateTime(1970, 01, 01, 14, 48, 00).TimeOfDay, ((BasicMinute)db.runAsync("14:48m").Result).getValue());
             Assert.AreEqual(new DateTime(1970, 01, 01, 00, 00, 00).TimeOfDay, ((BasicMinute)db.runAsync("00:00m").Result).getValue());
             Assert.AreEqual(new DateTime(1970, 01, 01, 23, 59, 00).TimeOfDay, ((BasicMinute)db.runAsync("23:59m").Result).getValue());
@@ -226,7 +226,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_second()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.AreEqual(new DateTime(1970, 01, 01, 15, 41, 45).TimeOfDay,  ((BasicSecond)db.runAsync("15:41:45").Result).getValue());
             Assert.AreEqual(new DateTime(1970, 01, 01, 00, 00, 00).TimeOfDay, ((BasicSecond)db.runAsync("00:00:00").Result).getValue());
             Assert.AreEqual(new DateTime(1970, 01, 01, 23, 59, 59).TimeOfDay,  ((BasicSecond)db.runAsync("23:59:59").Result).getValue());
@@ -238,7 +238,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_datetime()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.AreEqual(new DateTime(2018, 03, 14, 11, 28, 4), ((BasicDateTime)db.runAsync("2018.03.14T11:28:04").Result).getValue());
             Assert.AreEqual(new DateTime(1970, 01, 01, 00, 00, 00), ((BasicDateTime)db.runAsync("1970.01.01T00:00:00").Result).getValue());
             Assert.AreEqual(new DateTime(1969, 01, 01, 00, 00, 00), ((BasicDateTime)db.runAsync("1969.01.01T00:00:00").Result).getValue());
@@ -250,7 +250,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_timestamp()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.AreEqual(new DateTime(2018, 3, 14, 15, 41, 45, 123), ((BasicTimestamp)db.runAsync("2018.03.14T15:41:45.123").Result).getValue());
             Assert.AreEqual(new DateTime(1970, 01, 01, 00, 00, 00, 000), ((BasicTimestamp)db.runAsync("1970.01.01T00:00:00.000").Result).getValue());
             Assert.AreEqual(new DateTime(1969, 01, 01, 00, 00, 00, 000), ((BasicTimestamp)db.runAsync("1969.01.01T00:00:00.000").Result).getValue());
@@ -262,7 +262,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_nanotime()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             DateTime dt = new DateTime(1970, 1, 1, 15, 41, 45, 123);
             long tickCount = dt.Ticks;
             Assert.AreEqual(new DateTime(tickCount + 4567L).TimeOfDay,  ((BasicNanoTime)db.runAsync("15:41:45.123456789").Result).getValue());
@@ -273,7 +273,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_nanotimestamp()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             DateTime dt = new DateTime(2018, 03, 14, 15, 41, 45, 123);
             long tickCount = dt.Ticks;
             Assert.AreEqual(new DateTime(tickCount + 2223L), ((BasicNanoTimestamp)db.runAsync("2018.03.14T15:41:45.123222321").Result).getValue());
@@ -283,7 +283,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_float()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.AreEqual(3,  ((BasicFloat)db.runAsync("1.0f+2.0f").Result).getValue());
             Assert.AreEqual(Math.Round(129.1, 1), Math.Round(((BasicFloat)db.runAsync("127.1f+2.0f").Result).getValue(), 1));
             Assert.AreEqual(Math.Round(1.2536, 4), Math.Round(((BasicFloat)db.runAsync("1.2536f").Result).getValue(), 4));
@@ -296,7 +296,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_double()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.AreEqual(3, ((BasicDouble)db.runAsync("1.0+2.0").Result).getValue());
             Assert.AreEqual(129.1,  ((BasicDouble)db.runAsync("127.1+2.0").Result).getValue());
             Assert.AreEqual("", ((BasicDouble)db.runAsync("double()").Result).getString());
@@ -307,7 +307,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_string()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.AreEqual("abc", ((BasicString)db.runAsync("`abc").Result).getValue());
             Assert.AreEqual("abcdklslkdjflkdjlskjlfkjlkhlksldkfjlkjlskdfjlskjdfl", ((BasicString)db.runAsync("`abcdklslkdjflkdjlskjlfkjlkhlksldkfjlkjlskdfjlskjdfl").Result).getValue());
             Assert.AreEqual("", ((BasicString)db.runAsync("string()").Result).getString());
@@ -318,7 +318,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_uuid()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.AreEqual("5d212a78-cc48-e3b1-4235-b4d91473ee87", ((BasicUuid)db.runAsync("uuid('5d212a78-cc48-e3b1-4235-b4d91473ee87')").Result).getString());
             Assert.AreEqual("", ((BasicUuid)db.runAsync("uuid()").Result).getString());
             db.close();
@@ -328,7 +328,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_int128()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Assert.AreEqual("e1671797c52e15f763380b45e841ec32", ((BasicInt128)db.runAsync("int128('e1671797c52e15f763380b45e841ec32')").Result).getString());
             Assert.AreEqual("", ((BasicInt128)db.runAsync("int128()").Result).getString());
             db.close();
@@ -338,7 +338,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_scalar_ipaddr()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("ipaddr('192.168.1.13')");
             BasicIPAddr v = (BasicIPAddr)result.Result;
             Assert.AreEqual("192.168.1.13", v.getString());
@@ -378,7 +378,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_bool()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("true false");
             IVector v = ((BasicBooleanVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -392,7 +392,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_int()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("1 2 3");
             IVector v = ((BasicIntVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -411,7 +411,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_long()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("11111111111111111l 222222222222222l 3333333333333333333l");
             IVector v = ((BasicLongVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -430,7 +430,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_short()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("123h 234h 345h");
             IVector v = ((BasicShortVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -449,7 +449,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_float()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("1.123f 2.2234f 3.4567f");
             IVector v = ((BasicFloatVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -469,7 +469,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_double()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("[1.123,2.2234,3.4567]");
             IVector v = ((BasicDoubleVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -488,7 +488,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_date()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("2018.03.01 2017.04.02 2016.05.03");
             IVector v = ((BasicDateVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -501,7 +501,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_month()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("2018.03M 2017.04M 2016.05M");
             IVector v = ((BasicMonthVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -514,7 +514,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_time()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("10:57:01.001 10:58:02.002 10:59:03.003");
             IVector v = ((BasicTimeVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -527,7 +527,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_nanotime()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("15:41:45.123456789 15:41:45.123456889 15:41:45.123456989");
             IVector v = ((BasicNanoTimeVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -542,7 +542,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_dateHour()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("datehour([2012.06.15 15:32:10.158,2012.06.15 17:30:10.008,2012.06.15 17:30:10.008])");
             IVector v = ((BasicDateHourVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -555,7 +555,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_minute()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("10:47m 10:48m 10:49m");
             IVector v = ((BasicMinuteVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -568,7 +568,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_second()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("10:47:02 10:48:03 10:49:04");
             IVector v = ((BasicSecondVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -581,7 +581,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_datetime()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("2018.03.14T10:57:01 2018.03.15T10:58:02 2018.03.16T10:59:03");
             IVector v = ((BasicDateTimeVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -594,7 +594,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_timestamp()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("2018.03.14T10:57:01.001 2018.03.15T10:58:02.002 2018.03.16T10:59:03.003");
             IVector v = ((BasicTimestampVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -607,7 +607,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_nanotimestamp()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("2018.03.14T15:41:45.123222321 2018.03.14T15:41:45.123222421 2018.03.14T15:41:45.123222521");
             IVector v = ((BasicNanoTimestampVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -621,7 +621,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_string()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("`aaa `bbb `ccc");
             IVector v = ((BasicStringVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -640,7 +640,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_vector_symbol()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("symbol(`aaa `bbb `ccc)");
             IVector v = ((IVector)result.Result);
             Assert.IsTrue(v.isVector());
@@ -701,7 +701,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_matrix_bool()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("matrix(true false true,false true true)");
             IMatrix m = ((BasicBooleanMatrix)result.Result);
             Assert.IsTrue(m.isMatrix());
@@ -716,7 +716,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_matrix_short()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("matrix(45h 47h 48h,56h 65h 67h)");
             IMatrix m = ((BasicShortMatrix)result.Result);
             Assert.IsTrue(m.isMatrix());
@@ -730,7 +730,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_matrix_int()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("matrix(45 47 48,56 65 67)");
             IMatrix m = ((BasicIntMatrix)result.Result);
             Assert.IsTrue(m.isMatrix());
@@ -744,7 +744,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_matrix_long()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("matrix(450000000000000 47000000000000 4811111111111111,5622222222222222 6533333333333333 6744444444444444)");
             IMatrix m = ((BasicLongMatrix)result.Result);
             Assert.IsTrue(m.isMatrix());
@@ -758,7 +758,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_matrix_double()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("matrix(45.02 47.01 48.03,56.123 65.04 67.21)");
             IMatrix m = ((BasicDoubleMatrix)result.Result);
             Assert.IsTrue(m.isMatrix());
@@ -772,7 +772,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_matrix_float()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("matrix(45.02f 47.01f 48.03f,56.123f 65.04f 67.21f)");
             IMatrix m = ((BasicFloatMatrix)result.Result);
             Assert.IsTrue(m.isMatrix());
@@ -792,7 +792,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_matrix_date()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("matrix(2018.03.01 2017.04.02 2016.05.03,2018.03.03 2017.04.03 2016.05.04)");
             IMatrix m = ((BasicDateMatrix)result.Result);
             Assert.IsTrue(m.isMatrix());
@@ -806,7 +806,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_matrix_datetime()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("matrix(2018.03.14T10:57:01 2018.03.15T10:58:02 2018.03.16T10:59:03,2018.03.14T10:57:01 2018.03.15T10:58:02 2018.03.16T10:59:03)");
             IMatrix m = ((BasicDateTimeMatrix)result.Result);
             Assert.IsTrue(m.isMatrix());
@@ -820,7 +820,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_matrix_time()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("matrix(10:57:01.001 10:58:02.002 10:59:03.003,10:58:01.001 10:58:02.002 10:59:03.003)");
             IMatrix m = ((BasicTimeMatrix)result.Result);
             Assert.IsTrue(m.isMatrix());
@@ -835,7 +835,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_matrix_nanotime()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("matrix(15:41:45.123456789 15:41:45.123456789 15:41:45.123456789,15:41:45.123956789 15:41:45.123486789 15:41:45.123476789)");
             IMatrix m = ((BasicNanoTimeMatrix)result.Result);
             Assert.IsTrue(m.isMatrix());
@@ -851,7 +851,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_matrix_timestamp()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("matrix(2018.03.14T10:57:01.001 2018.03.15T10:58:02.002 2018.03.16T10:59:03.003,2018.03.14T10:57:01.001 2018.03.15T10:58:02.002 2018.03.16T10:59:03.003)");
             IMatrix m = ((BasicTimestampMatrix)result.Result);
             Assert.IsTrue(m.isMatrix());
@@ -865,7 +865,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_matrix_nanotimestamp()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("matrix(2018.03.14T10:57:01.001123456 2018.03.15T10:58:02.002123456 2018.03.16T10:59:03.003123456,2018.03.14T10:57:01.001456789 2018.03.15T10:58:02.002456789 2018.03.16T10:59:03.003456789)");
             IMatrix m = ((BasicNanoTimestampMatrix)result.Result);
             Assert.IsTrue(m.isMatrix());
@@ -880,7 +880,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_matrix_month()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("matrix(2018.03M 2017.04M 2016.05M,2018.02M 2017.03M 2016.01M)");
             IMatrix m = ((BasicMonthMatrix)result.Result);
             Assert.IsTrue(m.isMatrix());
@@ -894,7 +894,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_matrix_minute()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("matrix(10:47m 10:48m 10:49m,16:47m 15:48m 14:49m)");
             IMatrix m = ((BasicMinuteMatrix)result.Result);
             Assert.IsTrue(m.isMatrix());
@@ -908,7 +908,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_matrix_second()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("matrix(10:47:02 10:48:03 10:49:04,16:47:02 15:48:03 14:49:04)");
             IMatrix m = ((BasicSecondMatrix)result.Result);
             Assert.IsTrue(m.isMatrix());
@@ -922,7 +922,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_table_int()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("table(1..100 as id,take(`aaa,100) as name)");
             BasicTable tb = ((BasicTable)result.Result);
             Assert.IsTrue(tb.isTable());
@@ -938,7 +938,7 @@ namespace dolphindb_csharp_api_test
         {
 
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("dict(1 2 3, 2.3 3.4 5.5)");
             BasicDictionary dict = ((BasicDictionary)result.Result);
             BasicDouble v = (BasicDouble)dict.get(new BasicInt(2));
@@ -950,7 +950,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_set()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("set(1 3 5)");
             BasicSet dict = ((BasicSet)result.Result);
             Assert.AreEqual(3, dict.rows());
@@ -962,7 +962,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_anyvector()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("[1 2 3,3.4 3.5 3.6]");
             BasicAnyVector v = ((BasicAnyVector)result.Result);
             Assert.AreEqual(2, v.rows());
@@ -975,7 +975,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_anyvector_getException()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Exception exception = null;
             Task<IEntity> result = db.runAsync("[1 2 3]");
             BasicAnyVector v = ((BasicAnyVector)result.Result);
@@ -997,7 +997,7 @@ namespace dolphindb_csharp_api_test
         public void Test_run_return_anyvector_IScalar()
         {
             DBConnection db = new DBConnection();
-            db.connect(SERVER, PORT);
+            db.connect(SERVER, PORT, "admin", "123456");
             Task<IEntity> result = db.runAsync("[`q `a `s,`www `2wss `rfgg]");
             BasicAnyVector v = ((BasicAnyVector)result.Result);
             Assert.AreEqual(2, v.rows());

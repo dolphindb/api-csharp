@@ -1991,7 +1991,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
                 {
                     IMessage msg = messages[i];
                     String script = String.Format("insert into sub1 values( {0},[uuid({1})])", msg.getEntity(0).getString(), msg.getEntity(1).getString().Replace("[", "[\"").Replace("]", "\"]").Replace(", ", "\",\"").Replace("\"\"", "NULL"));
-                    //System.out.println(script);
+                    //Console.WriteLine(script);
                     conn.run(script);
                 }
                 catch (Exception e)
@@ -2020,7 +2020,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
                 {
                     IMessage msg = messages[i];
                     String script = String.Format("insert into sub1 values( {0},[datehour({1})])", msg.getEntity(0).getString(), msg.getEntity(1).getString().Replace("[", "[\"").Replace("]", "\"]").Replace(", ", "\",\"").Replace("\"\"", "NULL"));
-                    //System.out.println(script);
+                    //Console.WriteLine(script);
                     conn.run(script);
                 }
                 catch (Exception e)
@@ -2050,7 +2050,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
                 {
                     IMessage msg = messages[i];
                     String script = String.Format("insert into sub1 values( {0},[ipaddr({1})])", msg.getEntity(0).getString(), msg.getEntity(1).getString().Replace("[", "[\"").Replace("]", "\"]").Replace(", ", "\",\"").Replace("\"\"", "NULL"));
-                    //System.out.println(script);
+                    //Console.WriteLine(script);
                     conn.run(script);
                 }
                 catch (Exception e)
@@ -2184,7 +2184,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
                 {
                     IMessage msg = messages[i];
                     String complex1 = msg.getEntity(1).getString().Replace("(,)", "(NULL,NULL)");
-                    //System.out.println(complex1);
+                    //Console.WriteLine(complex1);
                     complex1 = complex1.Substring(1).Substring(complex1.Length - 1);
                     string[] separators = { "),(" };
                     String[] complex2 = complex1.Split(separators, StringSplitOptions.None);

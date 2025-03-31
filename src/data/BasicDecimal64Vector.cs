@@ -317,5 +317,15 @@ namespace dolphindb.data
         {
             set(index, new BasicDecimal64(value, scale_));
         }
+
+        public override int hashBucket(int index, int buckets)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override int asof(IScalar value)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

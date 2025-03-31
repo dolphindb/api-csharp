@@ -30,7 +30,7 @@ namespace dolphindb.data
         private static readonly int[] cumLeapMonthDays = new int[] { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 };
         private static readonly int[] monthDays = new int[] { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
         private static readonly int[] leapMonthDays = new int[] { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-        private static string API_VERSION = "3.00.2.1";
+        private static string API_VERSION = "3.00.2.2";
 
         public static string getAPIVersion()
         {
@@ -642,7 +642,7 @@ namespace dolphindb.data
                 return DATA_CATEGORY.LITERAL;
             else if (type == DATA_TYPE.DT_INT128 || type == DATA_TYPE.DT_UUID || type == DATA_TYPE.DT_IPADDR || type == DATA_TYPE.DT_COMPLEX)
                 return DATA_CATEGORY.BINARY;
-            else if (type == DATA_TYPE.DT_ANY)
+            else if (type == DATA_TYPE.DT_ANY || type == DATA_TYPE.DT_IOTANY)
                 return DATA_CATEGORY.MIXED;
             else if (type == DATA_TYPE.DT_VOID)
                 return DATA_CATEGORY.NOTHING;

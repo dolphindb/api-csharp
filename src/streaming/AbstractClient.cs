@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Runtime.ConstrainedExecution;
+using dolphindb.route;
 
 namespace dolphindb.streaming
 {
@@ -28,53 +29,7 @@ namespace dolphindb.streaming
         bool isClose_ = false;
         private BlockingCollection<DBConnection> connList = new BlockingCollection<DBConnection>();
 
-        protected DBVersion dbVersion = null;
-
-        protected class DBVersion
-        {
-            int[] v = null;
-            string version = null;
-            public DBVersion() { }
-
-            public DBVersion(string version)
-            {
-                v = new int[4];
-                this.version = version;
-                string[] parts = version.Split(' ')[0].Split('.');
-                v[0] = int.Parse(parts[0]);
-                v[1] = int.Parse(parts[1]);
-                v[2] = int.Parse(parts[2]);
-                if (parts.Length > 3)
-                {
-                    v[3] = int.Parse(parts[3]);
-                }
-            }
-
-            public int getVerNum()
-            {
-                try
-                {
-                    string[] s = version.Split(' ');
-                    if (s.Length >= 2)
-                    {
-                        string vernum = s[0].Replace(".", "");
-                        return int.Parse(vernum);
-                    }
-                }
-                catch (Exception)
-                {
-                }
-                return 0;
-            }
-
-            public string getVersion() { return version; }
-
-            public int getSubV(int index)
-            {
-                return v[index];
-            }
-        }
-
+        DBVersion dbVersion = null;
 
         public ConcurrentDictionary<string, SubscribeInfo> getSubscribeInfos()
         {
@@ -127,7 +82,9 @@ namespace dolphindb.streaming
                     conn.connect(site.host, site.port);
                     try
                     {
-                        conn.run("1");
+                        
+                        List<IEntity> args = new List<IEntity>();
+                        conn.run("version", args);
                         activateSites.Add(site);
                     }
                     finally
@@ -457,7 +414,8 @@ namespace dolphindb.streaming
             {
                 conn = new DBConnection();
                 conn.connect(host, port);
-                string version = conn.run("version()").getString();
+                List<IEntity> args = new List<IEntity>();
+                string version = conn.run("version", args).getString();
                 dbVersion = new DBVersion(version);
                 int v0 = dbVersion.getSubV(0);
                 int v1 = dbVersion.getSubV(1);

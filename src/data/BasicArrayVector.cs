@@ -451,5 +451,15 @@ namespace dolphindb.data
             }
             return arrayVector;
         }
+
+        public override int hashBucket(int index, int buckets)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override int asof(IScalar value)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

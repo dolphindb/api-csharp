@@ -425,7 +425,7 @@ namespace dolphindb_csharp_api_test.route_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, USER, PASSWORD);
             string script = null;
-            script += "share keyedTable(`qty,1000:0, `sym`date`qty, [SYMBOL, DATE, INT]) as t\n";
+            script += "share keyedTable(`qty,1000:0, `sym`date`qty, [SYMBOL, DATE, INT]) as pt1\n";
             conn.run(script);
             Exception exception = null;
             try
@@ -439,6 +439,7 @@ namespace dolphindb_csharp_api_test.route_test
                 exception=e;
             }
             Assert.IsNotNull(exception);
+            conn.run("undef(`pt1, SHARED)");
             conn.close();
 
         }
@@ -448,7 +449,7 @@ namespace dolphindb_csharp_api_test.route_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, USER, PASSWORD);
             string script = null;
-            script += "share keyedTable(`qty,1000:0, `sym`date`qty, [SYMBOL, DATE, INT]) as t\n";
+            script += "share keyedTable(`qty,1000:0, `sym`date`qty, [SYMBOL, DATE, INT]) as pt1\n";
             conn.run(script);
             Exception exception = null;
             try
@@ -462,6 +463,7 @@ namespace dolphindb_csharp_api_test.route_test
                 exception = e;
             }
             Assert.IsNotNull(exception);
+            conn.run("undef(`pt1, SHARED)");
             conn.close();
 
         }
@@ -1311,6 +1313,354 @@ namespace dolphindb_csharp_api_test.route_test
             Assert.AreEqual(v1282.getString(), ((BasicArrayVector)(res.getColumn("col7"))).getEntity(0).getString());
             conn.close();
         }
+        [TestMethod]
+        public void Test_AutoFitTableUpsert_iotAnyVector()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "admin", "123456");
+            String script = "if(existsDatabase(\"dfs://testIOT_allDateType\")) dropDatabase(\"dfs://testIOT_allDateType\")\n" +
+                    "     create database \"dfs://testIOT_allDateType\" partitioned by   VALUE(1..20),RANGE(2020.01.01 2022.01.01 2038.01.01), engine='IOTDB'\n" +
+                    "     create table \"dfs://testIOT_allDateType\".\"pt\"(\n" +
+                    "     deviceId INT,\n" +
+                    "     timestamp TIMESTAMP,\n" +
+                    "     location SYMBOL,\n" +
+                    "     value IOTANY,\n" +
+                    " )\n" +
+                    "partitioned by deviceId, timestamp,\n" +
+                    "sortColumns=[`deviceId, `location, `timestamp],\n" +
+                    "latestKeyCache=true;\n" +
+                    "pt = loadTable(\"dfs://testIOT_allDateType\",\"pt\");\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t=table([1] as deviceId, [now()]  as timestamp,  [`loc1] as location, [char('Q')] as value);\n select * from t");
+            BasicTable bt1 = (BasicTable)conn.run("t=table([2] as deviceId, [now()]  as timestamp,  [`loc1] as location, [short(233)] as value);\n select * from t");
+            BasicTable bt2 = (BasicTable)conn.run("t=table([3] as deviceId, [now()]  as timestamp,  [`loc1] as location, [int(-233)] as value);\n select * from t");
+            BasicTable bt3 = (BasicTable)conn.run("t=table([4] as deviceId, [now()]  as timestamp,  [`loc1] as location, [long(233121)] as value);\n select * from t");
+            BasicTable bt4 = (BasicTable)conn.run("t=table([5] as deviceId, [now()]  as timestamp,  [`loc1] as location, [true] as value);\n select * from t");
+            BasicTable bt5 = (BasicTable)conn.run("t=table([6] as deviceId, [now()]  as timestamp,  [`loc1] as location, [233.34f] as value);\n select * from t");
+            BasicTable bt6 = (BasicTable)conn.run("t=table([7] as deviceId, [now()]  as timestamp,  [`loc1] as location, [233.34] as value);\n select * from t");
+            BasicTable bt7 = (BasicTable)conn.run("t=table([8] as deviceId, [now()]  as timestamp,  [`loc1] as location, [`loc1] as value);\n select * from t");
+            BasicTable bt8 = (BasicTable)conn.run("t=table(12..14 as deviceId, [now(),2022.06.13 13:30:10.008,2020.06.13 13:30:10.008]  as timestamp,  `loc1`loc2`loc3 as location, symbol(`AAA`bbb`xxx) as value);\n select * from t ");
+            Console.WriteLine(bt8.getString());
+            AutoFitTableUpsert aftu = new AutoFitTableUpsert("dfs://testIOT_allDateType", "pt", conn, true, new String[] { "deviceId", "timestamp" }, null);
+            aftu.upsert(bt);
+            aftu.upsert(bt1);
+            aftu.upsert(bt2);
+            aftu.upsert(bt3);
+            aftu.upsert(bt4);
+            aftu.upsert(bt5);
+            aftu.upsert(bt6);
+            aftu.upsert(bt7);
+            aftu.upsert(bt8);
+            BasicTable bt10 = (BasicTable)conn.run("select * from loadTable(\"dfs://testIOT_allDateType\",`pt);");
+            Assert.AreEqual(11, bt10.rows());
+            Console.WriteLine(bt10.getColumn(3).getString());
+            Assert.AreEqual("['Q', 233, -233, 233121, true, 233.34000000, 233.34000000, loc1, AAA, bbb,...]", bt10.getColumn(3).getString());
+        }
+
+        [TestMethod]
+        public void Test_AutoFitTableUpsert_iotAnyVector_compress_true()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "admin", "123456");
+            String script = "if(existsDatabase(\"dfs://testIOT_allDateType\")) dropDatabase(\"dfs://testIOT_allDateType\")\n" +
+                    "     create database \"dfs://testIOT_allDateType\" partitioned by   VALUE(1..20),RANGE(2020.01.01 2022.01.01 2038.01.01), engine='IOTDB'\n" +
+                    "     create table \"dfs://testIOT_allDateType\".\"pt\"(\n" +
+                    "     deviceId INT,\n" +
+                    "     timestamp TIMESTAMP,\n" +
+                    "     location SYMBOL,\n" +
+                    "     value IOTANY,\n" +
+                    " )\n" +
+                    "partitioned by deviceId, timestamp,\n" +
+                    "sortColumns=[`deviceId, `location, `timestamp],\n" +
+                    "latestKeyCache=true;\n" +
+                    "pt = loadTable(\"dfs://testIOT_allDateType\",\"pt\");\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t=table([1] as deviceId, [now()]  as timestamp,  [`loc1] as location, [char('Q')] as value);\n select * from t");
+            BasicTable bt1 = (BasicTable)conn.run("t=table([2] as deviceId, [now()]  as timestamp,  [`loc1] as location, [short(233)] as value);\n select * from t");
+            BasicTable bt2 = (BasicTable)conn.run("t=table([3] as deviceId, [now()]  as timestamp,  [`loc1] as location, [int(-233)] as value);\n select * from t");
+            BasicTable bt3 = (BasicTable)conn.run("t=table([4] as deviceId, [now()]  as timestamp,  [`loc1] as location, [long(233121)] as value);\n select * from t");
+            BasicTable bt4 = (BasicTable)conn.run("t=table([5] as deviceId, [now()]  as timestamp,  [`loc1] as location, [true] as value);\n select * from t");
+            BasicTable bt5 = (BasicTable)conn.run("t=table([6] as deviceId, [now()]  as timestamp,  [`loc1] as location, [233.34f] as value);\n select * from t");
+            BasicTable bt6 = (BasicTable)conn.run("t=table([7] as deviceId, [now()]  as timestamp,  [`loc1] as location, [233.34] as value);\n select * from t");
+            BasicTable bt7 = (BasicTable)conn.run("t=table([8] as deviceId, [now()]  as timestamp,  [`loc1] as location, [`loc1] as value);\n select * from t");
+            BasicTable bt8 = (BasicTable)conn.run("t=table(12..14 as deviceId, [now(),2022.06.13 13:30:10.008,2020.06.13 13:30:10.008]  as timestamp,  `loc1`loc2`loc3 as location, symbol(`AAA`bbb`xxx) as value);\n select * from t ");
+            Console.WriteLine(bt8.getString());
+            DBConnection connection = new DBConnection(false, false, true);
+            connection.connect(SERVER, PORT, "admin", "123456");
+            AutoFitTableUpsert aftu = new AutoFitTableUpsert("dfs://testIOT_allDateType", "pt", connection, true, new String[] { "deviceId", "timestamp" }, null);
+            aftu.upsert(bt);
+            aftu.upsert(bt1);
+            aftu.upsert(bt2);
+            aftu.upsert(bt3);
+            aftu.upsert(bt4);
+            aftu.upsert(bt5);
+            aftu.upsert(bt6);
+            aftu.upsert(bt7);
+            aftu.upsert(bt8);
+            BasicTable bt10 = (BasicTable)conn.run("select * from loadTable(\"dfs://testIOT_allDateType\",`pt);");
+            Assert.AreEqual(11, bt10.rows());
+            Console.WriteLine(bt10.getColumn(3).getString());
+            Assert.AreEqual("['Q', 233, -233, 233121, true, 233.34000000, 233.34000000, loc1, AAA, bbb,...]", bt10.getColumn(3).getString());
+            connection.close();
+        }
+
+        //[TestMethod] SERVER有问题，后续再增加case
+        public void Test_AutoFitTableUpsert_iotAnyVector_upsert()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "admin", "123456");
+            String script = "if(existsDatabase(\"dfs://testIOT_allDateType\")) dropDatabase(\"dfs://testIOT_allDateType\")\n" +
+                    "     create database \"dfs://testIOT_allDateType\" partitioned by   VALUE(1..20),RANGE(2020.01.01 2022.01.01 2038.01.01), engine='IOTDB'\n" +
+                    "     create table \"dfs://testIOT_allDateType\".\"pt\"(\n" +
+                    "     deviceId INT,\n" +
+                    "     timestamp TIMESTAMP,\n" +
+                    "     location SYMBOL,\n" +
+                    "     value IOTANY,\n" +
+                    " )\n" +
+                    "partitioned by deviceId, timestamp,\n" +
+                    "sortColumns=[`deviceId, `location, `timestamp],\n" +
+                    "latestKeyCache=true;\n" +
+                    "pt = loadTable(\"dfs://testIOT_allDateType\",\"pt\");\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t=table([1] as deviceId, [now()]  as timestamp,  [`loc1] as location, [char('Q')] as value);\n select * from t");
+            BasicTable bt1 = (BasicTable)conn.run("t=table([1] as deviceId, [now()]  as timestamp,  [`loc1] as location, [char('a')] as value);\n select * from t");
+            DBConnection connection = new DBConnection(false, false, true);
+            connection.connect(SERVER, PORT, "admin", "123456");
+            AutoFitTableUpsert aftu = new AutoFitTableUpsert("dfs://testIOT_allDateType", "pt", connection, true, new String[] { "deviceId" }, null);
+            aftu.upsert(bt);
+            aftu.upsert(bt1);
+            BasicTable bt10 = (BasicTable)conn.run("select * from loadTable(\"dfs://testIOT_allDateType\",`pt);");
+            Assert.AreEqual(1, bt10.rows());
+            Console.WriteLine(bt10.getColumn(3).getString());
+            Assert.AreEqual("", bt10.getColumn(3).getString());
+        }
+
+        [TestMethod]
+        public void Test_AutoFitTableUpsert_iotAnyVector_null()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "admin", "123456");
+            String script = "if(existsDatabase(\"dfs://testIOT_allDateType\")) dropDatabase(\"dfs://testIOT_allDateType\")\n" +
+                    "     create database \"dfs://testIOT_allDateType\" partitioned by   VALUE(1..20),RANGE(2020.01.01 2022.01.01 2038.01.01), engine='IOTDB'\n" +
+                    "     create table \"dfs://testIOT_allDateType\".\"pt\"(\n" +
+                    "     deviceId INT,\n" +
+                    "     timestamp TIMESTAMP,\n" +
+                    "     location SYMBOL,\n" +
+                    "     value IOTANY,\n" +
+                    " )\n" +
+                    "partitioned by deviceId, timestamp,\n" +
+                    "sortColumns=[`deviceId, `location, `timestamp],\n" +
+                    "latestKeyCache=true;\n" +
+                    "pt = loadTable(\"dfs://testIOT_allDateType\",\"pt\");\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t=table([1] as deviceId, [now()]  as timestamp,  [`loc1] as location, [char(NULL)] as value);\n select * from t");
+            BasicTable bt1 = (BasicTable)conn.run("t=table([2] as deviceId, [now()]  as timestamp,  [`loc1] as location, [short(NULL)] as value);\n select * from t");
+            BasicTable bt2 = (BasicTable)conn.run("t=table([3] as deviceId, [now()]  as timestamp,  [`loc1] as location, [int(NULL)] as value);\n select * from t");
+            BasicTable bt3 = (BasicTable)conn.run("t=table([4] as deviceId, [now()]  as timestamp,  [`loc1] as location, [long(NULL)] as value);\n select * from t");
+            BasicTable bt4 = (BasicTable)conn.run("t=table([5] as deviceId, [now()]  as timestamp,  [`loc1] as location, [bool(NULL)] as value);\n select * from t");
+            BasicTable bt5 = (BasicTable)conn.run("t=table([6] as deviceId, [now()]  as timestamp,  [`loc1] as location, [float(NULL)] as value);\n select * from t");
+            BasicTable bt6 = (BasicTable)conn.run("t=table([7] as deviceId, [now()]  as timestamp,  [`loc1] as location, [double(NULL)] as value);\n select * from t");
+            BasicTable bt7 = (BasicTable)conn.run("t=table([8] as deviceId, [now()]  as timestamp,  [`loc1] as location, [string(NULL)] as value);\n select * from t");
+            BasicTable bt8 = (BasicTable)conn.run("t=table(12..14 as deviceId, [now(),2022.06.13 13:30:10.008,2020.06.13 13:30:10.008]  as timestamp,  `loc1`loc2`loc3 as location, symbol([NULL,`bbb,`AAA]) as value);\n select * from t limit 1 ");
+            List<String> colNames = new List<String>();
+            colNames.Add("deviceId");
+            colNames.Add("timestamp");
+            colNames.Add("location");
+            colNames.Add("value");
+            List<IVector> cols = new List<IVector>();
+            cols.Add(new BasicIntVector(0));
+            cols.Add(new BasicTimestampVector(0));
+            cols.Add(new BasicStringVector(0));
+            cols.Add(new BasicIntVector(0));
+            BasicTable bt9 = new BasicTable(colNames, cols);
+            AutoFitTableUpsert aftu = new AutoFitTableUpsert("dfs://testIOT_allDateType", "pt", conn, true, new String[] { "deviceId", "timestamp" }, null);
+            aftu.upsert(bt);
+            aftu.upsert(bt1);
+            aftu.upsert(bt2);
+            aftu.upsert(bt3);
+            aftu.upsert(bt4);
+            aftu.upsert(bt5);
+            aftu.upsert(bt6);
+            aftu.upsert(bt7);
+            aftu.upsert(bt8);
+            aftu.upsert(bt9);
+            BasicTable bt10 = (BasicTable)conn.run("select * from loadTable(\"dfs://testIOT_allDateType\",`pt);");
+            Assert.AreEqual(9, bt10.rows());
+            Console.WriteLine(bt10.getColumn(3).getString());
+            Assert.AreEqual("[, , , , , , , , ]", bt10.getColumn(3).getString());
+        }
+
+        [TestMethod]
+        public void Test_AutoFitTableUpsert_iotAnyVector_null_compress_true()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "admin", "123456");
+            String script = "if(existsDatabase(\"dfs://testIOT_allDateType\")) dropDatabase(\"dfs://testIOT_allDateType\")\n" +
+                    "     create database \"dfs://testIOT_allDateType\" partitioned by   VALUE(1..20),RANGE(2020.01.01 2022.01.01 2038.01.01), engine='IOTDB'\n" +
+                    "     create table \"dfs://testIOT_allDateType\".\"pt\"(\n" +
+                    "     deviceId INT,\n" +
+                    "     timestamp TIMESTAMP,\n" +
+                    "     location SYMBOL,\n" +
+                    "     value IOTANY,\n" +
+                    " )\n" +
+                    "partitioned by deviceId, timestamp,\n" +
+                    "sortColumns=[`deviceId, `location, `timestamp],\n" +
+                    "latestKeyCache=true;\n" +
+                    "pt = loadTable(\"dfs://testIOT_allDateType\",\"pt\");\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t=table([1] as deviceId, [now()]  as timestamp,  [`loc1] as location, [char(NULL)] as value);\n select * from t");
+            BasicTable bt1 = (BasicTable)conn.run("t=table([2] as deviceId, [now()]  as timestamp,  [`loc1] as location, [short(NULL)] as value);\n select * from t");
+            BasicTable bt2 = (BasicTable)conn.run("t=table([3] as deviceId, [now()]  as timestamp,  [`loc1] as location, [int(NULL)] as value);\n select * from t");
+            BasicTable bt3 = (BasicTable)conn.run("t=table([4] as deviceId, [now()]  as timestamp,  [`loc1] as location, [long(NULL)] as value);\n select * from t");
+            BasicTable bt4 = (BasicTable)conn.run("t=table([5] as deviceId, [now()]  as timestamp,  [`loc1] as location, [bool(NULL)] as value);\n select * from t");
+            BasicTable bt5 = (BasicTable)conn.run("t=table([6] as deviceId, [now()]  as timestamp,  [`loc1] as location, [float(NULL)] as value);\n select * from t");
+            BasicTable bt6 = (BasicTable)conn.run("t=table([7] as deviceId, [now()]  as timestamp,  [`loc1] as location, [double(NULL)] as value);\n select * from t");
+            BasicTable bt7 = (BasicTable)conn.run("t=table([8] as deviceId, [now()]  as timestamp,  [`loc1] as location, [string(NULL)] as value);\n select * from t");
+            BasicTable bt8 = (BasicTable)conn.run("t=table(12..14 as deviceId, [now(),2022.06.13 13:30:10.008,2020.06.13 13:30:10.008]  as timestamp,  `loc1`loc2`loc3 as location, symbol([NULL,`bbb,`AAA]) as value);\n select * from t limit 1 ");
+            List<String> colNames = new List<String>();
+            colNames.Add("deviceId");
+            colNames.Add("timestamp");
+            colNames.Add("location");
+            colNames.Add("value");
+            List<IVector> cols = new List<IVector>();
+            cols.Add(new BasicIntVector(0));
+            cols.Add(new BasicTimestampVector(0));
+            cols.Add(new BasicStringVector(0));
+            cols.Add(new BasicIntVector(0));
+            BasicTable bt9 = new BasicTable(colNames, cols);
+            DBConnection connection = new DBConnection(false, false, true);
+            connection.connect(SERVER, PORT, "admin", "123456");
+            AutoFitTableUpsert aftu = new AutoFitTableUpsert("dfs://testIOT_allDateType", "pt", connection, true, new String[] { "deviceId", "timestamp" }, null);
+            aftu.upsert(bt);
+            aftu.upsert(bt1);
+            aftu.upsert(bt2);
+            aftu.upsert(bt3);
+            aftu.upsert(bt4);
+            aftu.upsert(bt5);
+            aftu.upsert(bt6);
+            aftu.upsert(bt7);
+            aftu.upsert(bt8);
+            aftu.upsert(bt9);
+            BasicTable bt10 = (BasicTable)conn.run("select * from loadTable(\"dfs://testIOT_allDateType\",`pt);");
+            Assert.AreEqual(9, bt10.rows());
+            Console.WriteLine(bt10.getColumn(3).getString());
+            Assert.AreEqual("[, , , , , , , , ]", bt10.getColumn(3).getString());
+            connection.close();
+        }
+
+        [TestMethod]
+        public void test_AutoFitTableUpsert_iotAny_write_illegal_string()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "admin", "123456");
+            String script = "if(existsDatabase(\"dfs://testIOT_allDateType\")) dropDatabase(\"dfs://testIOT_allDateType\")\n" +
+                    "     create database \"dfs://testIOT_allDateType\" partitioned by   VALUE(1..20),RANGE(2020.01.01 2022.01.01 2038.01.01), engine='IOTDB'\n" +
+                    "     create table \"dfs://testIOT_allDateType\".\"pt\"(\n" +
+                    "     deviceId INT,\n" +
+                    "     timestamp TIMESTAMP,\n" +
+                    "     location SYMBOL,\n" +
+                    "     value IOTANY,\n" +
+                    " )\n" +
+                    "partitioned by deviceId, timestamp,\n" +
+                    "sortColumns=[`deviceId, `location, `timestamp],\n" +
+                    "latestKeyCache=true;\n" +
+                    "pt = loadTable(\"dfs://testIOT_allDateType\",\"pt\");\n";
+            conn.run(script);
+            BasicTable table1 = (BasicTable)conn.run("select * from loadTable(\"dfs://testIOT_allDateType\", `pt) ;\n");
+            Console.WriteLine("table1:" + table1.getString());
+
+            AutoFitTableUpsert aftu = new AutoFitTableUpsert("dfs://testIOT_allDateType", "pt", conn, true, new String[] { "deviceId", "timestamp" }, null);
+            List<String> colNames = new List<String>();
+            colNames.Add("deviceId");
+            colNames.Add("timestamp");
+            colNames.Add("location");
+            colNames.Add("value");
+            List<IVector> cols = new List<IVector>();
+            BasicIntVector deviceId = new BasicIntVector(0);
+            deviceId.add(1);
+            deviceId.add(2);
+            deviceId.add(3);
+            cols.Add(deviceId);
+            BasicTimestampVector timestamp = new BasicTimestampVector(0);
+            timestamp.add(new DateTime(2023, 10, 1, 9, 0, 0));
+            timestamp.add(new DateTime(2023, 10, 1, 9, 0, 1));
+            timestamp.add(new DateTime(2023, 10, 1, 9, 0, 2));
+            cols.Add(timestamp);
+            BasicStringVector location = new BasicStringVector(0);
+            location.add("symbol1AM\0\0ZN");
+            location.add("\0symbol1AP\0PL\0");
+            location.add("symbol1AM\0");
+
+            //location.add("symbol1");
+            //location.add("symbol1A");
+            //location.add("symbol1AM");
+            cols.Add(location);
+            BasicStringVector value = new BasicStringVector(0);
+            value.add("blob1am\0zn");
+            value.add("\0blob1am\0zn");
+            value.add("blob1amzn\0");
+
+            //value.add("symbol1");
+            //value.add("symbol1A");
+            //value.add("symbol1AM");
+            cols.Add(value);
+            BasicTable tmpTable = new BasicTable(colNames, cols);
+            Console.WriteLine("tmpTable:" + tmpTable.getString());
+            aftu.upsert(tmpTable);
+            BasicTable table2 = (BasicTable)conn.run("select * from loadTable(\"dfs://testIOT_allDateType\", `pt) ;\n");
+            Console.WriteLine("table2:" + table2.getString());
+            Assert.AreEqual("blob1am��zn", table2.getColumn(3).get(0).getString());
+            Assert.AreEqual("��blob1am��zn", table2.getColumn(3).get(1).getString());
+            Assert.AreEqual("blob1amzn��", table2.getColumn(3).get(2).getString());
+        }
+
+        [TestMethod]
+        public void Test_AutoFitTableUpsert_iotAnyVector_big_data()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, "admin", "123456");
+            String script = "if(existsDatabase(\"dfs://testIOT_allDateType1\")) dropDatabase(\"dfs://testIOT_allDateType1\")\n" +
+                    "     create database \"dfs://testIOT_allDateType1\" partitioned by   RANGE(1000000*(0..10)),RANGE(2020.01.01 2022.01.01 2038.01.01), engine='IOTDB'\n" +
+                    "     create table \"dfs://testIOT_allDateType1\".\"pt\"(\n" +
+                    "     deviceId INT,\n" +
+                    "     timestamp TIMESTAMP,\n" +
+                    "     location SYMBOL,\n" +
+                    "     value IOTANY,\n" +
+                    " )\n" +
+                    "partitioned by deviceId, timestamp,\n" +
+                    "sortColumns=[`deviceId, `location, `timestamp],\n" +
+                    "latestKeyCache=true;\n" +
+                    "pt = loadTable(\"dfs://testIOT_allDateType1\",\"pt\");\n";
+            conn.run(script);
+            BasicTable bt = (BasicTable)conn.run("t=table(take(1..1000000,1000000) as deviceId, take(now()+(0..100), 1000000)  as timestamp,  take(\"bb\"+string(0..100), 1000000) as location, take(char(1..100000),1000000) as value);\n select * from t");
+            BasicTable bt1 = (BasicTable)conn.run("t=table(take(1000001..2000000,1000000) as deviceId, take(now()+(0..100), 1000000)  as timestamp,  take(\"bb\"+string(0..100), 1000000) as location, take(short(1..100000),1000000) as value);\n select * from t");
+            BasicTable bt2 = (BasicTable)conn.run("t=table(take(2000001..3000000,1000000) as deviceId, take(now()+(0..100), 1000000)  as timestamp,  take(\"bb\"+string(0..100), 1000000) as location, take(int(1..100000),1000000) as value);\n select * from t");
+            BasicTable bt3 = (BasicTable)conn.run("t=table(take(3000001..4000000,1000000) as deviceId, take(now()+(0..100), 1000000)  as timestamp,  take(\"bb\"+string(0..100), 1000000) as location, take(long(1..100000),1000000) as value);\n select * from t");
+            BasicTable bt4 = (BasicTable)conn.run("t=table(take(4000001..5000000,1000000) as deviceId, take(now()+(0..100), 1000000)  as timestamp,  take(\"bb\"+string(0..100), 1000000) as location, take(true false null,1000000) as value);\n select * from t");
+            BasicTable bt5 = (BasicTable)conn.run("t=table(take(5000001..6000000,1000000) as deviceId, take(now()+(0..100), 1000000)  as timestamp,  take(\"bb\"+string(0..100), 1000000) as location, take(-2.33f 0 4.44f,1000000) as value);\n select * from t");
+            BasicTable bt6 = (BasicTable)conn.run("t=table(take(6000001..7000000,1000000) as deviceId, take(now()+(0..100), 1000000)  as timestamp,  take(\"bb\"+string(0..100), 1000000) as location, take(-2.33 0 4.44,1000000) as value);\n select * from t");
+            BasicTable bt7 = (BasicTable)conn.run("t=table(take(7000001..8000000,1000000) as deviceId, take(now()+(0..100), 1000000)  as timestamp,  take(\"bb\"+string(0..100), 1000000) as location, take(\"bb\"+string(0..100000), 1000000) as value);\n select * from t");
+            BasicTable bt8 = (BasicTable)conn.run("t=table(take(8000001..9000000,1000000) as deviceId, take(now()+(0..100), 1000000)  as timestamp,  take(\"bb\"+string(0..100), 1000000) as location, symbol(take(NULL`bbb`AAA,1000000)) as value);\n select * from t");
+            AutoFitTableUpsert aftu = new AutoFitTableUpsert("dfs://testIOT_allDateType1", "pt", conn, true, new String[] { "deviceId", "timestamp" }, null);
+            DateTime startTime = DateTime.Now;
+            aftu.upsert(bt);
+            aftu.upsert(bt1);
+            aftu.upsert(bt2);
+            aftu.upsert(bt3);
+            aftu.upsert(bt4);
+            aftu.upsert(bt5);
+            aftu.upsert(bt6);
+            aftu.upsert(bt7);
+            aftu.upsert(bt8);
+            DateTime endTime = DateTime.Now;
+            TimeSpan duration = endTime - startTime;
+            Console.WriteLine("操作耗时: " + duration.TotalSeconds + " 秒");
+            BasicTable bt10 = (BasicTable)conn.run("select count(*) from loadTable(\"dfs://testIOT_allDateType1\",`pt);");
+            Assert.AreEqual("9000000", bt10.getColumn(0).get(0).getString());
+            //Console.WriteLine(bt10.getString());
+            conn.close();
+        }
+
     }
 }
 

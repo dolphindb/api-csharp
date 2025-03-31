@@ -57,6 +57,7 @@ namespace dolphindb.data
             factories[(int)DATA_TYPE.DT_DECIMAL32] = new Decimal32Factory();
             factories[(int)DATA_TYPE.DT_DECIMAL64] = new Decimal64Factory();
             factories[(int)DATA_TYPE.DT_DECIMAL128] = new Decimal128Factory();
+            factories[(int)DATA_TYPE.DT_VOID] = new VoidFactory();
         }
 
         public IEntity createEntity(DATA_FORM form, DATA_TYPE type, ExtendedDataInput @in, bool extend)
@@ -91,10 +92,9 @@ namespace dolphindb.data
             {
                 return new BasicArrayVector(type, @in);
             }
-            else if (type == DATA_TYPE.DT_VOID && form == DATA_FORM.DF_SCALAR)
+            else if(type == DATA_TYPE.DT_IOTANY)
             {
-                @in.readBoolean();
-                return new Void();
+                return new BasicIotAnyVector(form, @in);
             }
             else
             {
@@ -105,7 +105,7 @@ namespace dolphindb.data
                 }
                 else if (form == DATA_FORM.DF_VECTOR)
                 {
-                    if(!extend)
+                    if (!extend)
                         return factories[index].createVector(@in);
                     else
                         return factoriesExt[index].createVector(@in);
@@ -615,6 +615,18 @@ namespace dolphindb.data
             public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicDecimal128Vector(size, extra); }
             public IVector createPairWithDefaultValue() { throw new NotImplementedException(); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicDecimal128Matrix(rows, columns, extra); }
+        }
+
+        private class VoidFactory : TypeFactory
+        {
+            public IScalar createScalar(ExtendedDataInput @in) { return new Void(@in); }
+            public IVector createVector(ExtendedDataInput @in) { return new BasicVoidVector(DATA_FORM.DF_VECTOR, @in); }
+            public IVector createPair(ExtendedDataInput @in) { return new BasicVoidVector(DATA_FORM.DF_PAIR, @in); }
+            public IMatrix createMatrix(ExtendedDataInput @in) { throw new NotImplementedException(); }
+            public IScalar createScalarWithDefaultValue() { return new Void(); }
+            public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicVoidVector(size); }
+            public IVector createPairWithDefaultValue() { throw new NotImplementedException(); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { throw new NotImplementedException(); }
         }
 
         private class FunctionDefFactory : TypeFactory

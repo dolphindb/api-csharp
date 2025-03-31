@@ -224,5 +224,10 @@ namespace dolphindb.data
         {
             return new BasicDouble(values[index]);
         }
+
+        public override int hashBucket(int index, int buckets)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

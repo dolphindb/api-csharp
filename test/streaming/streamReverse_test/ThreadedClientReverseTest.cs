@@ -3009,7 +3009,7 @@ namespace dolphindb_csharp_api_test.streamReverse_test
                 try
                 {
                     String complex1 = msg.getEntity(1).getString().Replace("(,)", "(NULL,NULL)");
-                    //System.out.println(complex1);
+                    //Console.WriteLine(complex1);
                     complex1 = complex1.Substring(1).Substring(complex1.Length - 1);
                     string[] separators = { "),(" };
                     String[] complex2 = complex1.Split(separators, StringSplitOptions.None);

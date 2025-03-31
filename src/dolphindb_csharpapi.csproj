@@ -63,7 +63,9 @@
     <Compile Include="data\BasicDecimal64.cs" />
     <Compile Include="data\BasicDecimal64Matrix.cs" />
     <Compile Include="data\BasicDecimal64Vector.cs" />
+    <Compile Include="data\BasicVoidVector.cs" />
     <Compile Include="io\Double2.cs" />
+    <Compile Include="data\BasicIotAnyVector.cs" />
     <Compile Include="route\AutoFitTableUpsert.cs" />
     <Compile Include="route\ByteBuffer.cs" />
     <Compile Include="compression\Decoder.cs" />
@@ -187,6 +189,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="route\autoFitTableAppender.cs" />
     <Compile Include="route\BatchTableWriter.cs" />
+    <Compile Include="route\DBVersion.cs" />
     <Compile Include="route\ErrorCodeInfo.cs" />
     <Compile Include="route\MultithreadedTableWriter.cs" />
     <Compile Include="route\ValueDomain.cs" />

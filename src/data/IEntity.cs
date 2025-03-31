@@ -71,7 +71,7 @@ namespace dolphindb.data
         DT_DECIMAL32 = 37,
         DT_DECIMAL64 = 38,
         DT_DECIMAL128 = 39,
-
+        DT_IOTANY = 41,
 
         DT_BOOL_ARRAY = 65,
         DT_BYTE_ARRAY,

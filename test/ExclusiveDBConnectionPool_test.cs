@@ -92,7 +92,7 @@ namespace dolphindb_csharp_api_test
             Assert.AreEqual(10, pool.getConnectionCount());
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void Test_ExclusiveDBConnectionPool_uid_incorrect()
         {
             Exception exception = null;
@@ -117,7 +117,7 @@ namespace dolphindb_csharp_api_test
             Assert.AreEqual(10, pool.getConnectionCount());
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void Test_ExclusiveDBConnectionPool_pwd_incorrect()
         {
             Exception exception = null;

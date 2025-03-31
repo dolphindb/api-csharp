@@ -256,17 +256,6 @@ namespace dolphindb
                 }
                 isConnected_ = true;
 
-                if (!asynTask_)
-                {
-                    if (!((BasicBoolean)run("iif(getNodeType() == 0 or getNodeType() == 3 or getNodeType() == 4, isDataNodeInitialized(), bool(1))")).getValue())
-                    {
-                        System.Console.WriteLine("data node is not initialized. ");
-                        socket_.Close();
-                        isConnected_ = false;
-                        return false;
-                    }
-                }
-
                 if (userId_ != null && userId_.Length > 0 && password_.Length > 0)
                 {
                     if (asynTask_)
@@ -278,6 +267,17 @@ namespace dolphindb
                         login();
                     }
                 }
+
+                //if (!asynTask_)
+                //{
+                //    if (!((BasicBoolean)run("iif(getNodeType() == 0 or getNodeType() == 3 or getNodeType() == 4, isDataNodeInitialized(), bool(1))")).getValue())
+                //    {
+                //        System.Console.WriteLine("data node is not initialized. ");
+                //        socket_.Close();
+                //        isConnected_ = false;
+                //        return false;
+                //    }
+                //}
 
                 if (startup_ != null && startup_ != "")
                     run(startup_);
@@ -297,7 +297,7 @@ namespace dolphindb
                 List<IEntity> args = new List<IEntity>();
                 if (encrypted_)
                 {
-                    BasicString keyCode = (BasicString)run("getDynamicPublicKey()");
+                    BasicString keyCode = (BasicString)run("getDynamicPublicKey", args);
 
                     string key = RSAUtils.GetKey(keyCode.getString());
                     string usr = RSAUtils.RSA(userId_, key);
@@ -313,7 +313,7 @@ namespace dolphindb
                 {
                     args.Add(new BasicString(userId_));
                     args.Add(new BasicString(password_));
-                    run("login('" + userId_ + "','" + password_ + "')"); //no encrypted temporary
+                    run("login", args); //no encrypted temporary
 
                 }
             }
@@ -406,7 +406,7 @@ namespace dolphindb
                     {
                         throw new IOException("Invalid form value: " + form);
                     }
-                    if (type < 0 || type > (int)DATA_TYPE.DT_DECIMAL128_ARRAY || type > (int)DATA_TYPE.DT_DECIMAL128 && type < (int)(int)DATA_TYPE.DT_BOOL_ARRAY)
+                    if (type < 0 || type > (int)DATA_TYPE.DT_DECIMAL128_ARRAY || type > (int)DATA_TYPE.DT_IOTANY && type < (int)(int)DATA_TYPE.DT_BOOL_ARRAY)
                     {
                         throw new IOException("Invalid type value: " + type);
                     }
@@ -1046,8 +1046,10 @@ namespace dolphindb
         {
             try
             {
-                BasicInt ret = (BasicInt)conn_.run("1+1");
-                return ret.getInt() == 2;
+                
+                List<IEntity> args = new List<IEntity>();
+                conn_.run("version", args);
+                return true;
             }
             catch (IOException)
             {
@@ -1084,7 +1086,21 @@ namespace dolphindb
                     }
                     try
                     {
-                        table = (BasicTable)conn_.run("rpc(getControllerAlias(), getClusterPerf)");
+                        List<IEntity> args = new List<IEntity>();
+                        string version = run("version", args).getString();
+                        dolphindb.route.DBVersion dbVersion = new dolphindb.route.DBVersion(version);
+                        int v0 = dbVersion.getSubV(0);
+                        int v1 = dbVersion.getSubV(1);
+                        int v2 = dbVersion.getSubV(2);
+
+                        if ((v0 == 2 && v1 == 0 && v2 >= 15))
+                        {
+                            table = (BasicTable)conn_.run("getClusterPerf", args);
+                        }
+                        else
+                        {
+                            table = (BasicTable)conn_.run("rpc(getControllerAlias(),getClusterPerf)");
+                        }
                         break;
                     }
                     catch (Exception e)
@@ -1190,7 +1206,8 @@ namespace dolphindb
                             else if (type == ExceptionType.ET_NOINITIALIZED)
                                 return false;
                             else //UNKNOW
-                                throw new IOException(e.Message);
+                                //throw new IOException(e.Message);
+                                return false;
                         }
                     }
                     else

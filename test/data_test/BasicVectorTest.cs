@@ -138,7 +138,6 @@ namespace dolphindb_csharp_api_test.data_test
             bcv.addRange(new List<byte> { 5, 6, 7 });
             Assert.AreEqual(7, bcv.rows());
             Assert.AreEqual(true, bcv.get(6).getObject());
-            Assert.AreEqual(-1, bcv.hashBucket(0, 1));
             Assert.AreEqual(7, bcv.rows());
             IScalar scalar = (IScalar)conn.run("6");
             try
@@ -151,6 +150,19 @@ namespace dolphindb_csharp_api_test.data_test
                 string s = ex.Message;
                 Assert.AreEqual(s, "BasicBooleanVector.asof not supported.");
             }
+            String re = null;
+            try
+            {
+                bcv.hashBucket(0, 1);
+            }
+            catch (Exception ex)
+
+            {
+                re = ex.Message;
+               
+            }
+            Assert.AreEqual(true, re.Contains("未实现该方法或操作。") || re.Contains("The method or operation is not implemented."));
+
             //ExtendedDataInput extendedDataInput = (ExtendedDataInput)conn.run("1");
             //bcv.deserialize(0,1, extendedDataInput);
             //Console.Out.WriteLine(bcv);
@@ -3736,7 +3748,18 @@ namespace dolphindb_csharp_api_test.data_test
             String[] tmp_string_v = { "0.0", "-123.00432", "132.204234", "100.0" };
             BasicDecimal128Vector tmp_128_v = new BasicDecimal128Vector(tmp_string_v, 4);
             IScalar sc = new BasicDecimal128("1", 2);
-            Assert.AreEqual(-1, tmp_128_v.asof(sc));
+
+            String re = null;
+            try
+            {
+                tmp_128_v.asof(sc);
+            }
+            catch (Exception e)
+            {
+                re = e.Message;
+            }
+            Assert.AreEqual(true, re.Contains("未实现该方法或操作。") || re.Contains("The method or operation is not implemented."));
+
         }
 
         [TestMethod]

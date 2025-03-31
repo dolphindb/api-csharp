@@ -1806,7 +1806,7 @@ namespace dolphindb_csharp_api_test.cep_test
             List<IEntity> attributes4 = new List<IEntity>();
             BasicComplex bb = new BasicComplex(0, 0);
             bb.setNull();
-            //System.out.println(bb.getString());
+            //Console.WriteLine(bb.getString());
             attributes4.Add(bb);
             sender.sendEvent("event_dateType", attributes1);
             sender.sendEvent("event_dateType", attributes2);

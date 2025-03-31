@@ -91,7 +91,14 @@ namespace dolphindb.data
             if (this is BasicSymbolVector && rows() != 0)
                 flag += 128;
             @out.writeShort(flag);
-            @out.writeInt(rows());
+            if(getDataType() == DATA_TYPE.DT_IOTANY)
+            {
+                @out.writeInt(((BasicIotAnyVector)this).serializeAnyVectorRows());
+            }
+            else
+            {
+                @out.writeInt(rows());
+            }
             @out.writeInt(columns());
             writeVectorToOutputStream(@out);
         }
@@ -122,21 +129,10 @@ namespace dolphindb.data
         public abstract void add(object value);
         public abstract void addRange(object list);
 
-        public virtual int hashBucket(int index, int buckets)
-        {
-            return -1;
-        }
+        public abstract int hashBucket(int index, int buckets);
+        public abstract IVector getSubVector(int[] indices);
 
-        public virtual IVector getSubVector(int[] indices)
-        {
-            IVector iv = new BasicIntVector(1);
-            return iv;
-        }
-
-        public virtual int asof(IScalar value)
-        {
-            return -1;
-        }
+        public abstract int asof(IScalar value);
 
         public static void checkCompressedMethod(DATA_TYPE type, int method){
             if ((int)type > ARRAY_VECTOR_BASE)

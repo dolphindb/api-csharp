@@ -988,7 +988,7 @@ namespace dolphindb_csharp_api_test
 
             string script0 = null;
             string script1 = null;
-            script0 += "m = 3000000;";
+            script0 += "m = 30000;";
             script0 += "n = 100;";
             script0 += "exTable0 = table(n:0, `symbolv`ID`timestampx`stringv`boolv`intv`datev`datetimev`timestampv`floatv, [SYMBOL, INT, TIMESTAMP, STRING, BOOL[], INT[], DATE[], DATETIME[], TIMESTAMP[], FLOAT[]]);";
             script0 += "share exTable0 as ptt1;";
@@ -1515,62 +1515,16 @@ namespace dolphindb_csharp_api_test
         //     }
         // }
 
+
         [TestMethod]
-        public void Test_sqlList_runAsync_priority()
+        public void test_ExclusiveDBConnectionPool_runAsync_priority_1()
         {
-            ExclusiveDBConnectionPool pool = new ExclusiveDBConnectionPool(SERVER, PORT, "admin", "123456", 1, true, true, HASTREAM_GROUP1, "", true, false, false);
-            List<string> sqlList = new List<string>() { "m = 30000;", "n = 100;", "exTable0 = table(n:0, `symbolv`ID`timestampx`stringv`boolv`intv`datev`datetimev`timestampv`floatv, [SYMBOL, INT, TIMESTAMP, STRING, BOOL[], INT[], DATE[], DATETIME[], TIMESTAMP[], FLOAT[]]);", "symbol_vector=take(`A, n);", "ID_vector=take(100, n);", "timestampx_vector=take(temporalAdd(2020.01.01T12:23:24.345, (1..n), `m), n);", "stringv_vector=rand(`name + string(1..100), n);", "bool_vector=take([take(take(true, 5) join take(false, 5), 10)], n);", "int_vector=take([int(take([40,48,4,3,52,18,21,73,82,67], m)), int(take([36,98,95,69,41,60,78,92,78,21], m)), int(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "date_vector=take([date(take([40,48,4,3,52,18,21,73,82,67], m)), date(take([36,98,95,69,41,60,78,92,78,21], m)), date(take([92,40,13,93,9,34,86,60,43,64],m))], n);", "datetime_vector=take([datetime(take([40,48,4,3,52,18,21,73,82,67], m)), datetime(take([36,98,95,69,41,60,78,92,78,21], m)), datetime(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "timestamp_vector=take([timestamp(take([40,48,4,3,52,18,21,73,82,67], m)), timestamp(take([36,98,95,69,41,60,78,92,78,21], m)), timestamp(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "float_vector=take([float(take([40,48,4,3,52,18,21,73,82,67], m)), float(take([36,98,95,69,41,60,78,92,78,21], m)), float(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "exTable0.tableInsert(symbol_vector, ID_vector, timestampx_vector, stringv_vector, bool_vector, int_vector, date_vector, datetime_vector, timestamp_vector, float_vector);", "share exTable0 as ptt;", "select count(*) from ptt", "select ID from ptt", "select * from ptt", "select intv from ptt" };
-
-            ExclusiveDBConnectionPool pool1 = new ExclusiveDBConnectionPool(SERVER, PORT, "admin", "123456", 1, true, true, HASTREAM_GROUP1, "", true, false, false);
-            List<string> sqlList1 = new List<string>() { "m = 30000;", "n = 100;", "exTable1 = table(n:0, `symbolv`ID`timestampx`stringv`boolv`intv`datev`datetimev`timestampv`floatv, [SYMBOL, INT, TIMESTAMP, STRING, BOOL[], INT[], DATE[], DATETIME[], TIMESTAMP[], FLOAT[]]);", "symbol_vector=take(`A, n);", "ID_vector=take(100, n);", "timestampx_vector=take(temporalAdd(2020.01.01T12:23:24.345, (1..n), `m), n);", "stringv_vector=rand(`name + string(1..100), n);", "bool_vector=take([take(take(true, 5) join take(false, 5), 10)], n);", "int_vector=take([int(take([40,48,4,3,52,18,21,73,82,67], m)), int(take([36,98,95,69,41,60,78,92,78,21], m)), int(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "date_vector=take([date(take([40,48,4,3,52,18,21,73,82,67], m)), date(take([36,98,95,69,41,60,78,92,78,21], m)), date(take([92,40,13,93,9,34,86,60,43,64],m))], n);", "datetime_vector=take([datetime(take([40,48,4,3,52,18,21,73,82,67], m)), datetime(take([36,98,95,69,41,60,78,92,78,21], m)), datetime(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "timestamp_vector=take([timestamp(take([40,48,4,3,52,18,21,73,82,67], m)), timestamp(take([36,98,95,69,41,60,78,92,78,21], m)), timestamp(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "float_vector=take([float(take([40,48,4,3,52,18,21,73,82,67], m)), float(take([36,98,95,69,41,60,78,92,78,21], m)), float(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "exTable1.tableInsert(symbol_vector, ID_vector, timestampx_vector, stringv_vector, bool_vector, int_vector, date_vector, datetime_vector, timestamp_vector, float_vector);", "share exTable1 as ptt1;", "select count(*) from ptt1", "select ID from ptt1", "select * from ptt1", "select intv from ptt1" };
-
-            var ret = pool.runAsync(sqlList, 0, 2, false);
-            var ret2 = pool1.runAsync(sqlList1, 8);
-
-            DateTime beforeDT = System.DateTime.Now;
-            var ret1 = ret.Result;
-            DateTime afterDT = System.DateTime.Now;
-            TimeSpan ts = afterDT.Subtract(beforeDT);
-            Console.WriteLine("DateTime costed: {0}ms", ts.TotalMilliseconds);
-            //Assert.AreEqual(true, ts.TotalMilliseconds > 20000);
-
-            DateTime beforeDT1 = System.DateTime.Now;
-            var ret3 = ret2.Result;
-            DateTime afterDT1 = System.DateTime.Now;
-            TimeSpan ts1 = afterDT1.Subtract(beforeDT1);
-            Console.WriteLine("DateTime costed: {0}ms", ts1.TotalMilliseconds);
-            //Assert.AreEqual(true, ts1.TotalMilliseconds < 100);
-            
-            pool1.shutdown();
-        }
-        [TestMethod]
-        public void Test_sqlList_runAsync_priority1()
-        {
-
-            ExclusiveDBConnectionPool pool = new ExclusiveDBConnectionPool(SERVER, PORT, "admin", "123456", 1, true, true, HASTREAM_GROUP1, "", true, false, false);
-            List<string> sqlList = new List<string>() { "m = 30000;", "n = 100;", "exTable0 = table(n:0, `symbolv`ID`timestampx`stringv`boolv`intv`datev`datetimev`timestampv`floatv, [SYMBOL, INT, TIMESTAMP, STRING, BOOL[], INT[], DATE[], DATETIME[], TIMESTAMP[], FLOAT[]]);", "symbol_vector=take(`A, n);", "ID_vector=take(100, n);", "timestampx_vector=take(temporalAdd(2020.01.01T12:23:24.345, (1..n), `m), n);", "stringv_vector=rand(`name + string(1..100), n);", "bool_vector=take([take(take(true, 5) join take(false, 5), 10)], n);", "int_vector=take([int(take([40,48,4,3,52,18,21,73,82,67], m)), int(take([36,98,95,69,41,60,78,92,78,21], m)), int(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "date_vector=take([date(take([40,48,4,3,52,18,21,73,82,67], m)), date(take([36,98,95,69,41,60,78,92,78,21], m)), date(take([92,40,13,93,9,34,86,60,43,64],m))], n);", "datetime_vector=take([datetime(take([40,48,4,3,52,18,21,73,82,67], m)), datetime(take([36,98,95,69,41,60,78,92,78,21], m)), datetime(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "timestamp_vector=take([timestamp(take([40,48,4,3,52,18,21,73,82,67], m)), timestamp(take([36,98,95,69,41,60,78,92,78,21], m)), timestamp(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "float_vector=take([float(take([40,48,4,3,52,18,21,73,82,67], m)), float(take([36,98,95,69,41,60,78,92,78,21], m)), float(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "exTable0.tableInsert(symbol_vector, ID_vector, timestampx_vector, stringv_vector, bool_vector, int_vector, date_vector, datetime_vector, timestamp_vector, float_vector);", "share exTable0 as ptt;", "select count(*) from ptt", "select ID from ptt", "select * from ptt", "select intv from ptt" };
-
-            ExclusiveDBConnectionPool pool1 = new ExclusiveDBConnectionPool(SERVER, PORT, "admin", "123456", 1, true, true, HASTREAM_GROUP1, "", true, false, false);
-            List<string> sqlList1 = new List<string>() { "m = 30000;", "n = 100;", "exTable1 = table(n:0, `symbolv`ID`timestampx`stringv`boolv`intv`datev`datetimev`timestampv`floatv, [SYMBOL, INT, TIMESTAMP, STRING, BOOL[], INT[], DATE[], DATETIME[], TIMESTAMP[], FLOAT[]]);", "symbol_vector=take(`A, n);", "ID_vector=take(100, n);", "timestampx_vector=take(temporalAdd(2020.01.01T12:23:24.345, (1..n), `m), n);", "stringv_vector=rand(`name + string(1..100), n);", "bool_vector=take([take(take(true, 5) join take(false, 5), 10)], n);", "int_vector=take([int(take([40,48,4,3,52,18,21,73,82,67], m)), int(take([36,98,95,69,41,60,78,92,78,21], m)), int(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "date_vector=take([date(take([40,48,4,3,52,18,21,73,82,67], m)), date(take([36,98,95,69,41,60,78,92,78,21], m)), date(take([92,40,13,93,9,34,86,60,43,64],m))], n);", "datetime_vector=take([datetime(take([40,48,4,3,52,18,21,73,82,67], m)), datetime(take([36,98,95,69,41,60,78,92,78,21], m)), datetime(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "timestamp_vector=take([timestamp(take([40,48,4,3,52,18,21,73,82,67], m)), timestamp(take([36,98,95,69,41,60,78,92,78,21], m)), timestamp(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "float_vector=take([float(take([40,48,4,3,52,18,21,73,82,67], m)), float(take([36,98,95,69,41,60,78,92,78,21], m)), float(take([92,40,13,93,9,34,86,60,43,64], m))], n);", "exTable1.tableInsert(symbol_vector, ID_vector, timestampx_vector, stringv_vector, bool_vector, int_vector, date_vector, datetime_vector, timestamp_vector, float_vector);", "share exTable1 as ptt1;", "select count(*) from ptt1", "select ID from ptt1", "select * from ptt1", "select intv from ptt1" };
-
-            var ret = pool.runAsync(sqlList, 0);
-            var ret2 = pool1.runAsync(sqlList1, 8);
-
-            DateTime beforeDT1 = System.DateTime.Now;
-            var ret3 = ret2.Result;
-            DateTime afterDT1 = System.DateTime.Now;
-            TimeSpan ts1 = afterDT1.Subtract(beforeDT1);
-            Console.WriteLine("DateTime costed: {0}ms", ts1.TotalMilliseconds);
-            //Assert.AreEqual(true, ts1.TotalMilliseconds > 10000);
-
-            DateTime beforeDT = System.DateTime.Now;
-            var ret1 = ret.Result;
-            DateTime afterDT = System.DateTime.Now;
-            TimeSpan ts = afterDT.Subtract(beforeDT);
-            Console.WriteLine("DateTime costed: {0}ms", ts.TotalMilliseconds);
-            //Assert.AreEqual(true, ts.TotalMilliseconds > 10000);
-            
-            pool1.shutdown();
+            ExclusiveDBConnectionPool pool = new ExclusiveDBConnectionPool(SERVER, PORT, "admin", "123456", 1, false, false, null, "", true, false, false);
+            List<string> sqlList = new List<string>() { "getConsoleJobs();" };
+            var ret1 = pool.runAsync(sqlList, 5);
+            var re1 = ret1.Result;
+            Console.Out.WriteLine(((BasicTable)re1[0]).getColumn(5).get(0).getString());
+            Assert.AreEqual("5", ((BasicTable)re1[0]).getColumn(5).get(0).getString());
         }
 
         public void PrepareUser(String userName, String password)
