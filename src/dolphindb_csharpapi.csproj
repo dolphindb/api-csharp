@@ -63,6 +63,9 @@
     <Compile Include="data\BasicDecimal64.cs" />
     <Compile Include="data\BasicDecimal64Matrix.cs" />
     <Compile Include="data\BasicDecimal64Vector.cs" />
+    <Compile Include="data\BasicDouble2Vector.cs" />
+    <Compile Include="data\BasicPoint.cs" />
+    <Compile Include="data\BasicPointVector.cs" />
     <Compile Include="data\BasicVoidVector.cs" />
     <Compile Include="io\Double2.cs" />
     <Compile Include="data\BasicIotAnyVector.cs" />

@@ -422,5 +422,20 @@ namespace dolphindb_csharp_api_test.data_test
             db.close();
         }
 
+        [TestMethod]
+        public void Test_BasicTable_toDataTable_POINT()
+        {
+            string script = "table(take( point(12.50,-1.48) join point(0,0) join point(-12.50,1.48), 10) as tpoint)";
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT);
+            BasicTable tb = (BasicTable)db.run(script);
+            DataTable dt = tb.toDataTable();
+            Assert.AreEqual(10, dt.Rows.Count);
+            Assert.AreEqual("(12.5, -1.48)", dt.Rows[0]["tpoint"].ToString());
+            Assert.AreEqual("(0, 0)", dt.Rows[1]["tpoint"].ToString());
+            Assert.AreEqual("(-12.5, 1.48)", dt.Rows[2]["tpoint"].ToString());
+            db.close();
+        }
+
     }
 }

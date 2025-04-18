@@ -2793,5 +2793,102 @@ namespace dolphindb_csharp_api_test.data_test
             Assert.AreEqual(2061676100, bc.GetHashCode());
         }
 
+        [TestMethod]
+        public void test_BasicPoint()
+        {
+            BasicPoint bc = new BasicPoint(25.14, 42.33);
+            Assert.AreEqual(DATA_CATEGORY.BINARY, bc.getDataCategory());
+            Assert.AreEqual(DATA_TYPE.DT_POINT, bc.getDataType());
+            Assert.AreEqual(25.14, bc.getDouble2().x, 0);
+            Assert.AreEqual(42.33, bc.getDouble2().y, 0);
+            Assert.AreEqual("(25.14, 42.33)", bc.getString());
+            Assert.AreEqual(25.14, bc.getX());
+            Assert.AreEqual(42.33, bc.getY());
+            Assert.AreEqual(25.14, bc.getValue().x, 0);
+            Assert.AreEqual(42.33, bc.getValue().y, 0);
+            Assert.IsFalse(bc.isNull());
+            Assert.IsFalse(bc.equals(null));
+            bc.setNull();
+            Assert.IsTrue(bc.isNull());
+            Assert.AreEqual("(, )", bc.getString());
+            Assert.AreEqual(double.MinValue, bc.getDouble2().x, 0);
+            Assert.AreEqual(double.MinValue, bc.getDouble2().y, 0);
+
+            BasicPoint bc1 = new BasicPoint(-25.14, -42.33);
+            Assert.AreEqual("(-25.14, -42.33)", bc1.getString());
+        }
+
+        [TestMethod]
+        public void test_BasicPoint_not_support()
+        {
+            BasicPoint bc = new BasicPoint(25.14, 42.33);
+            String re = null;
+            try
+            {
+                bc.getNumber();
+            }
+            catch (Exception e)
+            {
+                re = e.Message;
+            }
+            Assert.AreEqual(true, re.Contains("Imcompatible data type"));
+
+            String re1 = null;
+            try
+            {
+                bc.getObject();
+            }
+            catch (Exception e)
+            {
+                re1 = e.Message;
+            }
+            Assert.AreEqual(true, re1.Contains("The method or operation is not implemented.") || re1.Contains("未实现该方法或操作。"));
+
+            String re2 = null;
+            try
+            {
+                bc.setObject(0);
+            }
+            catch (Exception e)
+            {
+                re2 = e.Message;
+            }
+            Assert.AreEqual(true, re2.Contains("The method or operation is not implemented.") || re2.Contains("未实现该方法或操作。"));
+
+            String re3 = null;
+            try
+            {
+                bc.getTemporal();
+            }
+            catch (Exception e)
+            {
+                re3 = e.Message;
+            }
+            Assert.AreEqual(true, re3.Contains("Imcompatible data type"));
+        }
+
+        [TestMethod]
+        public void test_BasicPoint_Equals()
+        {
+            BasicPoint bc = new BasicPoint(25.14, 42.33);
+            BasicPoint bc1 = new BasicPoint(-25.14, -42.33);
+            Assert.IsTrue(bc.Equals(bc));
+            Assert.IsFalse(bc.Equals(bc1));
+        }
+
+        [TestMethod]
+        public void test_BasicPoint_hashBucket()
+        {
+            BasicPoint bc = new BasicPoint(25.14, 42.33);
+            Assert.AreEqual(-1, bc.hashBucket(1));
+            Assert.AreEqual(-1, bc.hashBucket(2));
+        }
+        [TestMethod]
+        public void test_BasicPoint_GetHashCode()
+        {
+            BasicPoint bc = new BasicPoint(25.14, 42.33);
+            Assert.AreEqual(2061676100, bc.GetHashCode());
+        }
+
     }
 }

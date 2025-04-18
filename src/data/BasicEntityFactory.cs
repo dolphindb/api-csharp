@@ -47,6 +47,7 @@ namespace dolphindb.data
             factories[(int)DATA_TYPE.DT_UUID] = new UuidFactory();
             factories[(int)DATA_TYPE.DT_INT128] = new Int128Factory();
             factories[(int)DATA_TYPE.DT_COMPLEX] = new ComplexFactory();
+            factories[(int)DATA_TYPE.DT_POINT] = new PointFactory();
             factories[(int)DATA_TYPE.DT_IPADDR] = new IPAddrFactory();
 
             //2021.01.19 cwj
@@ -409,6 +410,18 @@ namespace dolphindb.data
             public IVector createPairWithDefaultValue() { return new BasicComplexVector(DATA_FORM.DF_PAIR, 2); }
             public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { return new BasicComplexMatrix(rows, columns); }
 	    }
+
+        private class PointFactory : TypeFactory
+        {
+            public IScalar createScalar(ExtendedDataInput @in) { return new BasicPoint(@in); }
+            public IVector createVector(ExtendedDataInput @in) { return new BasicPointVector(DATA_FORM.DF_VECTOR, @in); }
+            public IVector createPair(ExtendedDataInput @in) { return new BasicPointVector(DATA_FORM.DF_PAIR, @in); }
+            public IMatrix createMatrix(ExtendedDataInput @in) { throw new Exception("Matrix for POINT not supported yet."); }
+            public IScalar createScalarWithDefaultValue() { return new BasicPoint(-double.MaxValue, -double.MaxValue); }
+            public IVector createVectorWithDefaultValue(int size, int extra = -1) { return new BasicPointVector(size); }
+            public IVector createPairWithDefaultValue() { return new BasicPointVector(DATA_FORM.DF_PAIR, 2); }
+            public IMatrix createMatrixWithDefaultValue(int rows, int columns, int extra) { throw new Exception("Matrix for POINT not supported yet."); }
+        }
 
         private class StringFactory : TypeFactory
         {

@@ -148,7 +148,7 @@ namespace dolphindb_csharp_api_test.cep_test
                 "decimal32v = decimal32(rand(rand(-100..100, 1000)*0.23 join take(double(), 4), n), 3);\n" +
                 "decimal64v = decimal64(rand(rand(-100..100, 1000)*0.23 join take(double(), 4), n), 8);\n" +
                 "decimal128v = decimal128(rand(rand(-100..100, 1000)*0.23 join take(double(), 4), n), 10);\n" +
-                "share table(boolv, charv, shortv, intv, longv, doublev, floatv,  datev, monthv, timev, minutev, secondv, datetimev, timestampv, nanotimev, nanotimestampv,  stringv, datehourv, uuidv, ippaddrv, int128v, blobv,complexv) as data;\n";
+                "share table(boolv, charv, shortv, intv, longv, doublev, floatv,  datev, monthv, timev, minutev, secondv, datetimev, timestampv, nanotimev, nanotimestampv,  stringv, datehourv, uuidv, ippaddrv, int128v, blobv,pointv,complexv) as data;\n";
             conn.run(script);
         }
 
@@ -182,7 +182,7 @@ namespace dolphindb_csharp_api_test.cep_test
                 "cdecimal32 = array(DECIMAL32(2)[]).append!(cut(decimal32(take(-100..100 join NULL, n) + 0.254, 3), m))\n" +
                 "cdecimal64 = array(DECIMAL64(7)[]).append!(cut(decimal64(take(-100..100 join NULL, n) + 0.25467, 4), m))\n" +
                 "cdecimal128 = array(DECIMAL128(19)[]).append!(cut(decimal128(take(-100..100 join NULL, n) + 0.25467, 5), m))\n" +
-                "share table(cbool, cchar, cshort, cint, clong, cdouble, cfloat, cdate, cmonth, ctime, cminute, csecond, cdatetime, ctimestamp, cnanotime, cnanotimestamp, cdatehour, cuuid, cipaddr, cint128, ccomplex) as data;\n";
+                "share table(cbool, cchar, cshort, cint, clong, cdouble, cfloat, cdate, cmonth, ctime, cminute, csecond, cdatetime, ctimestamp, cnanotime, cnanotimestamp, cdatehour, cuuid, cipaddr, cint128, cpoint, ccomplex) as data;\n";
             conn.run(script1);
         }
 
@@ -231,7 +231,7 @@ namespace dolphindb_csharp_api_test.cep_test
                 //    Console.WriteLine(attributes[i].getString());
                 //}
                 var cols = new List<IVector>() { };
-                var colNames = new List<String>() { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "datehourv", "uuidv", "ippaddrv", "int128v", "complexv" };
+                var colNames = new List<String>() { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "datehourv", "uuidv", "ippaddrv", "int128v", "pointv", "complexv" };
                 BasicArrayVector boolv = new BasicArrayVector(DATA_TYPE.DT_BOOL_ARRAY);
                 boolv.append((IVector)attributes[0]);
                 BasicArrayVector charv = new BasicArrayVector(DATA_TYPE.DT_BYTE_ARRAY);
@@ -272,8 +272,10 @@ namespace dolphindb_csharp_api_test.cep_test
                 ippaddrv.append((IVector)attributes[18]);
                 BasicArrayVector int128v = new BasicArrayVector(DATA_TYPE.DT_INT128_ARRAY);
                 int128v.append((IVector)attributes[19]);
+                BasicArrayVector pointv = new BasicArrayVector(DATA_TYPE.DT_POINT_ARRAY);
+                pointv.append((IVector)attributes[20]);
                 BasicArrayVector complexv = new BasicArrayVector(DATA_TYPE.DT_COMPLEX_ARRAY);
-                complexv.append((IVector)attributes[20]);
+                complexv.append((IVector)attributes[21]);
                 cols.Add(boolv);
                 cols.Add(charv);
                 cols.Add(shortv);
@@ -294,6 +296,7 @@ namespace dolphindb_csharp_api_test.cep_test
                 cols.Add(uuidv);
                 cols.Add(ippaddrv);
                 cols.Add(int128v);
+                cols.Add(pointv);
                 cols.Add(complexv);
                 BasicTable bt = new BasicTable(colNames, cols);
                 //Console.WriteLine("-------------" + bt.getString());
@@ -330,17 +333,18 @@ namespace dolphindb_csharp_api_test.cep_test
                 String uuidv = attributes[17].getString().Replace("[]", " ");
                 String ippaddrv = attributes[18].getString().Replace("[]", " ");
                 String int128v = attributes[19].getString().Replace("[]", " ");
-                String complexv = attributes[20].getString().Replace("[]", " ");
-                String decimal32v = attributes[21].getString().Replace("[]", " ");
-                String decimal64v = attributes[22].getString().Replace("[]", " ");
-                String decimal128v = attributes[23].getString().Replace("[]", " ");
+                String pointv = attributes[20].getString().Replace("[]", " ");
+                String complexv = attributes[21].getString().Replace("[]", " ");
+                String decimal32v = attributes[22].getString().Replace("[]", " ");
+                String decimal64v = attributes[23].getString().Replace("[]", " ");
+                String decimal128v = attributes[24].getString().Replace("[]", " ");
                 for (int i = 0; i < attributes.Count; i++)
                 {
                     Console.WriteLine(attributes[i].getString());
                 }
                 String script = null;
                 //script = String.Format("insert into outputTable values( {0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},[datehour({0})],[uuid({0})],[ipaddr({0})],[int128({0})],[point({0})],[complex({0})],{0},{0},{0})", boolv, charv, shortv, intv, longv, doublev, floatv, datev, monthv, timev, minutev, secondv, datetimev, timestampv, nanotimev, nanotimestampv, datehourv, uuidv, ippaddrv, int128v, pointv, complexv, decimal32v, decimal64v, decimal128v);
-                script = String.Format("insert into outputTable values( {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23})", boolv, charv, shortv, intv, longv, doublev, floatv, datev, monthv, timev, minutev, secondv, datetimev, timestampv, nanotimev, nanotimestampv, datehourv, uuidv, ippaddrv, int128v, complexv, decimal32v, decimal64v, decimal128v);
+                script = String.Format("insert into outputTable values( {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24})", boolv, charv, shortv, intv, longv, doublev, floatv, datev, monthv, timev, minutev, secondv, datetimev, timestampv, nanotimev, nanotimestampv, datehourv, uuidv, ippaddrv, int128v, pointv, complexv, decimal32v, decimal64v, decimal128v);
                 Console.WriteLine(script);
 
                 conn.run(script);
@@ -1379,13 +1383,13 @@ namespace dolphindb_csharp_api_test.cep_test
         public void test_EventClient_subscribe_attributes_vector_null()
         {
             String script = "share streamTable(1000000:0, `eventType`event, [STRING,BLOB]) as inputTable;\n" +
-                    "colNames=\"col\"+string(1..24);\n" +
-                    "colTypes=[BOOL[],CHAR[],SHORT[],INT[],LONG[],DOUBLE[],FLOAT[],DATE[],MONTH[],TIME[],MINUTE[],SECOND[],DATETIME[],TIMESTAMP[],NANOTIME[],NANOTIMESTAMP[],DATEHOUR[],UUID[],IPADDR[],INT128[],COMPLEX[],DECIMAL32(2)[],DECIMAL64(7)[],DECIMAL128(10)[]];\n" +
+                    "colNames=\"col\"+string(1..25);\n" +
+                    "colTypes=[BOOL[],CHAR[],SHORT[],INT[],LONG[],DOUBLE[],FLOAT[],DATE[],MONTH[],TIME[],MINUTE[],SECOND[],DATETIME[],TIMESTAMP[],NANOTIME[],NANOTIMESTAMP[],DATEHOUR[],UUID[],IPADDR[],INT128[],POINT[],COMPLEX[],DECIMAL32(2)[],DECIMAL64(7)[],DECIMAL128(10)[]];\n" +
                     "share table(1:0,colNames,colTypes) as outputTable;\n";
             conn.run(script);
             BasicTable re1111 = (BasicTable)conn.run("select * from outputTable;");
 
-            EventSchema scheme = new EventSchema("event_all_array_dateType", new List<string> { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "datehourv", "uuidv", "ippAddrv", "int128v", "complexv", "decimal32v", "decimal64v", "decimal128v" }, new List<DATA_TYPE> { DATA_TYPE.DT_BOOL, DATA_TYPE.DT_BYTE, DATA_TYPE.DT_SHORT, DATA_TYPE.DT_INT, DATA_TYPE.DT_LONG, DATA_TYPE.DT_DOUBLE, DATA_TYPE.DT_FLOAT, DATA_TYPE.DT_DATE, DATA_TYPE.DT_MONTH, DATA_TYPE.DT_TIME, DATA_TYPE.DT_MINUTE, DATA_TYPE.DT_SECOND, DATA_TYPE.DT_DATETIME, DATA_TYPE.DT_TIMESTAMP, DATA_TYPE.DT_NANOTIME, DATA_TYPE.DT_NANOTIMESTAMP, DATA_TYPE.DT_DATEHOUR, DATA_TYPE.DT_UUID, DATA_TYPE.DT_IPADDR, DATA_TYPE.DT_INT128, DATA_TYPE.DT_COMPLEX, DATA_TYPE.DT_DECIMAL32, DATA_TYPE.DT_DECIMAL64, DATA_TYPE.DT_DECIMAL128 }, new List<DATA_FORM> { DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR },new List<int> { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 7, 10});
+            EventSchema scheme = new EventSchema("event_all_array_dateType", new List<string> { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "datehourv", "uuidv", "ippAddrv", "int128v","pointv", "complexv", "decimal32v", "decimal64v", "decimal128v" }, new List<DATA_TYPE> { DATA_TYPE.DT_BOOL, DATA_TYPE.DT_BYTE, DATA_TYPE.DT_SHORT, DATA_TYPE.DT_INT, DATA_TYPE.DT_LONG, DATA_TYPE.DT_DOUBLE, DATA_TYPE.DT_FLOAT, DATA_TYPE.DT_DATE, DATA_TYPE.DT_MONTH, DATA_TYPE.DT_TIME, DATA_TYPE.DT_MINUTE, DATA_TYPE.DT_SECOND, DATA_TYPE.DT_DATETIME, DATA_TYPE.DT_TIMESTAMP, DATA_TYPE.DT_NANOTIME, DATA_TYPE.DT_NANOTIMESTAMP, DATA_TYPE.DT_DATEHOUR, DATA_TYPE.DT_UUID, DATA_TYPE.DT_IPADDR, DATA_TYPE.DT_INT128, DATA_TYPE.DT_POINT, DATA_TYPE.DT_COMPLEX, DATA_TYPE.DT_DECIMAL32, DATA_TYPE.DT_DECIMAL64, DATA_TYPE.DT_DECIMAL128 }, new List<DATA_FORM> { DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR },new List<int> { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 7, 10});
             List<EventSchema> eventSchemas = new List<EventSchema>();
             eventSchemas.Add(scheme);
             List<String> eventTimeFields = new List<string>();
@@ -1417,6 +1421,7 @@ namespace dolphindb_csharp_api_test.cep_test
             attributes.Add(new BasicUuidVector(0));
             attributes.Add(new BasicIPAddrVector(0));
             attributes.Add(new BasicInt128Vector(0));
+            attributes.Add(new BasicPointVector(0));
             attributes.Add(new BasicComplexVector(0));
             attributes.Add(new BasicDecimal32Vector(0,2));
             attributes.Add(new BasicDecimal64Vector(0,7));
@@ -1434,12 +1439,12 @@ namespace dolphindb_csharp_api_test.cep_test
         public void test_EventClient_subscribe_attributes_array_null()
         {
             String script = "share streamTable(1000000:0, `eventType`event, [STRING,BLOB]) as inputTable;\n" +
-                    "colNames=\"col\"+string(1..24);\n" +
-                    "colTypes=[BOOL[],CHAR[],SHORT[],INT[],LONG[],DOUBLE[],FLOAT[],DATE[],MONTH[],TIME[],MINUTE[],SECOND[],DATETIME[],TIMESTAMP[],NANOTIME[],NANOTIMESTAMP[],DATEHOUR[],UUID[],IPADDR[],INT128[],POINT[],COMPLEX[],DECIMAL32(2)[],DECIMAL64(7)[]];\n" +
+                    "colNames=\"col\"+string(1..22);\n" +
+                    "colTypes=[BOOL[],CHAR[],SHORT[],INT[],LONG[],DOUBLE[],FLOAT[],DATE[],MONTH[],TIME[],MINUTE[],SECOND[],DATETIME[],TIMESTAMP[],NANOTIME[],NANOTIMESTAMP[],DATEHOUR[],UUID[],IPADDR[],INT128[],POINT[],COMPLEX[]];\n" +
                     "share table(1:0,colNames,colTypes) as outputTable;\n";
             conn.run(script);
 
-            EventSchema scheme = new EventSchema("event_all_array_dateType", new List<string> { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "datehourv", "uuidv", "ippAddrv", "int128v", "complexv" }, new List<DATA_TYPE> { DATA_TYPE.DT_BOOL_ARRAY, DATA_TYPE.DT_BYTE_ARRAY, DATA_TYPE.DT_SHORT_ARRAY, DATA_TYPE.DT_INT_ARRAY, DATA_TYPE.DT_LONG_ARRAY, DATA_TYPE.DT_DOUBLE_ARRAY, DATA_TYPE.DT_FLOAT_ARRAY, DATA_TYPE.DT_DATE_ARRAY, DATA_TYPE.DT_MONTH_ARRAY, DATA_TYPE.DT_TIME_ARRAY, DATA_TYPE.DT_MINUTE_ARRAY, DATA_TYPE.DT_SECOND_ARRAY, DATA_TYPE.DT_DATETIME_ARRAY, DATA_TYPE.DT_TIMESTAMP_ARRAY, DATA_TYPE.DT_NANOTIME_ARRAY, DATA_TYPE.DT_NANOTIMESTAMP_ARRAY, DATA_TYPE.DT_DATEHOUR_ARRAY, DATA_TYPE.DT_UUID_ARRAY, DATA_TYPE.DT_IPADDR_ARRAY, DATA_TYPE.DT_INT128_ARRAY, DATA_TYPE.DT_COMPLEX_ARRAY }, new List<DATA_FORM> { DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR });
+            EventSchema scheme = new EventSchema("event_all_array_dateType", new List<string> { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "datehourv", "uuidv", "ippAddrv", "int128v", "pointv", "complexv" }, new List<DATA_TYPE> { DATA_TYPE.DT_BOOL_ARRAY, DATA_TYPE.DT_BYTE_ARRAY, DATA_TYPE.DT_SHORT_ARRAY, DATA_TYPE.DT_INT_ARRAY, DATA_TYPE.DT_LONG_ARRAY, DATA_TYPE.DT_DOUBLE_ARRAY, DATA_TYPE.DT_FLOAT_ARRAY, DATA_TYPE.DT_DATE_ARRAY, DATA_TYPE.DT_MONTH_ARRAY, DATA_TYPE.DT_TIME_ARRAY, DATA_TYPE.DT_MINUTE_ARRAY, DATA_TYPE.DT_SECOND_ARRAY, DATA_TYPE.DT_DATETIME_ARRAY, DATA_TYPE.DT_TIMESTAMP_ARRAY, DATA_TYPE.DT_NANOTIME_ARRAY, DATA_TYPE.DT_NANOTIMESTAMP_ARRAY, DATA_TYPE.DT_DATEHOUR_ARRAY, DATA_TYPE.DT_UUID_ARRAY, DATA_TYPE.DT_IPADDR_ARRAY, DATA_TYPE.DT_INT128_ARRAY, DATA_TYPE.DT_POINT_ARRAY, DATA_TYPE.DT_COMPLEX_ARRAY }, new List<DATA_FORM> { DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR });
             List<EventSchema> eventSchemas = new List<EventSchema>();
             eventSchemas.Add(scheme);
             List<String> eventTimeFields = new List<string>();
@@ -1471,6 +1476,7 @@ namespace dolphindb_csharp_api_test.cep_test
             attributes.Add(new BasicArrayVector(DATA_TYPE.DT_UUID_ARRAY));
             attributes.Add(new BasicArrayVector(DATA_TYPE.DT_IPADDR_ARRAY));
             attributes.Add(new BasicArrayVector(DATA_TYPE.DT_INT128_ARRAY));
+            attributes.Add(new BasicArrayVector(DATA_TYPE.DT_POINT_ARRAY));
             attributes.Add(new BasicArrayVector(DATA_TYPE.DT_COMPLEX_ARRAY));
             sender.sendEvent("event_all_array_dateType", attributes);
             //conn.run("tableInsert{outputTable}", attributes);
@@ -1481,7 +1487,7 @@ namespace dolphindb_csharp_api_test.cep_test
         public void test_EventSender_all_dateType_scalar()
         {
             String script = "share streamTable(1:0, `eventTime`eventType`blobs, [TIMESTAMP,STRING,BLOB]) as inputTable;\n" +
-                    "share table(100:0, `boolv`charv`shortv`intv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`stringv`datehourv`uuidv`ippAddrv`int128v`blobv`complexv, [BOOL, CHAR, SHORT, INT, LONG, DOUBLE, FLOAT, DATE, MONTH, TIME, MINUTE, SECOND, DATETIME, TIMESTAMP, NANOTIME, NANOTIMESTAMP, STRING, DATEHOUR, UUID, IPADDR, INT128, BLOB, COMPLEX]) as outputTable;\n";
+                    "share table(100:0, `boolv`charv`shortv`intv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`stringv`datehourv`uuidv`ippAddrv`int128v`blobv`pointv`complexv, [BOOL, CHAR, SHORT, INT, LONG, DOUBLE, FLOAT, DATE, MONTH, TIME, MINUTE, SECOND, DATETIME, TIMESTAMP, NANOTIME, NANOTIMESTAMP, STRING, DATEHOUR, UUID, IPADDR, INT128, BLOB, POINT,COMPLEX]) as outputTable;\n";
             conn.run(script);
             String script1 = "class event_all_dateType{\n" +
                     "\tboolv :: BOOL\n" +
@@ -1507,8 +1513,9 @@ namespace dolphindb_csharp_api_test.cep_test
                     "\tippAddrv :: IPAddR \n" +
                     "\tint128v :: INT128\n" +
                     "\tblobv :: BLOB\n" +
+                    "\tpointv :: POINT\n" +
                     "\tcomplexv :: COMPLEX\n" +
-                    "  def event_all_dateType(bool, char, short, int, long, double, float, date, month, time, minute, second, datetime, timestamp, nanotime, nanotimestamp,  string, datehour, uuid, ippAddr, int128, blob, complex){\n" +
+                    "  def event_all_dateType(bool, char, short, int, long, double, float, date, month, time, minute, second, datetime, timestamp, nanotime, nanotimestamp,  string, datehour, uuid, ippAddr, int128, blob, point,complex){\n" +
                     "\tboolv = bool\n" +
                     "\tcharv = char\n" +
                     "\tshortv = short\n" +
@@ -1532,28 +1539,29 @@ namespace dolphindb_csharp_api_test.cep_test
                     "\tippAddrv = ippAddr\n" +
                     "\tint128v = int128\n" +
                     "\tblobv = blob\n" +
+                    "\tpointv = point\n" +
                     "\tcomplexv = complex\n" +
                     "  \t}\n" +
                     "}   \n" +
                     "schemaTable = table(array(STRING, 0) as eventType, array(STRING, 0) as eventKeys, array(INT[], ) as type, array(INT[], 0) as form)\n" +
                     "eventType = 'event_all_dateType'\n" +
-                    "eventKeys = 'boolv,charv,shortv,intv,longv,doublev,floatv,datev,monthv,timev,minutev,secondv,datetimev,timestampv,nanotimev,nanotimestampv,stringv,datehourv,uuidv,ippAddrv,int128v,blobv,complexv';\n" +
-                    "typeV = [BOOL, CHAR, SHORT, INT, LONG, DOUBLE, FLOAT, DATE,MONTH, TIME, MINUTE, SECOND, DATETIME, TIMESTAMP, NANOTIME, NANOTIMESTAMP,  STRING, DATEHOUR, UUID, IPADDR, INT128, BLOB, COMPLEX];\n" +
-                    "formV = [SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR];\n" +
+                    "eventKeys = 'boolv,charv,shortv,intv,longv,doublev,floatv,datev,monthv,timev,minutev,secondv,datetimev,timestampv,nanotimev,nanotimestampv,stringv,datehourv,uuidv,ippAddrv,int128v,blobv,pointv,complexv';\n" +
+                    "typeV = [BOOL, CHAR, SHORT, INT, LONG, DOUBLE, FLOAT, DATE,MONTH, TIME, MINUTE, SECOND, DATETIME, TIMESTAMP, NANOTIME, NANOTIMESTAMP,  STRING, DATEHOUR, UUID, IPADDR, INT128, BLOB, POINT, COMPLEX];\n" +
+                    "formV = [SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR, SCALAR];\n" +
                     "insert into schemaTable values([eventType], [eventKeys], [typeV],[formV]);\n" +
                     "share streamTable(array(TIMESTAMP, 0) as eventTime, array(STRING, 0) as eventType, array(BLOB, 0) as blobs) as intput;\n" +
                     "try{\ndropStreamEngine(`serInput)\n}catch(ex){\n}\n" +
                     "inputSerializer = streamEventSerializer(name=`serInput, eventSchema=schemaTable, outputTable=intput, eventTimeField = \"timestampv\");" +
-                    "all_data_type1=event_all_dateType(true, 'a', 2h, 2, 22l, 2.1, 2.1f, 2012.12.06, 2012.06M, 12:30:00.008, 12:30m, 12:30:00, 2012.06.12 12:30:00, 2012.06.12 12:30:00.008, 13:30:10.008007006, 2012.06.13 13:30:10.008007006,   \"world\", datehour(2012.06.13 13:30:10), uuid(\"9d457e79-1bed-d6c2-3612-b0d31c1881f6\"), ipaddr(\"192.168.1.253\"), int128(\"e1671797c52e15f763380b45e841ec32\"), blob(\"123\"),complex(-1.44,0.33))\n" +
+                    "all_data_type1=event_all_dateType(true, 'a', 2h, 2, 22l, 2.1, 2.1f, 2012.12.06, 2012.06M, 12:30:00.008, 12:30m, 12:30:00, 2012.06.12 12:30:00, 2012.06.12 12:30:00.008, 13:30:10.008007006, 2012.06.13 13:30:10.008007006,   \"world\", datehour(2012.06.13 13:30:10), uuid(\"9d457e79-1bed-d6c2-3612-b0d31c1881f6\"), ipaddr(\"192.168.1.253\"), int128(\"e1671797c52e15f763380b45e841ec32\"), blob(\"123\"),point(-1.44,0.33),complex(-1.44,0.33))\n" +
                     "appendEvent(inputSerializer, all_data_type1)";
             conn.run(script1);
-            String script2 = "colNames=\"col\"+string(1..23)\n" +
-                    "colTypes=[BOOL,CHAR,SHORT,INT,LONG,DOUBLE,FLOAT,DATE,MONTH,TIME,MINUTE,SECOND,DATETIME,TIMESTAMP,NANOTIME,NANOTIMESTAMP,STRING,DATEHOUR,UUID,IPADDR,INT128,BLOB,COMPLEX]\n" +
+            String script2 = "colNames=\"col\"+string(1..24)\n" +
+                    "colTypes=[BOOL,CHAR,SHORT,INT,LONG,DOUBLE,FLOAT,DATE,MONTH,TIME,MINUTE,SECOND,DATETIME,TIMESTAMP,NANOTIME,NANOTIMESTAMP,STRING,DATEHOUR,UUID,IPADDR,INT128,BLOB,POINT,COMPLEX]\n" +
                     "t=table(1:0,colNames,colTypes)\n" +
-                    "insert into t values(true, 'a', 2h, 2, 22l, 2.1, 2.1f, 2012.12.06, 2012.06M, 12:30:00.008, 12:30m, 12:30:00, 2012.06.12 12:30:00, 2012.06.12 12:30:00.008, 13:30:10.008007006, 2012.06.13 13:30:10.008007006,  \"world\", datehour(2012.06.13 13:30:10), uuid(\"9d457e79-1bed-d6c2-3612-b0d31c1881f6\"), ipaddr(\"192.168.1.253\"), int128(\"e1671797c52e15f763380b45e841ec32\"), blob(\"123\"),complex(-1.44,0.33)) ;";
+                    "insert into t values(true, 'a', 2h, 2, 22l, 2.1, 2.1f, 2012.12.06, 2012.06M, 12:30:00.008, 12:30m, 12:30:00, 2012.06.12 12:30:00, 2012.06.12 12:30:00.008, 13:30:10.008007006, 2012.06.13 13:30:10.008007006,  \"world\", datehour(2012.06.13 13:30:10), uuid(\"9d457e79-1bed-d6c2-3612-b0d31c1881f6\"), ipaddr(\"192.168.1.253\"), int128(\"e1671797c52e15f763380b45e841ec32\"), blob(\"123\"),point(-1.44,0.33),complex(-1.44,0.33)) ;";
             conn.run(script2);
 
-            EventSchema scheme = new EventSchema("event_all_dateType", new List<string> { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "stringv", "datehourv", "uuidv", "ippaddrv", "int128v", "blobv", "complexv" }, new List<DATA_TYPE> { DATA_TYPE.DT_BOOL, DATA_TYPE.DT_BYTE, DATA_TYPE.DT_SHORT, DATA_TYPE.DT_INT, DATA_TYPE.DT_LONG, DATA_TYPE.DT_DOUBLE, DATA_TYPE.DT_FLOAT, DATA_TYPE.DT_DATE, DATA_TYPE.DT_MONTH, DATA_TYPE.DT_TIME, DATA_TYPE.DT_MINUTE, DATA_TYPE.DT_SECOND, DATA_TYPE.DT_DATETIME, DATA_TYPE.DT_TIMESTAMP, DATA_TYPE.DT_NANOTIME, DATA_TYPE.DT_NANOTIMESTAMP, DATA_TYPE.DT_STRING, DATA_TYPE.DT_DATEHOUR, DATA_TYPE.DT_UUID, DATA_TYPE.DT_IPADDR, DATA_TYPE.DT_INT128, DATA_TYPE.DT_BLOB, DATA_TYPE.DT_COMPLEX }, new List<DATA_FORM> { DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR });
+            EventSchema scheme = new EventSchema("event_all_dateType", new List<string> { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "stringv", "datehourv", "uuidv", "ippaddrv", "int128v", "blobv", "pointv", "complexv" }, new List<DATA_TYPE> { DATA_TYPE.DT_BOOL, DATA_TYPE.DT_BYTE, DATA_TYPE.DT_SHORT, DATA_TYPE.DT_INT, DATA_TYPE.DT_LONG, DATA_TYPE.DT_DOUBLE, DATA_TYPE.DT_FLOAT, DATA_TYPE.DT_DATE, DATA_TYPE.DT_MONTH, DATA_TYPE.DT_TIME, DATA_TYPE.DT_MINUTE, DATA_TYPE.DT_SECOND, DATA_TYPE.DT_DATETIME, DATA_TYPE.DT_TIMESTAMP, DATA_TYPE.DT_NANOTIME, DATA_TYPE.DT_NANOTIMESTAMP, DATA_TYPE.DT_STRING, DATA_TYPE.DT_DATEHOUR, DATA_TYPE.DT_UUID, DATA_TYPE.DT_IPADDR, DATA_TYPE.DT_INT128, DATA_TYPE.DT_BLOB, DATA_TYPE.DT_POINT, DATA_TYPE.DT_COMPLEX }, new List<DATA_FORM> { DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR });
             List<EventSchema> eventSchemas = new List<EventSchema>();
             eventSchemas.Add(scheme);
             List<String> eventTimeFields = new List<string>() { "timestampv" };
@@ -1579,7 +1587,6 @@ namespace dolphindb_csharp_api_test.cep_test
                 checkData(bt1, bt2);
             }
         }
-
 
         [TestMethod]
         public void test_EventSender_scaler_BOOL()
@@ -1819,37 +1826,38 @@ namespace dolphindb_csharp_api_test.cep_test
             Assert.AreEqual(4, bt2.rows());
             checkData(bt1, bt2);
         }
+
         //[TestMethod]
-        //public void test_EventSender_scaler_POINT()
-        //{
-        //    PrepareInputSerializer("POINT", DATA_TYPE.DT_POINT);
-        //    String script = "event_dateType1 = event_dateType(point(111, 1));\n" +
-        //            "event_dateType2 = event_dateType( point(0, 0));\n" +
-        //            "event_dateType3 = event_dateType(point(-0.99, -0.11));\n" +
-        //            "event_dateType4 = event_dateType(NULL);\n" +
-        //            "appendEvent(inputSerializer, [event_dateType1, event_dateType2, event_dateType3, event_dateType4]);";
-        //    conn.run(script);
-        //    List<IEntity> attributes1 = new List<IEntity>();
-        //    attributes1.Add(new BasicPoint(111, 1));
-        //    List<IEntity> attributes2 = new List<IEntity>();
-        //    attributes2.Add(new BasicPoint(0, 0));
-        //    List<IEntity> attributes3 = new List<IEntity>();
-        //    attributes3.Add(new BasicPoint(-0.99, -0.11));
-        //    List<IEntity> attributes4 = new List<IEntity>();
-        //    BasicPoint bb = new BasicPoint(0, 0);
-        //    bb.setNull();
-        //    attributes4.Add(bb);
-        //    sender.sendEvent("event_dateType", attributes1);
-        //    sender.sendEvent("event_dateType", attributes2);
-        //    sender.sendEvent("event_dateType", attributes3);
-        //    sender.sendEvent("event_dateType", attributes4);
-        //    BasicTable bt1 = (BasicTable)conn.run("select * from inputTable;");
-        //    Assert.AreEqual(4, bt1.rows());
-        //    Thread.Sleep(2000);
-        //    BasicTable bt2 = (BasicTable)conn.run("select * from intput;");
-        //    Assert.AreEqual(4, bt2.rows());
-        //    checkData(bt1, bt2);
-        //}
+        public void test_EventSender_scaler_POINT()
+        {
+            PrepareInputSerializer("POINT", DATA_TYPE.DT_POINT);
+            String script = "event_dateType1 = event_dateType(point(111, 1));\n" +
+                    "event_dateType2 = event_dateType( point(0, 0));\n" +
+                    "event_dateType3 = event_dateType(point(-0.99, -0.11));\n" +
+                    "event_dateType4 = event_dateType(NULL);\n" +
+                    "appendEvent(inputSerializer, [event_dateType1, event_dateType2, event_dateType3, event_dateType4]);";
+            conn.run(script);
+            List<IEntity> attributes1 = new List<IEntity>();
+            attributes1.Add(new BasicPoint(111, 1));
+            List<IEntity> attributes2 = new List<IEntity>();
+            attributes2.Add(new BasicPoint(0, 0));
+            List<IEntity> attributes3 = new List<IEntity>();
+            attributes3.Add(new BasicPoint(-0.99, -0.11));
+            List<IEntity> attributes4 = new List<IEntity>();
+            BasicPoint bb = new BasicPoint(0, 0);
+            bb.setNull();
+            attributes4.Add(bb);
+            sender.sendEvent("event_dateType", attributes1);
+            sender.sendEvent("event_dateType", attributes2);
+            sender.sendEvent("event_dateType", attributes3);
+            sender.sendEvent("event_dateType", attributes4);
+            BasicTable bt1 = (BasicTable)conn.run("select * from inputTable;");
+            Assert.AreEqual(4, bt1.rows());
+            Thread.Sleep(2000);
+            BasicTable bt2 = (BasicTable)conn.run("select * from intput;");
+            Assert.AreEqual(4, bt2.rows());
+            checkData(bt1, bt2);
+        }
 
 
 
@@ -1926,10 +1934,10 @@ namespace dolphindb_csharp_api_test.cep_test
         public void test_EventSender_subscribe_all_dateType_scalar_1()
         {
             String script = "share streamTable(1000000:0, `time`eventType`event, [TIMESTAMP,STRING,BLOB]) as inputTable;\n" +
-                    "share table(100:0, `boolv`charv`shortv`intv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`stringv`datehourv`uuidv`ippaddrv`int128v`blobv`complexv, [BOOL, CHAR, SHORT, INT, LONG, DOUBLE, FLOAT, DATE, MONTH, TIME, MINUTE, SECOND, DATETIME, TIMESTAMP, NANOTIME, NANOTIMESTAMP,  STRING, DATEHOUR, UUID, IPADDR, INT128, BLOB,COMPLEX]) as outputTable;\n";
+                    "share table(100:0, `boolv`charv`shortv`intv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`stringv`datehourv`uuidv`ippaddrv`int128v`blobv`pointv`complexv, [BOOL, CHAR, SHORT, INT, LONG, DOUBLE, FLOAT, DATE, MONTH, TIME, MINUTE, SECOND, DATETIME, TIMESTAMP, NANOTIME, NANOTIMESTAMP,  STRING, DATEHOUR, UUID, IPADDR, INT128, BLOB,POINT,COMPLEX]) as outputTable;\n";
             conn.run(script);
 
-            EventSchema scheme = new EventSchema("event_all_dateType", new List<string> { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "stringv", "datehourv", "uuidv", "ippaddrv", "int128v", "blobv", "complexv" }, new List<DATA_TYPE> { DATA_TYPE.DT_BOOL, DATA_TYPE.DT_BYTE, DATA_TYPE.DT_SHORT, DATA_TYPE.DT_INT, DATA_TYPE.DT_LONG, DATA_TYPE.DT_DOUBLE, DATA_TYPE.DT_FLOAT, DATA_TYPE.DT_DATE, DATA_TYPE.DT_MONTH, DATA_TYPE.DT_TIME, DATA_TYPE.DT_MINUTE, DATA_TYPE.DT_SECOND, DATA_TYPE.DT_DATETIME, DATA_TYPE.DT_TIMESTAMP, DATA_TYPE.DT_NANOTIME, DATA_TYPE.DT_NANOTIMESTAMP, DATA_TYPE.DT_STRING, DATA_TYPE.DT_DATEHOUR, DATA_TYPE.DT_UUID, DATA_TYPE.DT_IPADDR, DATA_TYPE.DT_INT128, DATA_TYPE.DT_BLOB, DATA_TYPE.DT_COMPLEX }, new List<DATA_FORM> { DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR });
+            EventSchema scheme = new EventSchema("event_all_dateType", new List<string> { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "stringv", "datehourv", "uuidv", "ippaddrv", "int128v", "blobv", "pointv", "complexv" }, new List<DATA_TYPE> { DATA_TYPE.DT_BOOL, DATA_TYPE.DT_BYTE, DATA_TYPE.DT_SHORT, DATA_TYPE.DT_INT, DATA_TYPE.DT_LONG, DATA_TYPE.DT_DOUBLE, DATA_TYPE.DT_FLOAT, DATA_TYPE.DT_DATE, DATA_TYPE.DT_MONTH, DATA_TYPE.DT_TIME, DATA_TYPE.DT_MINUTE, DATA_TYPE.DT_SECOND, DATA_TYPE.DT_DATETIME, DATA_TYPE.DT_TIMESTAMP, DATA_TYPE.DT_NANOTIME, DATA_TYPE.DT_NANOTIMESTAMP, DATA_TYPE.DT_STRING, DATA_TYPE.DT_DATEHOUR, DATA_TYPE.DT_UUID, DATA_TYPE.DT_IPADDR, DATA_TYPE.DT_INT128, DATA_TYPE.DT_BLOB, DATA_TYPE.DT_POINT, DATA_TYPE.DT_COMPLEX }, new List<DATA_FORM> { DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR });
             List<EventSchema> eventSchemas = new List<EventSchema>();
             eventSchemas.Add(scheme);
             List<String> eventTimeFields = new List<string>() { "datetimev" };
@@ -1955,7 +1963,7 @@ namespace dolphindb_csharp_api_test.cep_test
             Console.WriteLine(bt.columns());
             BasicTable bt1 = (BasicTable)conn.run("select * from inputTable;");
             Assert.AreEqual(1, bt1.rows());
-            Thread.Sleep(20000);
+            Thread.Sleep(2000);
             BasicTable bt2 = (BasicTable)conn.run("select * from outputTable;");
             Assert.AreEqual(1, bt2.rows());
             checkData(bt, bt2);
@@ -1966,10 +1974,10 @@ namespace dolphindb_csharp_api_test.cep_test
         public void test_EventSender_subscribe_all_dateType_scalar_100()
         {
             String script = "share streamTable(1000000:0, `time`eventType`event, [TIMESTAMP,STRING,BLOB]) as inputTable;\n" +
-                    "share table(100:0, `boolv`charv`shortv`intv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`stringv`datehourv`uuidv`ippaddrv`int128v`blobv`complexv, [BOOL, CHAR, SHORT, INT, LONG, DOUBLE, FLOAT, DATE, MONTH, TIME, MINUTE, SECOND, DATETIME, TIMESTAMP, NANOTIME, NANOTIMESTAMP,  STRING, DATEHOUR, UUID, IPADDR, INT128, BLOB, COMPLEX]) as outputTable;\n";
+                   "share table(100:0, `boolv`charv`shortv`intv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`stringv`datehourv`uuidv`ippaddrv`int128v`blobv`pointv`complexv, [BOOL, CHAR, SHORT, INT, LONG, DOUBLE, FLOAT, DATE, MONTH, TIME, MINUTE, SECOND, DATETIME, TIMESTAMP, NANOTIME, NANOTIMESTAMP,  STRING, DATEHOUR, UUID, IPADDR, INT128, BLOB,POINT,COMPLEX]) as outputTable;\n";
             conn.run(script);
 
-            EventSchema scheme = new EventSchema("event_all_dateType", new List<string> { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "stringv", "datehourv", "uuidv", "ippaddrv", "int128v", "blobv", "complexv" }, new List<DATA_TYPE> { DATA_TYPE.DT_BOOL, DATA_TYPE.DT_BYTE, DATA_TYPE.DT_SHORT, DATA_TYPE.DT_INT, DATA_TYPE.DT_LONG, DATA_TYPE.DT_DOUBLE, DATA_TYPE.DT_FLOAT, DATA_TYPE.DT_DATE, DATA_TYPE.DT_MONTH, DATA_TYPE.DT_TIME, DATA_TYPE.DT_MINUTE, DATA_TYPE.DT_SECOND, DATA_TYPE.DT_DATETIME, DATA_TYPE.DT_TIMESTAMP, DATA_TYPE.DT_NANOTIME, DATA_TYPE.DT_NANOTIMESTAMP, DATA_TYPE.DT_STRING, DATA_TYPE.DT_DATEHOUR, DATA_TYPE.DT_UUID, DATA_TYPE.DT_IPADDR, DATA_TYPE.DT_INT128, DATA_TYPE.DT_BLOB, DATA_TYPE.DT_COMPLEX }, new List<DATA_FORM> { DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR });
+            EventSchema scheme = new EventSchema("event_all_dateType", new List<string> { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "stringv", "datehourv", "uuidv", "ippaddrv", "int128v", "blobv", "pointv", "complexv" }, new List<DATA_TYPE> { DATA_TYPE.DT_BOOL, DATA_TYPE.DT_BYTE, DATA_TYPE.DT_SHORT, DATA_TYPE.DT_INT, DATA_TYPE.DT_LONG, DATA_TYPE.DT_DOUBLE, DATA_TYPE.DT_FLOAT, DATA_TYPE.DT_DATE, DATA_TYPE.DT_MONTH, DATA_TYPE.DT_TIME, DATA_TYPE.DT_MINUTE, DATA_TYPE.DT_SECOND, DATA_TYPE.DT_DATETIME, DATA_TYPE.DT_TIMESTAMP, DATA_TYPE.DT_NANOTIME, DATA_TYPE.DT_NANOTIMESTAMP, DATA_TYPE.DT_STRING, DATA_TYPE.DT_DATEHOUR, DATA_TYPE.DT_UUID, DATA_TYPE.DT_IPADDR, DATA_TYPE.DT_INT128, DATA_TYPE.DT_BLOB, DATA_TYPE.DT_POINT, DATA_TYPE.DT_COMPLEX }, new List<DATA_FORM> { DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR });
             List<EventSchema> eventSchemas = new List<EventSchema>();
             eventSchemas.Add(scheme);
             List<String> eventTimeFields = new List<string>() { "datetimev" };
@@ -1995,7 +2003,7 @@ namespace dolphindb_csharp_api_test.cep_test
             Console.WriteLine(bt.columns());
             BasicTable bt1 = (BasicTable)conn.run("select * from inputTable;");
             Assert.AreEqual(100, bt1.rows());
-            Thread.Sleep(20000);
+            Thread.Sleep(2000);
             BasicTable bt2 = (BasicTable)conn.run("select * from outputTable;");
             Assert.AreEqual(100, bt2.rows());
             checkData(bt, bt2);
@@ -2006,10 +2014,10 @@ namespace dolphindb_csharp_api_test.cep_test
         public void test_EventSender_subscribe_all_dateType_scalar_100000()
         {
             String script = "share streamTable(1000000:0, `time`eventType`event, [TIMESTAMP,STRING,BLOB]) as inputTable;\n" +
-                    "share table(100:0, `boolv`charv`shortv`intv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`stringv`datehourv`uuidv`ippaddrv`int128v`blobv`complexv, [BOOL, CHAR, SHORT, INT, LONG, DOUBLE, FLOAT, DATE, MONTH, TIME, MINUTE, SECOND, DATETIME, TIMESTAMP, NANOTIME, NANOTIMESTAMP,  STRING, DATEHOUR, UUID, IPADDR, INT128, BLOB, COMPLEX]) as outputTable;\n";
+                   "share table(100:0, `boolv`charv`shortv`intv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`stringv`datehourv`uuidv`ippaddrv`int128v`blobv`pointv`complexv, [BOOL, CHAR, SHORT, INT, LONG, DOUBLE, FLOAT, DATE, MONTH, TIME, MINUTE, SECOND, DATETIME, TIMESTAMP, NANOTIME, NANOTIMESTAMP,  STRING, DATEHOUR, UUID, IPADDR, INT128, BLOB,POINT,COMPLEX]) as outputTable;\n";
             conn.run(script);
 
-            EventSchema scheme = new EventSchema("event_all_dateType", new List<string> { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "stringv", "datehourv", "uuidv", "ippaddrv", "int128v", "blobv", "complexv" }, new List<DATA_TYPE> { DATA_TYPE.DT_BOOL, DATA_TYPE.DT_BYTE, DATA_TYPE.DT_SHORT, DATA_TYPE.DT_INT, DATA_TYPE.DT_LONG, DATA_TYPE.DT_DOUBLE, DATA_TYPE.DT_FLOAT, DATA_TYPE.DT_DATE, DATA_TYPE.DT_MONTH, DATA_TYPE.DT_TIME, DATA_TYPE.DT_MINUTE, DATA_TYPE.DT_SECOND, DATA_TYPE.DT_DATETIME, DATA_TYPE.DT_TIMESTAMP, DATA_TYPE.DT_NANOTIME, DATA_TYPE.DT_NANOTIMESTAMP, DATA_TYPE.DT_STRING, DATA_TYPE.DT_DATEHOUR, DATA_TYPE.DT_UUID, DATA_TYPE.DT_IPADDR, DATA_TYPE.DT_INT128, DATA_TYPE.DT_BLOB, DATA_TYPE.DT_COMPLEX }, new List<DATA_FORM> { DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR });
+            EventSchema scheme = new EventSchema("event_all_dateType", new List<string> { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "stringv", "datehourv", "uuidv", "ippaddrv", "int128v", "blobv", "pointv", "complexv" }, new List<DATA_TYPE> { DATA_TYPE.DT_BOOL, DATA_TYPE.DT_BYTE, DATA_TYPE.DT_SHORT, DATA_TYPE.DT_INT, DATA_TYPE.DT_LONG, DATA_TYPE.DT_DOUBLE, DATA_TYPE.DT_FLOAT, DATA_TYPE.DT_DATE, DATA_TYPE.DT_MONTH, DATA_TYPE.DT_TIME, DATA_TYPE.DT_MINUTE, DATA_TYPE.DT_SECOND, DATA_TYPE.DT_DATETIME, DATA_TYPE.DT_TIMESTAMP, DATA_TYPE.DT_NANOTIME, DATA_TYPE.DT_NANOTIMESTAMP, DATA_TYPE.DT_STRING, DATA_TYPE.DT_DATEHOUR, DATA_TYPE.DT_UUID, DATA_TYPE.DT_IPADDR, DATA_TYPE.DT_INT128, DATA_TYPE.DT_BLOB, DATA_TYPE.DT_POINT, DATA_TYPE.DT_COMPLEX }, new List<DATA_FORM> { DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR, DATA_FORM.DF_SCALAR });
             List<EventSchema> eventSchemas = new List<EventSchema>();
             eventSchemas.Add(scheme);
             List<String> eventTimeFields = new List<string>() { "datetimev" };
@@ -2035,7 +2043,7 @@ namespace dolphindb_csharp_api_test.cep_test
             Console.WriteLine("bt.columns()" + bt.columns());
             BasicTable bt1 = (BasicTable)conn.run("select * from inputTable;");
             Assert.AreEqual(100000, bt1.rows());
-            Thread.Sleep(30000);
+            Thread.Sleep(5000);
             BasicTable bt2 = (BasicTable)conn.run("select * from outputTable;");
             Assert.AreEqual(100000, bt2.rows());
             checkData(bt, bt2);
@@ -2046,11 +2054,11 @@ namespace dolphindb_csharp_api_test.cep_test
         public void test_EventSender_all_dateType_vector()
         {
             String script = "share streamTable(1000000:0, `eventType`event, [STRING,BLOB]) as inputTable;\n" +
-                    "colNames=\"col\"+string(1..21);\n" +
-                    "colTypes=[BOOL[],CHAR[],SHORT[],INT[],LONG[],DOUBLE[],FLOAT[],DATE[],MONTH[],TIME[],MINUTE[],SECOND[],DATETIME[],TIMESTAMP[],NANOTIME[],NANOTIMESTAMP[],DATEHOUR[],UUID[],IPADDR[],INT128[],COMPLEX[]];\n" +
+                    "colNames=\"col\"+string(1..22);\n" +
+                    "colTypes=[BOOL[],CHAR[],SHORT[],INT[],LONG[],DOUBLE[],FLOAT[],DATE[],MONTH[],TIME[],MINUTE[],SECOND[],DATETIME[],TIMESTAMP[],NANOTIME[],NANOTIMESTAMP[],DATEHOUR[],UUID[],IPADDR[],INT128[],POINT[],COMPLEX[]];\n" +
                     "share table(1:0,colNames,colTypes) as outputTable;\n";
             conn.run(script);
-            EventSchema scheme = new EventSchema("event_all_array_dateType", new List<string> { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "datehourv", "uuidv", "ippAddrv", "int128v", "complexv" }, new List<DATA_TYPE> { DATA_TYPE.DT_BOOL, DATA_TYPE.DT_BYTE, DATA_TYPE.DT_SHORT, DATA_TYPE.DT_INT, DATA_TYPE.DT_LONG, DATA_TYPE.DT_DOUBLE, DATA_TYPE.DT_FLOAT, DATA_TYPE.DT_DATE, DATA_TYPE.DT_MONTH, DATA_TYPE.DT_TIME, DATA_TYPE.DT_MINUTE, DATA_TYPE.DT_SECOND, DATA_TYPE.DT_DATETIME, DATA_TYPE.DT_TIMESTAMP, DATA_TYPE.DT_NANOTIME, DATA_TYPE.DT_NANOTIMESTAMP, DATA_TYPE.DT_DATEHOUR, DATA_TYPE.DT_UUID, DATA_TYPE.DT_IPADDR, DATA_TYPE.DT_INT128, DATA_TYPE.DT_COMPLEX }, new List<DATA_FORM> { DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR });
+            EventSchema scheme = new EventSchema("event_all_array_dateType", new List<string> { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "datehourv", "uuidv", "ippAddrv", "int128v", "pointv", "complexv" }, new List<DATA_TYPE> { DATA_TYPE.DT_BOOL, DATA_TYPE.DT_BYTE, DATA_TYPE.DT_SHORT, DATA_TYPE.DT_INT, DATA_TYPE.DT_LONG, DATA_TYPE.DT_DOUBLE, DATA_TYPE.DT_FLOAT, DATA_TYPE.DT_DATE, DATA_TYPE.DT_MONTH, DATA_TYPE.DT_TIME, DATA_TYPE.DT_MINUTE, DATA_TYPE.DT_SECOND, DATA_TYPE.DT_DATETIME, DATA_TYPE.DT_TIMESTAMP, DATA_TYPE.DT_NANOTIME, DATA_TYPE.DT_NANOTIMESTAMP, DATA_TYPE.DT_DATEHOUR, DATA_TYPE.DT_UUID, DATA_TYPE.DT_IPADDR, DATA_TYPE.DT_INT128, DATA_TYPE.DT_POINT, DATA_TYPE.DT_COMPLEX }, new List<DATA_FORM> { DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR });
             List<EventSchema> eventSchemas = new List<EventSchema>();
             eventSchemas.Add(scheme);
             List<String> eventTimeFields = new List<string>();
@@ -2258,7 +2266,7 @@ namespace dolphindb_csharp_api_test.cep_test
         {
             String script = "share streamTable(1000000:0, `eventType`event, [STRING,BLOB]) as inputTable;\n";
             conn.run(script);
-            EventSchema scheme = new EventSchema("event_all_array_dateType", new List<string> { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "datehourv", "uuidv", "ippAddrv", "int128v", "complexv" }, new List<DATA_TYPE> { DATA_TYPE.DT_BOOL_ARRAY, DATA_TYPE.DT_BYTE_ARRAY, DATA_TYPE.DT_SHORT_ARRAY, DATA_TYPE.DT_INT_ARRAY, DATA_TYPE.DT_LONG_ARRAY, DATA_TYPE.DT_DOUBLE_ARRAY, DATA_TYPE.DT_FLOAT_ARRAY, DATA_TYPE.DT_DATE_ARRAY, DATA_TYPE.DT_MONTH_ARRAY, DATA_TYPE.DT_TIME_ARRAY, DATA_TYPE.DT_MINUTE_ARRAY, DATA_TYPE.DT_SECOND_ARRAY, DATA_TYPE.DT_DATETIME_ARRAY, DATA_TYPE.DT_TIMESTAMP_ARRAY, DATA_TYPE.DT_NANOTIME_ARRAY, DATA_TYPE.DT_NANOTIMESTAMP_ARRAY, DATA_TYPE.DT_DATEHOUR_ARRAY, DATA_TYPE.DT_UUID_ARRAY, DATA_TYPE.DT_IPADDR_ARRAY, DATA_TYPE.DT_INT128_ARRAY, DATA_TYPE.DT_COMPLEX_ARRAY }, new List<DATA_FORM> { DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR });
+            EventSchema scheme = new EventSchema("event_all_array_dateType", new List<string> { "boolv", "charv", "shortv", "intv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "datehourv", "uuidv", "ippAddrv", "int128v", "pointv", "complexv" }, new List<DATA_TYPE> { DATA_TYPE.DT_BOOL_ARRAY, DATA_TYPE.DT_BYTE_ARRAY, DATA_TYPE.DT_SHORT_ARRAY, DATA_TYPE.DT_INT_ARRAY, DATA_TYPE.DT_LONG_ARRAY, DATA_TYPE.DT_DOUBLE_ARRAY, DATA_TYPE.DT_FLOAT_ARRAY, DATA_TYPE.DT_DATE_ARRAY, DATA_TYPE.DT_MONTH_ARRAY, DATA_TYPE.DT_TIME_ARRAY, DATA_TYPE.DT_MINUTE_ARRAY, DATA_TYPE.DT_SECOND_ARRAY, DATA_TYPE.DT_DATETIME_ARRAY, DATA_TYPE.DT_TIMESTAMP_ARRAY, DATA_TYPE.DT_NANOTIME_ARRAY, DATA_TYPE.DT_NANOTIMESTAMP_ARRAY, DATA_TYPE.DT_DATEHOUR_ARRAY, DATA_TYPE.DT_UUID_ARRAY, DATA_TYPE.DT_IPADDR_ARRAY, DATA_TYPE.DT_INT128_ARRAY, DATA_TYPE.DT_POINT_ARRAY, DATA_TYPE.DT_COMPLEX_ARRAY }, new List<DATA_FORM> { DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR, DATA_FORM.DF_VECTOR });
             List<EventSchema> eventSchemas = new List<EventSchema>();
             eventSchemas.Add(scheme);
             List<String> eventTimeFields = new List<string>();

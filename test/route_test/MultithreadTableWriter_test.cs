@@ -455,6 +455,7 @@ namespace dolphindb_csharp_api_test.route_test
                 exception = ex;
             }
             Assert.IsNotNull(exception);
+            conn.run("undef(`table1, SHARED)");
             conn.close();
 
         }
@@ -1139,6 +1140,38 @@ namespace dolphindb_csharp_api_test.route_test
         }
 
         [TestMethod]
+        public void Test_MultithreadedTableWriter_BasicPoint()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "share table(100:0, [`col0], [POINT]) as table1";
+            conn.run(script);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
+            for (int i = 0; i < 1000000; i++)
+            {
+                if (i % 2 == 0)
+                {
+                    List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicPoint(14, 15) });
+                    ErrorCodeInfo pErrorInfo = mtw.insert(x);
+                    //Console.WriteLine(pErrorInfo.ToString());
+                }
+                else if (i % 2 == 1)
+                {
+                    List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicPoint(-14.2, -20.7) });
+                    ErrorCodeInfo pErrorInfo = mtw.insert(x);
+                }
+            }
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            BasicTable re = (BasicTable)conn.run("table1");
+            BasicTable expected = (BasicTable)conn.run("table(take(point(14 -14.2,15 -20.7), 1000000) as col0)");
+            compareBasicTable16(re, expected);
+            conn.run("undef(`table1, SHARED)");
+            conn.close();
+        }
+
+        [TestMethod]
         public void Test_MultithreadedTableWriter_BasicDecimal64()
         {
             DBConnection conn = new DBConnection();
@@ -1483,11 +1516,10 @@ namespace dolphindb_csharp_api_test.route_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, USER, PASSWORD);
             String script = "";
-            script += "share table(100:0, [`col0, `col1, `col2, `col3, `col4, `col5, `col6, `col7, `col8, `col9, `col10, `col11, `col12, `col13, `col14, `col15, `col16, `col17, `col18, `col19], [INT[], BOOL[], SHORT[], CHAR[], LONG[], DATE[], MONTH[], TIME[], MINUTE[], SECOND[], DATETIME[], TIMESTAMP[], NANOTIME[], NANOTIMESTAMP[], DOUBLE[], FLOAT[], UUID[], INT128[], IPADDR[], COMPLEX[]]) as table1";
+            script += "share table(100:0, [`col0, `col1, `col2, `col3, `col4, `col5, `col6, `col7, `col8, `col9, `col10, `col11, `col12, `col13, `col14, `col15, `col16, `col17, `col18, `col19, `col20], [INT[], BOOL[], SHORT[], CHAR[], LONG[], DATE[], MONTH[], TIME[], MINUTE[], SECOND[], DATETIME[], TIMESTAMP[], NANOTIME[], NANOTIMESTAMP[], DOUBLE[], FLOAT[], UUID[], INT128[], IPADDR[], COMPLEX[], POINT[]]) as table1";
             conn.run(script);
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 1000, 1, 1);
-            conn.run("v1 = array(ANY, 0, 1000000);v2 = array(ANY, 0, 1000000);v3 = array(ANY, 0, 1000000);v4 = array(ANY, 0, 1000000);v5 = array(ANY, 0, 1000000);v6 = array(ANY, 0, 1000000);v7 = array(ANY, 0, 1000000);v8 = array(ANY, 0, 1000000);v9 = array(ANY, 0, 1000000);v10 = array(ANY, 0, 1000000);v11 = array(ANY, 0, 1000000);v12 = array(ANY, 0, 1000000);v13 = array(ANY, 0, 1000000);v14 = array(ANY, 0, 1000000);v15 = array(ANY, 0, 1000000);v16 = array(ANY, 0, 1000000);v17 = array(ANY, 0, 1000000);v18 = array(ANY, 0, 1000000);v19 = array(ANY, 0, 1000000);v20 = array(ANY, 0, 1000000);");
-            BasicComplexVector col20v = null;
+            conn.run("v1 = array(ANY, 0, 1000000);v2 = array(ANY, 0, 1000000);v3 = array(ANY, 0, 1000000);v4 = array(ANY, 0, 1000000);v5 = array(ANY, 0, 1000000);v6 = array(ANY, 0, 1000000);v7 = array(ANY, 0, 1000000);v8 = array(ANY, 0, 1000000);v9 = array(ANY, 0, 1000000);v10 = array(ANY, 0, 1000000);v11 = array(ANY, 0, 1000000);v12 = array(ANY, 0, 1000000);v13 = array(ANY, 0, 1000000);v14 = array(ANY, 0, 1000000);v15 = array(ANY, 0, 1000000);v16 = array(ANY, 0, 1000000);v17 = array(ANY, 0, 1000000);v18 = array(ANY, 0, 1000000);v19 = array(ANY, 0, 1000000);v20 = array(ANY, 0, 1000000);v21 = array(ANY, 0, 1000000);");
             for (int i = 0; i < 10000; i++)
             {
 
@@ -1510,9 +1542,10 @@ namespace dolphindb_csharp_api_test.route_test
                 BasicUuidVector col17v = (BasicUuidVector)conn.run("tmp = rand(uuid(), 10); v17.append!(tmp);tmp;");
                 BasicInt128Vector col18v = (BasicInt128Vector)conn.run("tmp = rand(int128(), 10); v18.append!(tmp);tmp;");
                 BasicIPAddrVector col19v = (BasicIPAddrVector)conn.run("tmp = rand(ipaddr(), 10); v19.append!(tmp);tmp;");
-                col20v = (BasicComplexVector)conn.run("tmp = rand(complex(rand(100, 1000), rand(100, 1000)) join NULL, 10); v20.append!(tmp);tmp;");
+                BasicComplexVector col20v = (BasicComplexVector)conn.run("tmp = rand(complex(rand(100, 1000), rand(100, 1000)) join NULL, 10); v20.append!(tmp);tmp;");
+                BasicPointVector col21v = (BasicPointVector)conn.run("tmp = rand(point(rand(100, 1000), rand(100, 1000)) join NULL, 10); v21.append!(tmp);tmp;");
 
-                ErrorCodeInfo pErrorInfo = mtw.insert(col1v, col2v, col3v, col4v, col5v, col6v, col7v, col8v, col9v, col10v, col11v, col12v, col13v, col14v, col15v, col16v, col17v, col18v, col19v, col20v);
+                ErrorCodeInfo pErrorInfo = mtw.insert(col1v, col2v, col3v, col4v, col5v, col6v, col7v, col8v, col9v, col10v, col11v, col12v, col13v, col14v, col15v, col16v, col17v, col18v, col19v, col20v, col21v);
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
@@ -2418,6 +2451,27 @@ namespace dolphindb_csharp_api_test.route_test
             conn.run(script);
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
             ErrorCodeInfo pErrorInfo = mtw.insert(new Double2(1,2));
+            MultithreadedTableWriter.Status status = mtw.getStatus();
+            mtw.waitForThreadCompletion();
+            string re = pErrorInfo.ToString();
+            Console.WriteLine(re);
+            Assert.IsNotNull(re);
+            BasicInt num = (BasicInt)conn.run("exec count(*) from table1");
+            Assert.AreEqual(num.getInt(), 1);
+            conn.run("undef(`table1, SHARED)");
+            conn.close();
+        }
+
+        //[TestMethod]
+        public void Test_MultithreadedTableWriter_raw_datatype_Double2_point()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "share table(100:0, [`col0], [POINT]) as table1";
+            conn.run(script);
+            MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 10000, 1, 1);
+            ErrorCodeInfo pErrorInfo = mtw.insert(new Double2(1, 2));
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
             string re = pErrorInfo.ToString();
@@ -4424,6 +4478,39 @@ namespace dolphindb_csharp_api_test.route_test
         }
 
         [TestMethod]
+        public void Test_MultithreadedTableWriter_compression_point_not_support_delta()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "dbName = 'dfs://test_MultithreadedTableWriter';";
+            script += "if(existsDatabase(dbName)){dropDatabase(dbName)};";
+            script += "db = database(dbName, VALUE, 0..9, , \"TSDB\");";
+            script += "dummy = table(100:0, [`id, `cpoint], [INT, POINT]);";
+            script += "db.createPartitionedTable(dummy, `pt, `id, , `id);";
+            conn.run(script);
+            int[] compressMethods = new int[2];
+            for (int i = 0; i < 2; i++)
+            {
+                compressMethods[i] = Vector_Fields.COMPRESS_DELTA;
+            }
+            Exception exception = null;
+            try
+            {
+                MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://test_MultithreadedTableWriter", "pt", false, false, null, 1000000, 1, 4, "id", compressMethods);
+            }
+            catch (Exception ex)
+            {
+                //Console.WriteLine(ex.ToString());
+                exception = ex;
+            }
+            Assert.IsNotNull(exception);
+            conn.run("dropDatabase('dfs://test_MultithreadedTableWriter')");
+            conn.close();
+        }
+
+
+        [TestMethod]
         public void Test_MultithreadedTableWriter_dfs_table_huge_multi_Patiton_data()
         {
             DBConnection conn = new DBConnection();
@@ -4942,7 +5029,7 @@ namespace dolphindb_csharp_api_test.route_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, USER, PASSWORD);
             String script = "";
-            script += "share table(100:0, [`col0, `col1, `col2, `col3, `col4, `col5, `col6, `col7, `col8, `col9, `col10, `col11, `col12, `col13, `col14, `col15, `col16, `col17, `col18, `col19], [INT[], BOOL[], SHORT[], CHAR[], LONG[], DATE[], MONTH[], TIME[], MINUTE[], SECOND[], DATETIME[], TIMESTAMP[], NANOTIME[], NANOTIMESTAMP[], DOUBLE[], FLOAT[], UUID[], INT128[], IPADDR[], COMPLEX[]]) as table1";
+            script += "share table(100:0, [`col0, `col1, `col2, `col3, `col4, `col5, `col6, `col7, `col8, `col9, `col10, `col11, `col12, `col13, `col14, `col15, `col16, `col17, `col18, `col19, `col20], [INT[], BOOL[], SHORT[], CHAR[], LONG[], DATE[], MONTH[], TIME[], MINUTE[], SECOND[], DATETIME[], TIMESTAMP[], NANOTIME[], NANOTIMESTAMP[], DOUBLE[], FLOAT[], UUID[], INT128[], IPADDR[], COMPLEX[], POINT[]]) as table1";
             conn.run(script);
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "table1", false, false, null, 1000, 1, 1);
             List<int> list = new List<int>();
@@ -4966,10 +5053,9 @@ namespace dolphindb_csharp_api_test.route_test
                 return;
             };
             mtw.setNotifyOnSuccess(notifyOnSuccess, DATA_TYPE.DT_INT);
-            conn.run("v1 = array(ANY, 0, 1000000);v2 = array(ANY, 0, 1000000);v3 = array(ANY, 0, 1000000);v4 = array(ANY, 0, 1000000);v5 = array(ANY, 0, 1000000);v6 = array(ANY, 0, 1000000);v7 = array(ANY, 0, 1000000);v8 = array(ANY, 0, 1000000);v9 = array(ANY, 0, 1000000);v10 = array(ANY, 0, 1000000);v11 = array(ANY, 0, 1000000);v12 = array(ANY, 0, 1000000);v13 = array(ANY, 0, 1000000);v14 = array(ANY, 0, 1000000);v15 = array(ANY, 0, 1000000);v16 = array(ANY, 0, 1000000);v17 = array(ANY, 0, 1000000);v18 = array(ANY, 0, 1000000);v19 = array(ANY, 0, 1000000);v20 = array(ANY, 0, 1000000);");
+            conn.run("v1 = array(ANY, 0, 1000000);v2 = array(ANY, 0, 1000000);v3 = array(ANY, 0, 1000000);v4 = array(ANY, 0, 1000000);v5 = array(ANY, 0, 1000000);v6 = array(ANY, 0, 1000000);v7 = array(ANY, 0, 1000000);v8 = array(ANY, 0, 1000000);v9 = array(ANY, 0, 1000000);v10 = array(ANY, 0, 1000000);v11 = array(ANY, 0, 1000000);v12 = array(ANY, 0, 1000000);v13 = array(ANY, 0, 1000000);v14 = array(ANY, 0, 1000000);v15 = array(ANY, 0, 1000000);v16 = array(ANY, 0, 1000000);v17 = array(ANY, 0, 1000000);v18 = array(ANY, 0, 1000000);v19 = array(ANY, 0, 1000000);v20 = array(ANY, 0, 1000000);v21 = array(ANY, 0, 1000000);");
             for (int i = 0; i < 1000; i++)
             {
-
                 BasicIntVector col1v = (BasicIntVector)conn.run("tmp = rand(-100..100, 10); v1.append!(tmp);tmp;");
                 BasicBooleanVector col2v = (BasicBooleanVector)conn.run("tmp = rand([true, false], 10); v2.append!(tmp);tmp;");
                 BasicShortVector col3v = (BasicShortVector)conn.run("tmp = rand(short(-100..100), 10); v3.append!(tmp);tmp;");
@@ -4989,11 +5075,12 @@ namespace dolphindb_csharp_api_test.route_test
                 BasicUuidVector col17v = (BasicUuidVector)conn.run("tmp = rand(uuid(), 10); v17.append!(tmp);tmp;");
                 BasicInt128Vector col18v = (BasicInt128Vector)conn.run("tmp = rand(int128(), 10); v18.append!(tmp);tmp;");
                 BasicIPAddrVector col19v = (BasicIPAddrVector)conn.run("tmp = rand(ipaddr(), 10); v19.append!(tmp);tmp;");
-                BasicComplexVector col20v = (BasicComplexVector)conn.run("tmp = rand(complex(rand(100, 1000), rand(100, 1000)) join NULL, 10); v19.append!(tmp);tmp;");
+                BasicComplexVector col20v = (BasicComplexVector)conn.run("tmp = rand(complex(rand(100, 1000), rand(100, 1000)) join NULL, 10); v20.append!(tmp);tmp;");
+                BasicPointVector col21v = (BasicPointVector)conn.run("tmp = rand(point(rand(100, 1000), rand(100, 1000)) join NULL, 10); v21.append!(tmp);tmp;");
 
-                BasicInt col21 = new BasicInt(i);
+                BasicInt col22 = new BasicInt(i);
 
-                ErrorCodeInfo pErrorInfo = mtw.insert(col1v, col2v, col3v, col4v, col5v, col6v, col7v, col8v, col9v, col10v, col11v, col12v, col13v, col14v, col15v, col16v, col17v, col18v, col19v, col20v, col21);
+                ErrorCodeInfo pErrorInfo = mtw.insert(col1v, col2v, col3v, col4v, col5v, col6v, col7v, col8v, col9v, col10v, col11v, col12v, col13v, col14v, col15v, col16v, col17v, col18v, col19v, col20v, col21v,col22);
             }
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
@@ -5283,6 +5370,7 @@ namespace dolphindb_csharp_api_test.route_test
             conn2.upload(obj);
             BasicTable act = (BasicTable)conn2.run("select * from callback where issuccess = false order by id");
             Assert.AreEqual(act.rows(), 6);
+            conn.run("undef(`table1, SHARED)");
             conn.close();
             conn1.close();
             conn2.close();
@@ -5977,14 +6065,15 @@ namespace dolphindb_csharp_api_test.route_test
             // script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
             // script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
             script += "ccomplex = complex(-11 0 22,-22.4 0 77.5)\n";
+            script += "cpoint = point(-11 0 22,-22.4 0 77.5)\n";
             script += "t = keyedTable(`cint,cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
             script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
-            script += "cstring,cdatehour,cblob,ccomplex);";
+            script += "cstring,cdatehour,cblob,ccomplex,cpoint);";
             script += "share t as st;";
             conn.run(script);
-            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour,blob(\"dolphindb\")as cblob, complex(27.9999,1.111) as ccomplex)");
+            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour,blob(\"dolphindb\")as cblob, complex(27.9999,1.111) as ccomplex, point(27.9999,1.111) as cpoint)");
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "st", false, false, null, 10, 1, 1, "", null, 0, new String[] { "ignoreNull=false", "keyColNames=null" });
-            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0), bt.getColumn(19).get(0) });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0), bt.getColumn(19).get(0), bt.getColumn(20).get(0) });
             ErrorCodeInfo pErrorInfo = mtw.insert(x);
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
@@ -6070,14 +6159,15 @@ namespace dolphindb_csharp_api_test.route_test
             script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
             script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
             script += "ccomplex = complex(-11 0 22,-22.4 0 77.5)\n";
+            script += "cpoint = point(-11 0 22,-22.4 0 77.5)\n";
             script += "t = keyedTable(`cint,cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
             script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
-            script += "cstring,cdatehour,cblob,cdecimal32,cdecimal64,ccomplex);";
+            script += "cstring,cdatehour,cblob,cdecimal32,cdecimal64,ccomplex,cpoint);";
             script += "share t as st;";
             conn.run(script);
-            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,10 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour,blob(\"dolphindb\")as cblob,decimal32(19,2) as cdecimal32,decimal64(27,4) as cdecimal64, complex(27.9999,1.111) as ccomplex)");
+            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,10 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour,blob(\"dolphindb\")as cblob,decimal32(19,2) as cdecimal32,decimal64(27,4) as cdecimal64, complex(27.9999,1.111) as ccomplex, point(27.9999,1.111) as cpoint)");
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "st", false, false, null, 10, 1, 1, "", null, 0, new String[] { "ignoreNull=false", "keyColNames=null" });
-            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0), bt.getColumn(19).get(0), bt.getColumn(20).get(0), bt.getColumn(21).get(0) });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0), bt.getColumn(19).get(0), bt.getColumn(20).get(0), bt.getColumn(21).get(0), bt.getColumn(22).get(0) });
             ErrorCodeInfo pErrorInfo = mtw.insert(x);
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
@@ -6117,19 +6207,20 @@ namespace dolphindb_csharp_api_test.route_test
             //script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
             //script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
             script += "ccomplex = complex(-11 0 22,-22.4 0 77.5)\n";
+            script += "cpoint = point(-11 0 22,-22.4 0 77.5)\n";
             script += "t = indexedTable(`cint,cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
             script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
             //script += "cstring,cdatehour,cblob,cdecimal32,cdecimal64);";
-            script += "cstring,cdatehour,cblob,ccomplex);";
+            script += "cstring,cdatehour,cblob,ccomplex,cpoint);";
 
             script += "share t as st;";
             conn.run(script);
             //BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour,blob(\"dolphindb\")as cblob,decimal32(19,2) as cdecimal32,decimal64(27,4) as cdecimal64)");
 
-            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour,blob(\"dolphindb\")as cblob, complex(27.9999,1.111) as ccomplex)");
+            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour,blob(\"dolphindb\")as cblob, complex(27.9999,1.111) as ccomplex, point(27.9999,1.111) as cpoint)");
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "st", false, false, null, 10, 1, 1, "", null, MultithreadedTableWriter.Mode.M_Upsert, new String[] { "ignoreNull=false" });
             //List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0), bt.getColumn(19).get(0), bt.getColumn(20).get(0) });
-            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0), bt.getColumn(19).get(0) });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0), bt.getColumn(19).get(0), bt.getColumn(20).get(0) });
 
             ErrorCodeInfo pErrorInfo = mtw.insert(x);
             MultithreadedTableWriter.Status status = mtw.getStatus();
@@ -6170,14 +6261,15 @@ namespace dolphindb_csharp_api_test.route_test
             //script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
             //script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
             script += "ccomplex = complex(-11 0 22,-22.4 0 77.5)\n";
+            script += "cpoint = point(-11 0 22,-22.4 0 77.5)\n";
             script += "t = indexedTable(`cint,cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
             script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
-            script += "cstring,cdatehour,cblob,ccomplex);";
+            script += "cstring,cdatehour,cblob,ccomplex,cpoint);";
             script += "share t as st;";
             conn.run(script);
-            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,10 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour,blob(\"dolphindb\")as cblob, complex(27.9999,1.111) as ccomplex)");
+            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,10 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour,blob(\"dolphindb\")as cblob, complex(27.9999,1.111) as ccomplex, point(27.9999,1.111) as cpoint)");
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "", "st", false, false, null, 10, 1, 1, "", null, 0, new String[] { "ignoreNull=false", "keyColNames=null" });
-            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0), bt.getColumn(19).get(0) });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0), bt.getColumn(19).get(0), bt.getColumn(20).get(0) });
             ErrorCodeInfo pErrorInfo = mtw.insert(x);
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
@@ -6217,18 +6309,19 @@ namespace dolphindb_csharp_api_test.route_test
             //script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
             //script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
             script += "ccomplex = complex(-11 0 22,-22.4 0 77.5)\n";
+            script += "cpoint = point(-11 0 22,-22.4 0 77.5)\n";
             script += "t = table(cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
             script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
-            script += "cstring,cdatehour,ccomplex);";
+            script += "cstring,cdatehour,ccomplex,cpoint);";
             script += "if(existsDatabase(\"dfs://partitionedTable\")){\n";
             script += "dropDatabase(\"dfs://partitionedTable\")}\n";
             script += "db = database(\"dfs://partitionedTable\",VALUE,1..10);";
             script += "pt = db.createPartitionedTable(t,`pt,`cint);\n";
             script += "pt.append!(t);\n";
             conn.run(script);
-            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour, complex(27.9999,1.111) as ccomplex)");
+            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour, complex(27.9999,1.111) as ccomplex, point(27.9999,1.111) as cpoint)");
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://partitionedTable", "pt", false, false, null, 10, 1, 5, "cint", null, MultithreadedTableWriter.Mode.M_Upsert, new String[] { "ignoreNull=false", "keyColNames=`cint" });
-            List <IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0) });
+            List <IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0), bt.getColumn(19).get(0) });
             ErrorCodeInfo pErrorInfo = mtw.insert(x);
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
@@ -6269,18 +6362,19 @@ namespace dolphindb_csharp_api_test.route_test
             //script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
             //script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
             script += "ccomplex = complex(-11 0 22,-22.4 0 77.5)\n";
+            script += "cpoint = point(-11 0 22,-22.4 0 77.5)\n";
             script += "t = table(cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
             script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
-            script += "cstring,cdatehour,ccomplex);";
+            script += "cstring,cdatehour,ccomplex,cpoint);";
             script += "if(existsDatabase(\"dfs://partitionedTable\")){\n";
             script += "dropDatabase(\"dfs://partitionedTable\")}\n";
             script += "db = database(\"dfs://partitionedTable\",VALUE,1..10);";
             script += "pt = db.createPartitionedTable(t,`pt,`cint);\n";
             script += "pt.append!(t);\n";
             conn.run(script);
-            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour, complex(27.9999,1.111) as ccomplex)");
+            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour, complex(27.9999,1.111) as ccomplex, point(27.9999,1.111) as cpoint)");
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://partitionedTable", "pt", false, false, null, 10, 1, 5, "cint", null, MultithreadedTableWriter.Mode.M_Upsert, new String[] { "ignoreNull=false", "keyColNames=`cint" });
-            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0) });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0), bt.getColumn(19).get(0) });
             ErrorCodeInfo pErrorInfo = mtw.insert(x);
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
@@ -6322,18 +6416,19 @@ namespace dolphindb_csharp_api_test.route_test
             //script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
             //script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
             script += "ccomplex = complex(-11 0 22,-22.4 0 77.5)\n";
+            script += "cpoint = point(-11 0 22,-22.4 0 77.5)\n";
             script += "t = table(cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
             script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
-            script += "cstring,cdatehour,ccomplex);";
+            script += "cstring,cdatehour,ccomplex,cpoint);";
             script += "if(existsDatabase(\"dfs://partitionedTable\")){\n";
             script += "dropDatabase(\"dfs://partitionedTable\")}\n";
             script += "db = database(\"dfs://partitionedTable\",VALUE,1..10);";
             script += "pt = db.createTable(t,`pt);\n";
             script += "pt.append!(t);\n";
             conn.run(script);
-            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour, complex(27.9999,1.111) as ccomplex)");
+            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,9 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour, complex(27.9999,1.111) as ccomplex, point(27.9999,1.111) as cpoint)");
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://partitionedTable", "pt", false, false, null, 10, 1, 1, "cint", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=false", "keyColNames=`cint" });
-            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0) });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0), bt.getColumn(19).get(0) });
             ErrorCodeInfo pErrorInfo = mtw.insert(x);
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
@@ -6373,18 +6468,19 @@ namespace dolphindb_csharp_api_test.route_test
             //script += "cdecimal32 = decimal32(12 17 135.2,2)\n";
             //script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
             script += "ccomplex = complex(-11 0 22,-22.4 0 77.5)\n";
+            script += "cpoint = point(-11 0 22,-22.4 0 77.5)\n";
             script += "t = table(cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
             script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
-            script += "cstring,cdatehour,ccomplex);";
+            script += "cstring,cdatehour,ccomplex,cpoint);";
             script += "if(existsDatabase(\"dfs://partitionedTable\")){\n";
             script += "dropDatabase(\"dfs://partitionedTable\")}\n";
             script += "db = database(\"dfs://partitionedTable\",VALUE,1..10);";
             script += "pt = db.createTable(t,`pt);\n";
             script += "pt.append!(t);\n";
             conn.run(script);
-            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,10 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour, complex(27.9999,1.111) as ccomplex)");
+            BasicTable bt = (BasicTable)conn.run("table(true as cbool,'d' as cchar,86h as cshort,10 as cint,726l as clong,2021.09.23 as cdate,2021.10M as cmonth,14:55:26.903 as ctime,15:27m as cminute,14:27:35 as csecond,2018.11.11 11:11:11 as cdatetime,2010.09.29 11:35:47.295 as ctimestamp,12:25:45.284729843 as cnanotime,2018.09.15 15:32:32.734728902 as cnanotimestamp,5.7f as cfloat,0.86 as cdouble,\"single\" as cstring,datehour(2022.08.23 17:33:54.324) as cdatehour, complex(27.9999,1.111) as ccomplex, point(27.9999,1.111) as cpoint)");
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://partitionedTable", "pt", false, false, null, 10, 1, 1, "cint", null, (MultithreadedTableWriter.Mode)1, new String[] { "ignoreNull=false", "keyColNames=`cint" });
-            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0) });
+            List<IScalar> x = new List<IScalar>(new IScalar[] { bt.getColumn(0).get(0), bt.getColumn(1).get(0), bt.getColumn(2).get(0), bt.getColumn(3).get(0), bt.getColumn(4).get(0), bt.getColumn(5).get(0), bt.getColumn(6).get(0), bt.getColumn(7).get(0), bt.getColumn(8).get(0), bt.getColumn(9).get(0), bt.getColumn(10).get(0), bt.getColumn(11).get(0), bt.getColumn(12).get(0), bt.getColumn(13).get(0), bt.getColumn(14).get(0), bt.getColumn(15).get(0), bt.getColumn(16).get(0), bt.getColumn(17).get(0), bt.getColumn(18).get(0), bt.getColumn(19).get(0) });
             ErrorCodeInfo pErrorInfo = mtw.insert(x);
             MultithreadedTableWriter.Status status = mtw.getStatus();
             mtw.waitForThreadCompletion();
@@ -6976,7 +7072,7 @@ namespace dolphindb_csharp_api_test.route_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
             var cols = new List<IVector>() { };
-            var colNames = new List<String>() { "intv", "boolv", "charv", "shortv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "symbolv", "stringv", "uuidv", "datehourv", "ippaddrv", "int128v", "blobv", "decimal32v", "decimal64v", "decimal128v", "complexv" };
+            var colNames = new List<String>() { "intv", "boolv", "charv", "shortv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "symbolv", "stringv", "uuidv", "datehourv", "ippaddrv", "int128v", "blobv", "decimal32v", "decimal64v", "decimal128v", "complexv", "pointv" };
             int rowNum = 0;
             cols.Add(new BasicIntVector(rowNum));
             cols.Add(new BasicBooleanVector(rowNum));
@@ -7005,7 +7101,8 @@ namespace dolphindb_csharp_api_test.route_test
             cols.Add(new BasicDecimal64Vector(rowNum, 10));
             cols.Add(new BasicDecimal128Vector(rowNum, 20));
             cols.Add(new BasicComplexVector(rowNum));
-            conn.run("dbPath = \"dfs://empty_table\";if(existsDatabase(dbPath)) dropDatabase(dbPath); \n db = database(dbPath, HASH,[STRING, 2],,\"TSDB\");\n t= table(100:0,`intv`boolv`charv`shortv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`symbolv`stringv`uuidv`datehourv`ippaddrv`int128v`blobv`decimal32v`decimal64v`decimal128v`complexv, [INT, BOOL, CHAR, SHORT, LONG, DOUBLE, FLOAT, DATE, MONTH, TIME, MINUTE, SECOND, DATETIME, TIMESTAMP, NANOTIME, NANOTIMESTAMP, SYMBOL, STRING, UUID, DATEHOUR, IPADDR, INT128, BLOB, DECIMAL32(1), DECIMAL64(10), DECIMAL128(20),COMPLEX[]]);\n pt=db.createPartitionedTable(t,`pt,`stringv,,`stringv);");
+            cols.Add(new BasicPointVector(rowNum));
+            conn.run("dbPath = \"dfs://empty_table\";if(existsDatabase(dbPath)) dropDatabase(dbPath); \n db = database(dbPath, HASH,[STRING, 2],,\"TSDB\");\n t= table(100:0,`intv`boolv`charv`shortv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`symbolv`stringv`uuidv`datehourv`ippaddrv`int128v`blobv`decimal32v`decimal64v`decimal128v`complexv`pointv, [INT, BOOL, CHAR, SHORT, LONG, DOUBLE, FLOAT, DATE, MONTH, TIME, MINUTE, SECOND, DATETIME, TIMESTAMP, NANOTIME, NANOTIMESTAMP, SYMBOL, STRING, UUID, DATEHOUR, IPADDR, INT128, BLOB, DECIMAL32(1), DECIMAL64(10), DECIMAL128(20),COMPLEX,POINT]);\n pt=db.createPartitionedTable(t,`pt,`stringv,,`stringv);");
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://empty_table", "pt", false, false, null, 10000, 1, 5, "stringv");
             ErrorCodeInfo errorCodeInfo = mtw.insert(cols);
             string err = errorCodeInfo.ToString();
@@ -7022,7 +7119,7 @@ namespace dolphindb_csharp_api_test.route_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
             var cols = new List<IVector>() { };
-            var colNames = new List<String>() { "id", "intv", "boolv", "charv", "shortv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "uuidv", "datehourv", "ippaddrv", "int128v", "decimal32v", "decimal64v", "decimal128v", "complexv" };
+            var colNames = new List<String>() { "id", "intv", "boolv", "charv", "shortv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "uuidv", "datehourv", "ippaddrv", "int128v", "decimal32v", "decimal64v", "decimal128v", "complexv", "pointv" };
             int rowNum = 0;
             cols.Add(new BasicIntVector(rowNum));
             cols.Add(new BasicArrayVector(DATA_TYPE.DT_INT_ARRAY));
@@ -7049,7 +7146,8 @@ namespace dolphindb_csharp_api_test.route_test
             cols.Add(new BasicArrayVector(DATA_TYPE.DT_DECIMAL64_ARRAY, 10));
             cols.Add(new BasicArrayVector(DATA_TYPE.DT_DECIMAL128_ARRAY, 20));
             cols.Add(new BasicArrayVector(DATA_TYPE.DT_COMPLEX_ARRAY, 20));
-            conn.run("dbPath = \"dfs://empty_table\";if(existsDatabase(dbPath)) dropDatabase(dbPath); \n db = database(dbPath, HASH,[INT, 2],,\"TSDB\");\n t= table(100:0,`id`intv`boolv`charv`shortv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`uuidv`datehourv`ippaddrv`int128v`decimal32v`decimal64v`decimal128v`complexv, [INT, INT[], BOOL[], CHAR[], SHORT[], LONG[], DOUBLE[], FLOAT[], DATE[], MONTH[], TIME[], MINUTE[], SECOND[], DATETIME[], TIMESTAMP[], NANOTIME[], NANOTIMESTAMP[], UUID[], DATEHOUR[], IPADDR[], INT128[], DECIMAL32(1)[], DECIMAL64(10)[], DECIMAL128(20)[], COMPLEX[]]);\n pt=db.createPartitionedTable(t,`pt,`id,,`id);");
+            cols.Add(new BasicArrayVector(DATA_TYPE.DT_POINT_ARRAY, 20));
+            conn.run("dbPath = \"dfs://empty_table\";if(existsDatabase(dbPath)) dropDatabase(dbPath); \n db = database(dbPath, HASH,[INT, 2],,\"TSDB\");\n t= table(100:0,`id`intv`boolv`charv`shortv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`uuidv`datehourv`ippaddrv`int128v`decimal32v`decimal64v`decimal128v`complexv`pointv, [INT, INT[], BOOL[], CHAR[], SHORT[], LONG[], DOUBLE[], FLOAT[], DATE[], MONTH[], TIME[], MINUTE[], SECOND[], DATETIME[], TIMESTAMP[], NANOTIME[], NANOTIMESTAMP[], UUID[], DATEHOUR[], IPADDR[], INT128[], DECIMAL32(1)[], DECIMAL64(10)[], DECIMAL128(20)[],COMPLEX[],POINT[]]);\n pt=db.createPartitionedTable(t,`pt,`id,,`id);");
             MultithreadedTableWriter mtw = new MultithreadedTableWriter(SERVER, PORT, USER, PASSWORD, "dfs://empty_table", "pt", false, false, null, 10000, 1, 5, "id");
             ErrorCodeInfo errorCodeInfo = mtw.insert(cols);
             string err = errorCodeInfo.ToString();

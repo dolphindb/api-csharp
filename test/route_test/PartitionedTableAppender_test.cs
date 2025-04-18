@@ -793,9 +793,10 @@ namespace dolphindb_csharp_api_test.route_test
             script += "cdecimal64 = decimal64(18 24 33.878,4)\n";
             script += "cdecimal128 = decimal128(18 24 33.878,10)\n";
             script += "ccomplex = complex(-11 0 22,-22.4 0 77.5)\n";
+            script += "cpoint = point(-11 0 22,-22.4 0 77.5)\n";
             script += "t = table(cbool,cchar,cshort,cint,clong,cdate,cmonth,ctime,cminute,";
             script += "csecond,cdatetime,ctimestamp,cnanotime,cnanotimestamp,cfloat,cdouble,";
-            script += "cstring,csymbol,cdatehour,cblob,cdecimal32,cdecimal64,cdecimal128,ccomplex);";
+            script += "cstring,csymbol,cdatehour,cblob,cdecimal32,cdecimal64,cdecimal128,ccomplex,cpoint);";
             script += "dbPath = \"dfs://tableAppenderTest\"\n";
             script += "if(existsDatabase(dbPath))\n";
             script += "dropDatabase(dbPath)\n";
@@ -823,8 +824,8 @@ namespace dolphindb_csharp_api_test.route_test
             script += "ippaddrv = rand(rand(ipaddr(), 1000) join take(ipaddr(), 4), n)\n";
             script += "int128v = rand(rand(int128(), 1000) join take(int128(), 4), n);\n";
             script += "complexv = rand(complex(rand(100, 1000), rand(100, 1000)) join NULL, n);\n";
-            //script += "pointv = rand(point(rand(100, 1000), rand(100, 1000)) join NULL, n);\n";
-            script += "t = table(intv,uuidv,ippaddrv,int128v,complexv)\n";
+            script += "pointv = rand(point(rand(100, 1000), rand(100, 1000)) join NULL, n);\n";
+            script += "t = table(intv,uuidv,ippaddrv,int128v,complexv,pointv)\n";
             script += "dbPath = \"dfs://tableAppenderTest\"\n";
             script += "if(existsDatabase(dbPath))\n";
             script += "dropDatabase(dbPath)\n";
@@ -847,7 +848,7 @@ namespace dolphindb_csharp_api_test.route_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
             var cols = new List<IVector>() { };
-            var colNames = new List<String>() { "intv", "boolv", "charv", "shortv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "symbolv", "stringv", "uuidv", "datehourv", "ippaddrv", "int128v", "blobv", "decimal32v", "decimal64v", "decimal128v", "complexv" };
+            var colNames = new List<String>() { "intv", "boolv", "charv", "shortv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "symbolv", "stringv", "uuidv", "datehourv", "ippaddrv", "int128v", "blobv", "decimal32v", "decimal64v", "decimal128v", "complexv", "pointv" };
             int rowNum = 0;
             cols.Add(new BasicIntVector(rowNum));
             cols.Add(new BasicBooleanVector(rowNum));
@@ -876,8 +877,10 @@ namespace dolphindb_csharp_api_test.route_test
             cols.Add(new BasicDecimal64Vector(rowNum, 10));
             cols.Add(new BasicDecimal128Vector(rowNum, 20));
             cols.Add(new BasicComplexVector(rowNum));
+            cols.Add(new BasicPointVector(rowNum));
+
             IDBConnectionPool pool = new ExclusiveDBConnectionPool(SERVER, PORT, USER, PASSWORD, 5, true, true);
-            IDBTask task = new BasicDBTask("dbPath = \"dfs://empty_table\";if(existsDatabase(dbPath)) dropDatabase(dbPath); \n db = database(dbPath, HASH,[STRING, 2],,\"TSDB\");\n t= table(100:0,`intv`boolv`charv`shortv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`symbolv`stringv`uuidv`datehourv`ippaddrv`int128v`blobv`decimal32v`decimal64v`decimal128v`complexv, [INT, BOOL, CHAR, SHORT, LONG, DOUBLE, FLOAT, DATE, MONTH, TIME, MINUTE, SECOND, DATETIME, TIMESTAMP, NANOTIME, NANOTIMESTAMP, SYMBOL, STRING, UUID, DATEHOUR, IPADDR, INT128, BLOB, DECIMAL32(1), DECIMAL64(10), DECIMAL128(20),COMPLEX]);\n pt=db.createPartitionedTable(t,`pt,`stringv,,`stringv);");
+            IDBTask task = new BasicDBTask("dbPath = \"dfs://empty_table\";if(existsDatabase(dbPath)) dropDatabase(dbPath); \n db = database(dbPath, HASH,[STRING, 2],,\"TSDB\");\n t= table(100:0,`intv`boolv`charv`shortv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`symbolv`stringv`uuidv`datehourv`ippaddrv`int128v`blobv`decimal32v`decimal64v`decimal128v`complexv`pointv, [INT, BOOL, CHAR, SHORT, LONG, DOUBLE, FLOAT, DATE, MONTH, TIME, MINUTE, SECOND, DATETIME, TIMESTAMP, NANOTIME, NANOTIMESTAMP, SYMBOL, STRING, UUID, DATEHOUR, IPADDR, INT128, BLOB, DECIMAL32(1), DECIMAL64(10), DECIMAL128(20),COMPLEX,POINT]);\n pt=db.createPartitionedTable(t,`pt,`stringv,,`stringv);");
             pool.execute(task);
             PartitionedTableAppender appender = new PartitionedTableAppender("dfs://empty_table", "pt", "stringv", pool);
             int res = appender.append(new BasicTable(colNames, cols));
@@ -893,7 +896,7 @@ namespace dolphindb_csharp_api_test.route_test
             DBConnection conn = new DBConnection();
             conn.connect(SERVER, PORT, "admin", "123456");
             var cols = new List<IVector>() { };
-            var colNames = new List<String>() { "id", "intv", "boolv", "charv", "shortv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "uuidv", "datehourv", "ippaddrv", "int128v", "decimal32v", "decimal64v", "decimal128v", "complexv" };
+            var colNames = new List<String>() { "id", "intv", "boolv", "charv", "shortv", "longv", "doublev", "floatv", "datev", "monthv", "timev", "minutev", "secondv", "datetimev", "timestampv", "nanotimev", "nanotimestampv", "uuidv", "datehourv", "ippaddrv", "int128v", "decimal32v", "decimal64v", "decimal128v", "complexv", "pointv" };
             int rowNum = 0;
             cols.Add(new BasicIntVector(rowNum));
             cols.Add(new BasicArrayVector(DATA_TYPE.DT_INT_ARRAY));
@@ -920,8 +923,9 @@ namespace dolphindb_csharp_api_test.route_test
             cols.Add(new BasicArrayVector(DATA_TYPE.DT_DECIMAL64_ARRAY, 10));
             cols.Add(new BasicArrayVector(DATA_TYPE.DT_DECIMAL128_ARRAY, 20));
             cols.Add(new BasicArrayVector(DATA_TYPE.DT_COMPLEX_ARRAY, 20));
+            cols.Add(new BasicArrayVector(DATA_TYPE.DT_POINT_ARRAY, 20));
             IDBConnectionPool pool = new ExclusiveDBConnectionPool(SERVER, PORT, USER, PASSWORD, 5, true, true);
-            conn.run("dbPath = \"dfs://empty_table\";if(existsDatabase(dbPath)) dropDatabase(dbPath); \n db = database(dbPath, HASH,[INT, 2],,\"TSDB\");\n t= table(100:0,`id`intv`boolv`charv`shortv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`uuidv`datehourv`ippaddrv`int128v`decimal32v`decimal64v`decimal128v`complexv, [INT, INT[], BOOL[], CHAR[], SHORT[], LONG[], DOUBLE[], FLOAT[], DATE[], MONTH[], TIME[], MINUTE[], SECOND[], DATETIME[], TIMESTAMP[], NANOTIME[], NANOTIMESTAMP[], UUID[], DATEHOUR[], IPADDR[], INT128[], DECIMAL32(1)[], DECIMAL64(10)[], DECIMAL128(20)[], COMPLEX[]]);\n pt=db.createPartitionedTable(t,`pt,`id,,`id);");
+            conn.run("dbPath = \"dfs://empty_table\";if(existsDatabase(dbPath)) dropDatabase(dbPath); \n db = database(dbPath, HASH,[INT, 2],,\"TSDB\");\n t= table(100:0,`id`intv`boolv`charv`shortv`longv`doublev`floatv`datev`monthv`timev`minutev`secondv`datetimev`timestampv`nanotimev`nanotimestampv`uuidv`datehourv`ippaddrv`int128v`decimal32v`decimal64v`decimal128v`complexv`pointv, [INT, INT[], BOOL[], CHAR[], SHORT[], LONG[], DOUBLE[], FLOAT[], DATE[], MONTH[], TIME[], MINUTE[], SECOND[], DATETIME[], TIMESTAMP[], NANOTIME[], NANOTIMESTAMP[], UUID[], DATEHOUR[], IPADDR[], INT128[], DECIMAL32(1)[], DECIMAL64(10)[], DECIMAL128(20)[],COMPLEX[],POINT[]]);\n pt=db.createPartitionedTable(t,`pt,`id,,`id);");
             PartitionedTableAppender appender = new PartitionedTableAppender("dfs://empty_table", "pt", "id", pool);
             int res = appender.append(new BasicTable(colNames, cols));
             Assert.AreEqual(0, res);

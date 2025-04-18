@@ -875,6 +875,46 @@ namespace dolphindb_csharp_api_test.data_test
         }
 
         [TestMethod]
+        public void Test_download_point_array_vector()
+        {
+            //elements scalar null
+            BasicArrayVector a1 = (BasicArrayVector)conn.run("a = array(POINT[], 0, 10); a.append!(arrayVector(1..20, take(complex(12.50,-1.48), 20)));a;");
+            BasicAnyVector ex1 = (BasicAnyVector)conn.run("loop(def (x):x, a)");
+            compareArrayVectorWithAnyVector(a1, ex1);
+
+
+            //elements scalar not null
+            BasicArrayVector a2 = (BasicArrayVector)conn.run("a = array(POINT[], 0, 10); a.append!(arrayVector(1..20, rand(point(12.50,-1.48), 20)));a;");
+            BasicAnyVector ex2 = (BasicAnyVector)conn.run("loop(def (x):x, a)");
+            compareArrayVectorWithAnyVector(a2, ex2);
+
+            //array vector len 0
+            BasicArrayVector a3 = (BasicArrayVector)conn.run("a = array(POINT[], 0, 10); a;");
+            Assert.AreEqual(a3.rows(), 0);
+
+            //array vector len<256
+            BasicArrayVector a4 = (BasicArrayVector)conn.run("a = array(POINT[], 0, 10); a.append!(arrayVector(1..20 * 10, rand(point(12.50,-1.48), 200)));a;");
+            BasicAnyVector ex4 = (BasicAnyVector)conn.run("loop(def (x):x, a)");
+            compareArrayVectorWithAnyVector(a4, ex4);
+
+            //array vector 256<=len<65535
+            BasicArrayVector a5 = (BasicArrayVector)conn.run("a = array(POINT[], 0, 10); a.append!(arrayVector(1..20 * 10000, rand(point(12.50,-1.48), 200000)));a;");
+            BasicAnyVector ex5 = (BasicAnyVector)conn.run("loop(def (x):x, a)");
+            compareArrayVectorWithAnyVector(a5, ex5);
+
+            //array vector len>=65535
+            BasicArrayVector a6 = (BasicArrayVector)conn.run("a = array(POINT[], 0, 10); a.append!(arrayVector(1..20 * 100000, rand(point(12.50,-1.48), 2000000)));a;");
+            BasicAnyVector ex6 = (BasicAnyVector)conn.run("loop(def (x):x, a)");
+            compareArrayVectorWithAnyVector(a6, ex6);
+
+            //len inconsistent
+            //BasicArrayVector a7 = (BasicArrayVector)conn.run("index = int(cumsum(rand(1..10000, 10)));a = array(SHORT[], 0, 10); a.append!(arrayVector(index, rand(100, last(index))));a;");
+            //BasicAnyVector ex7 = (BasicAnyVector)conn.run("loop(def (x):x, a)");
+            //compareArrayVectorWithAnyVector(a7, ex7);
+
+        }
+
+        [TestMethod]
         public void Test_download_array_vector_from_in_memory_table_len_smaller_1024()
         {
             String script1 = " ";
@@ -1916,6 +1956,17 @@ namespace dolphindb_csharp_api_test.data_test
         }
 
         [TestMethod]
+        public void Test_upload_array_vector_point()
+        {
+            BasicArrayVector a4 = (BasicArrayVector)conn.run("a = array(POINT[], 0, 10); a.append!(arrayVector(1..20 * 1000, rand(point(12.50,-1.48), 20000)));a;");
+            Dictionary<String, IEntity> var = new Dictionary<string, IEntity>();
+            var.Add("x", a4);
+            conn.upload(var);
+            BasicBoolean re = (BasicBoolean)conn.run("eqObj(a, x)");
+            Assert.AreEqual(re.getValue(), true);
+        }
+
+        [TestMethod]
         public void Test_upload_array_vector_ipaddr()
         {
             BasicArrayVector a4 = (BasicArrayVector)conn.run("a = array(IPADDR[], 0, 10); a.append!(arrayVector(1..20 * 1000, rand(ipaddr(), 20000)));a;");
@@ -2278,6 +2329,51 @@ namespace dolphindb_csharp_api_test.data_test
         }
 
         [TestMethod]
+        public void TestBasic_point_ArrayVector()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT);
+            String script = "\n" +
+                    "a = array(POINT[],0)\n" +
+                    "a.append!([[point(12.50,-1.48),point(0,0)],[point(-12.50,-1.48),point(0,0)],[point(-12.50,-1.48)],[]])\n" +
+                    "a";
+            BasicArrayVector obj = (BasicArrayVector)conn.run(script);
+            Console.WriteLine(obj.getString());
+            Assert.AreEqual("[(12.5, -1.48), (0, 0)]", obj.getEntity(0).getString());
+            Assert.AreEqual("[(-12.5, -1.48), (0, 0)]", obj.getEntity(1).getString());
+            Assert.AreEqual("[(-12.5, -1.48)]", obj.getEntity(2).getString());
+            Assert.AreEqual("[(, )]", obj.getEntity(3).getString());
+
+            obj.append(new BasicPointVector(new Double2[] { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) }));
+            Assert.AreEqual(5, obj.rows());
+            Assert.AreEqual("[(1, 9.2), (-3.8, -7.4), (0, 0), (, )]", obj.getEntity(4).getString());
+            conn.close();
+        }
+
+        [TestMethod]
+        public void TestBasic_point_ArrayVector_compress_true()
+        {
+            DBConnection conn = new DBConnection(false, false, true);
+            conn.connect(SERVER, PORT);
+            String script = "\n" +
+                    "a = array(POINT[],0)\n" +
+                    "a.append!([[point(12.50,-1.48),point(0,0)],[point(-12.50,-1.48),point(0,0)],[point(-12.50,-1.48)],[]])\n" +
+                    "a";
+            BasicArrayVector obj = (BasicArrayVector)conn.run(script);
+            Console.WriteLine(obj.getString());
+            Assert.AreEqual("[(12.5, -1.48), (0, 0)]", obj.getEntity(0).getString());
+            Assert.AreEqual("[(-12.5, -1.48), (0, 0)]", obj.getEntity(1).getString());
+            Assert.AreEqual("[(-12.5, -1.48)]", obj.getEntity(2).getString());
+            Assert.AreEqual("[(, )]", obj.getEntity(3).getString());
+
+            obj.append(new BasicPointVector(new Double2[] { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) }));
+            Assert.AreEqual(5, obj.rows());
+            Assert.AreEqual("[(1, 9.2), (-3.8, -7.4), (0, 0), (, )]", obj.getEntity(4).getString());
+
+            conn.close();
+        }
+
+        [TestMethod]
         public void Test_new_BasicArrayVector_decimal32()
         {
             DBConnection conn = new DBConnection();
@@ -2486,6 +2582,58 @@ namespace dolphindb_csharp_api_test.data_test
             conn.close();
         }
 
+        [TestMethod]
+        public void Test_new_BasicArrayVector_point_compress()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT);
+            Double2[] array = { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) };
+            BasicPointVector bcv = new BasicPointVector(array);
+            List<IVector> vectors = new List<IVector>();
+            vectors.Add(bcv);
+            vectors.Add(bcv);
+            BasicArrayVector obj = new BasicArrayVector(vectors, 4);
+            Console.WriteLine(obj.getString());
+            Assert.AreEqual("[(1, 9.2), (-3.8, -7.4), (0, 0), (, )]", obj.getEntity(0).getString());
+            Assert.AreEqual("[(1, 9.2), (-3.8, -7.4), (0, 0), (, )]", obj.getEntity(1).getString());
+
+            Dictionary<String, IEntity> var1 = new Dictionary<string, IEntity>();
+            var1.Add("arrayvector", obj);
+            conn.upload(var1);
+
+            BasicArrayVector res = (BasicArrayVector)conn.run("arrayvector");
+
+            Assert.AreEqual("[(1, 9.2), (-3.8, -7.4), (0, 0), (, )]", res.getEntity(0).getString());
+            Assert.AreEqual("[(1, 9.2), (-3.8, -7.4), (0, 0), (, )]", res.getEntity(1).getString());
+            conn.close();
+        }
+
+        [TestMethod]
+        public void Test_new_BasicArrayVector_point_compress_true()
+        {
+            DBConnection conn = new DBConnection(false, false, true);
+            conn.connect(SERVER, PORT);
+            Double2[] array = { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) };
+            BasicPointVector bcv = new BasicPointVector(array);
+            List<IVector> vectors = new List<IVector>();
+            vectors.Add(bcv);
+            vectors.Add(bcv);
+            BasicArrayVector obj = new BasicArrayVector(vectors, 4);
+            Console.WriteLine(obj.getString());
+            Assert.AreEqual("[(1, 9.2), (-3.8, -7.4), (0, 0), (, )]", obj.getEntity(0).getString());
+            Assert.AreEqual("[(1, 9.2), (-3.8, -7.4), (0, 0), (, )]", obj.getEntity(1).getString());
+
+            Dictionary<String, IEntity> var1 = new Dictionary<string, IEntity>();
+            var1.Add("arrayvector", obj);
+            conn.upload(var1);
+
+            BasicArrayVector res = (BasicArrayVector)conn.run("arrayvector");
+
+            Assert.AreEqual("[(1, 9.2), (-3.8, -7.4), (0, 0), (, )]", res.getEntity(0).getString());
+            Assert.AreEqual("[(1, 9.2), (-3.8, -7.4), (0, 0), (, )]", res.getEntity(1).getString());
+            conn.close();
+        }
+
 
         [TestMethod]
         public void test_BasicArrayVector_append_BasicDecimal32Vector_null()
@@ -2538,5 +2686,17 @@ namespace dolphindb_csharp_api_test.data_test
             Assert.AreEqual("[[]]", bav.getString());
         }
 
+        [TestMethod]
+        public void test_BasicArrayVector_append_BasicPointVector_null()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT);
+            BasicArrayVector bav = (BasicArrayVector)conn.run("x=array(POINT[], 0);x;");
+            int size = bav.rows();
+            Assert.AreEqual(DATA_TYPE.DT_POINT_ARRAY, bav.getDataType());
+            bav.append(new BasicPointVector(0));
+            Assert.AreEqual(size + 1, bav.rows());
+            Assert.AreEqual("[[(, )]]", bav.getString());
+        }
     }
 }

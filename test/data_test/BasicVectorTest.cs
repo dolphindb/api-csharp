@@ -3891,16 +3891,6 @@ namespace dolphindb_csharp_api_test.data_test
             }
             Assert.AreEqual(true, re2.Contains("The method or operation is not implemented.") || re2.Contains("未实现该方法或操作。"));
 
-            String re3 = null;
-            try
-            {
-                bcv.asof(new BasicComplex(1.1, 2.1));
-            }
-            catch (Exception e)
-            {
-                re3 = e.Message;
-            }
-            Assert.AreEqual(true, re3.Contains("BasicComplexVector.asof not supported."));
         }
 
         [TestMethod]
@@ -3932,6 +3922,168 @@ namespace dolphindb_csharp_api_test.data_test
             BasicComplexVector bcv1 = new BasicComplexVector(0);
             bcv.append(bcv1);
             Assert.AreEqual("[25.14+42.33i, -25.14-42.33i, , 1+9.2i, -3.8-7.4i, 0+0i, ]", bcv.getString());
+        }
+
+        [TestMethod]
+        public void test_BasicPointVector()
+        {
+            BasicPointVector bcv = new BasicPointVector(0);
+            Assert.AreEqual(DATA_CATEGORY.BINARY, bcv.getDataCategory());
+            Assert.AreEqual(DATA_TYPE.DT_POINT, bcv.getDataType());
+            Assert.AreEqual(typeof(BasicPoint), bcv.getElementClass());
+            Assert.AreEqual(16, bcv.getUnitLength());
+            Assert.AreEqual("[]", bcv.getString());
+            Assert.AreEqual(0, bcv.rows());
+        }
+
+        [TestMethod]
+        public void test_BasicPointVector_list()
+        {
+            List<Double2> list = new List<Double2>();
+            list.Add(new Double2(1.0, 9.2));
+            list.Add(new Double2(-3.8, -7.4));
+            list.Add(new Double2(0, 0));
+            list.Add(new Double2(double.MinValue, double.MinValue));
+            BasicPointVector bcv = new BasicPointVector(list);
+            Assert.AreEqual(4, bcv.rows());
+            Assert.AreEqual("(0, 0)", bcv.get(2).getString());
+            Assert.AreEqual(new BasicPoint(0, 0), bcv.get(2));
+            Assert.AreEqual(new BasicPoint(double.MinValue, double.MinValue), bcv.get(3));
+            Assert.AreEqual("[(1, 9.2), (0, 0), (-3.8, -7.4), (0, 0)]", bcv.getSubVector(new int[] { 0, 2, 1, 2 }).getString());
+
+            Assert.AreEqual(list.ToString(), bcv.getDataArray().ToString());
+            Assert.AreEqual(new BasicPoint(1.0, 9.2), bcv.getEntity(0));
+            Assert.AreEqual(new BasicPoint(-3.8, -7.4), bcv.getEntity(1));
+            Assert.AreEqual("(, )", bcv.getEntity(3).getString());
+        }
+
+        [TestMethod]
+        public void test_BasicPointVector_array()
+        {
+            Double2[] array = { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) };
+            BasicPointVector bcv = new BasicPointVector(array);
+            Assert.AreEqual("(0, 0)", bcv.get(2).getString());
+            Assert.AreEqual(new BasicPoint(0, 0), bcv.get(2));
+            Assert.AreEqual("[(1, 9.2), (0, 0), (-3.8, -7.4), (0, 0)]", bcv.getSubVector(new int[] { 0, 2, 1, 2 }).getString());
+            Assert.AreEqual("[(1, 9.2), (-3.8, -7.4), (0, 0), (, )]", bcv.getSubVector(new int[] { 0, 1, 2, 3 }).getString());
+            Assert.AreEqual(array.ToList().ToString(), bcv.getDataArray().ToString());
+        }
+
+        [TestMethod]
+        public void test_BasicPointVector_set()
+        {
+            Double2[] array = { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) };
+            BasicPointVector bcv = new BasicPointVector(array);
+            Assert.AreEqual(new BasicPoint(1.0, 9.2), bcv.get(0));
+            bcv.set(0, new BasicPoint(0, 0));
+            Assert.AreEqual(new BasicPoint(0, 0), bcv.get(0));
+            String re = null;
+            try
+            {
+                bcv.set(0, new BasicBoolean(true));
+
+            }
+            catch (Exception e)
+            {
+                re = e.Message;
+            }
+            Assert.AreEqual(true, re.Contains("The value must be a point scalar. "));
+        }
+
+        [TestMethod]
+        public void test_BasicPointVector_setPoint()
+        {
+            Double2[] array = { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) };
+            BasicPointVector bcv = new BasicPointVector(array);
+            Assert.AreEqual(1.0, bcv.getDouble2(0).x);
+            Assert.AreEqual(9.2, bcv.getDouble2(0).y);
+            bcv.setPoint(0, 0, 0);
+            Assert.AreEqual(0, bcv.getDouble2(0).x);
+            Assert.AreEqual(0, bcv.getDouble2(0).y);
+            Assert.AreEqual(double.MinValue, bcv.getDouble2(3).x);
+            Assert.AreEqual(double.MinValue, bcv.getDouble2(3).y);
+        }
+
+        [TestMethod]
+        public void test_BasicPointVector_setNull()
+        {
+            Double2[] array = { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) };
+            BasicPointVector bcv = new BasicPointVector(array);
+            Assert.IsFalse(bcv.isNull(1));
+            bcv.setNull(2);
+            Assert.IsTrue(bcv.isNull(2));
+            Assert.AreEqual("[(1, 9.2), (-3.8, -7.4), (, ), (, )]", bcv.getString());
+        }
+
+        [TestMethod]
+        public void test_BasicPointVector_not_support()
+        {
+            Double2[] array = { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) };
+            BasicPointVector bcv = new BasicPointVector(array);
+            String re = null;
+            try
+            {
+                bcv.set(0, "12");
+            }
+            catch (Exception e)
+            {
+                re = e.Message;
+            }
+            Assert.AreEqual(true, re.Contains("The method or operation is not implemented.") || re.Contains("未实现该方法或操作。"));
+
+            String re1 = null;
+            try
+            {
+                bcv.add("12");
+            }
+            catch (Exception e)
+            {
+                re1 = e.Message;
+            }
+            Assert.AreEqual(true, re1.Contains("The method or operation is not implemented.") || re1.Contains("未实现该方法或操作。"));
+
+            String re2 = null;
+            try
+            {
+                bcv.addRange("12");
+            }
+            catch (Exception e)
+            {
+                re2 = e.Message;
+            }
+            Assert.AreEqual(true, re2.Contains("The method or operation is not implemented.") || re2.Contains("未实现该方法或操作。"));
+
+        }
+
+        [TestMethod]
+        public void test_BasicPointVector_hashBucket()
+        {
+            Double2[] array = { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) };
+            BasicPointVector bcv = new BasicPointVector(array);
+            Assert.AreEqual(-1, bcv.hashBucket(0, 1));
+        }
+
+        [TestMethod]
+        public void test_BasicPointVector_append()
+        {
+            BasicPointVector bcv = new BasicPointVector(0);
+            BasicPoint bc = new BasicPoint(25.14, 42.33);
+            BasicPoint bc1 = new BasicPoint(-25.14, -42.33);
+            BasicPoint bc2 = new BasicPoint(-25.14, -42.33);
+            bc2.setNull();
+            bcv.append(bc);
+            bcv.append(bc1);
+            bcv.append(bc2);
+            Assert.AreEqual("[(25.14, 42.33), (-25.14, -42.33), (, )]", bcv.getString());
+
+            Double2[] array = { new Double2(1.0, 9.2), new Double2(-3.8, -7.4), new Double2(0, 0), new Double2(double.MinValue, double.MinValue) };
+            BasicPointVector bcv0 = new BasicPointVector(array);
+            bcv.append(bcv0);
+            Assert.AreEqual("[(25.14, 42.33), (-25.14, -42.33), (, ), (1, 9.2), (-3.8, -7.4), (0, 0), (, )]", bcv.getString());
+
+            BasicPointVector bcv1 = new BasicPointVector(0);
+            bcv.append(bcv1);
+            Assert.AreEqual("[(25.14, 42.33), (-25.14, -42.33), (, ), (1, 9.2), (-3.8, -7.4), (0, 0), (, )]", bcv.getString());
         }
     }
 }

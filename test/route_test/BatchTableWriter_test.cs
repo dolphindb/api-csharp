@@ -1000,6 +1000,53 @@ namespace dolphindb_csharp_api_test.route_test
             conn.close();
         }
 
+        [TestMethod]
+        public void Test_batchTableWriter_BasicPoint()
+        {
+            DBConnection conn = new DBConnection();
+            conn.connect(SERVER, PORT, USER, PASSWORD);
+            String script = "";
+            script += "share table(100:0, [`col0], [POINT]) as table1";
+            conn.run(script);
+            BatchTableWriter btw = new BatchTableWriter(SERVER, PORT, USER, PASSWORD);
+            btw.addTable("table1", "");
+            for (int i = 0; i < 1000000; i++)
+            {
+                if (i % 2 == 0)
+                {
+                    List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicPoint(14, 15) });
+                    btw.insert("table1", "", x);
+                }
+                else if (i % 2 == 1)
+                {
+                    List<IScalar> x = new List<IScalar>(new IScalar[] { new BasicPoint(-14.2, -20.7) });
+                    btw.insert("table1", "", x);
+                }
+            }
+            for (int i = 0; i < 10; i++)
+            {
+                Thread.Sleep(1000);
+                BasicTable result = btw.getAllStatus();
+                if (((BasicIntVector)result.getColumn(3)).getInt(0).Equals(1000000))
+                {
+                    break;
+                }
+                else
+                {
+                    if (i == 9)
+                    {
+                        Assert.AreEqual(((BasicIntVector)result.getColumn(3)).getInt(0), 1000000);
+                    }
+                }
+            }
+            BasicTable re = (BasicTable)conn.run("table1");
+            BasicTable expected = (BasicTable)conn.run("table(take(point(14 -14.2,15 -20.7), 1000000) as col0)");
+            compareBasicTable16(re, expected);
+            btw.removeTable("table1");
+            conn.run("undef(`table1, SHARED)");
+            conn.close();
+        }
+
         //[TestMethod] btw not support decimal
         //public void Test_batchTableWriter_BasicDecimal64()
         //{

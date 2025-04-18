@@ -67,6 +67,7 @@ namespace dolphindb.data
         //
         DT_OBJECT,
         DT_COMPLEX = 34,
+        DT_POINT = 35,
 
         DT_DECIMAL32 = 37,
         DT_DECIMAL64 = 38,
@@ -105,6 +106,7 @@ namespace dolphindb.data
         DT_IPADDR_ARRAY,
         DT_INT128_ARRAY,
         DT_COMPLEX_ARRAY = 98,
+        DT_POINT_ARRAY = 99,
         DT_DECIMAL32_ARRAY = 101,
         DT_DECIMAL64_ARRAY = 102,
         DT_DECIMAL128_ARRAY = 103
