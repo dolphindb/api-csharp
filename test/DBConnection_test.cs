@@ -1879,6 +1879,7 @@ namespace dolphindb_csharp_api_test
             BasicSet dict = (BasicSet)db.run("set(1 3 5)");
             Assert.AreEqual(3, dict.rows());
             Assert.AreEqual(1, dict.columns());
+            //Console.WriteLine(dict.getString());
             db.close();
         }
 
@@ -2085,6 +2086,80 @@ namespace dolphindb_csharp_api_test
             db.close();
         }
 
+        [TestMethod]
+        public void Test_upload_table_any_null()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT, USER, PASSWORD);
+            BasicTable re1 = (BasicTable)db.run("re = table(100:0, `sex`name`eye, [STRING,ANY,ANY]);re");
+            Assert.AreEqual("sex name eye\n" +
+                            "--- ---- ---\n" , re1.getString());
+            Dictionary<string, IEntity> upObj = new Dictionary<string, IEntity>();
+            upObj.Add("table_uploaded", (IEntity)re1);
+            db.upload(upObj);
+            BasicTable re2 = (BasicTable)db.run("select * from table_uploaded");
+            Assert.AreEqual(re1.getString(), re2.getString());
+            db.close();
+        }
+
+        [TestMethod]
+        public void Test_upload_table_any()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT, USER, PASSWORD);
+            BasicTable re1 = (BasicTable)db.run("re = table(100:0, `sex`name`eye, [STRING,ANY,ANY]);\n" +
+                "re.tableInsert(`f`m,([`jill],['tom' 'dick' 'harry' 'jack']), ([`gray],['blue' 'green' 'blue' 'blue']));" +
+                "select * from re;");
+            Assert.AreEqual("sex name                       eye                        \n" +
+                            "--- -------------------------- ---------------------------\n" +
+                            "f   [jill]                     [gray]                     \n" +
+                            "m   ([tom, dick, harry, jack]) ([blue, green, blue, blue])\n", re1.getString());
+
+            Dictionary<string, IEntity> upObj = new Dictionary<string, IEntity>();
+            upObj.Add("table_uploaded", (IEntity)re1);
+            db.upload(upObj);
+            BasicTable re2 = (BasicTable)db.run("select * from table_uploaded");
+            Assert.AreEqual(re1.getString(), re2.getString());
+            db.close();
+        }
+
+
+        [TestMethod]
+        public void Test_upload_table_any_all_dataform()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT, USER, PASSWORD);
+            BasicTable re1 = (BasicTable)db.run("ctime=take(2025.10.18T10:27:23.275..2025.10.10T10:27:23.275,7)\n" +
+                "cany=array(ANY,0).append!(1000).append!(`www`qqq).append!(matrix([1 2 3, 4 5 6])).append!(100:11).append!(table(`qa`ws`ed as id)).append!((100, `11)).append!( [[`1a,`a1]].setColumnarTuple!());" +
+                "t1 = table(ctime, cany); t1;");
+            Console.WriteLine(re1.getString());
+
+            Dictionary<string, IEntity> upObj = new Dictionary<string, IEntity>();
+            upObj.Add("table_uploaded", (IEntity)re1);
+            db.upload(upObj);
+            BasicTable re2 = (BasicTable)db.run("select * from table_uploaded");
+            Assert.AreEqual(re1.getString(), re2.getString());
+            Assert.AreEqual(7, re1.rows());
+            db.close();
+        }
+
+        //[TestMethod]
+        public void Test_upload_table_any_set_dict()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT, USER, PASSWORD);
+            BasicTable re1 = (BasicTable)db.run("ctime=take(2025.10.18T10:27:23.275..2025.10.10T10:27:23.275,2)\n" +
+                "cany=array(ANY,0).append!(set(1 2)).append!(dict(`aaa11`bbb22, [dict(`p1`p2, `1`2, true), dict(`p11`p22, `100`200, true)]));" +
+                "t1 = table(ctime, cany); t1;");
+            Console.WriteLine(re1.getString());
+
+            Dictionary<string, IEntity> upObj = new Dictionary<string, IEntity>();
+            upObj.Add("table_uploaded", (IEntity)re1);
+            db.upload(upObj);
+            BasicTable re2 = (BasicTable)db.run("select * from table_uploaded");
+            Assert.AreEqual(re1.getString(), re2.getString());
+            db.close();
+        }
 
         [TestMethod]
         public void Test_dict_toDataTable()
@@ -3551,6 +3626,78 @@ a";
             conn.close();
             db.close();
 
+        }
+
+        [TestMethod]
+        public void test_ParserType_notSet()
+        {
+            DBConnection conn = new DBConnection(false, false, false, false);
+            conn.connect(SERVER, PORT, "admin", "123456");
+            IEntity re = conn.run("1+1");
+            Console.WriteLine(re.getString());
+            Assert.AreEqual("2", re.getString());
+            conn.close();
+        }
+
+        [TestMethod]//Default
+        public void test_ParserType_default()
+        {
+            DBConnection conn = new DBConnection(false, false, false, false, false, ParserType.Default);
+            conn.connect(SERVER, PORT, "admin", "123456");
+            IEntity re = conn.run("1+1");
+            Console.WriteLine(re.getString());
+            Assert.AreEqual("2", re.getString());
+            conn.close();
+        }
+
+        [TestMethod]//DolphinDB
+        public void test_ParserType_DolphinDB()
+        {
+            DBConnection conn = new DBConnection(false, false, false, false, false, ParserType.DolphinDB);
+            conn.connect(SERVER, PORT, "admin", "123456");
+            IEntity re = conn.run("1+1");
+            Console.WriteLine(re.getString());
+            Assert.AreEqual("2", re.getString());
+            conn.close();
+        }
+
+        [TestMethod]//python
+        public void test_ParserType_Python()
+        {
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT, "admin", "123456");
+            DBConnection conn = new DBConnection(false, false, false, true, false, ParserType.Python);
+            conn.connect(SERVER, PORT, "admin", "123456");
+            BasicString version = (BasicString)db.run("version()");
+            if (version.getString().Contains("3.00"))
+            {
+                conn.run("import pandas as pd");
+            }
+            else
+            {
+                Console.WriteLine("The current version does not support Python Parser, so this case is skipped");
+            }
+
+            conn.close();
+            db.close();
+        }
+
+        [TestMethod]//kdb
+        public void test_ParserType_KDB()
+        {   
+            DBConnection conn = new DBConnection(false, false, false, false, false, ParserType.KDB);
+            conn.connect("192.168.0.54", 8848, "admin", "123456");
+            IEntity re = conn.run("D:`q`w`e!(1 2;3 4;5 6)\nkey D");
+            Console.WriteLine(re.getString());
+            Assert.AreEqual("[q, w, e]", re.getString());
+
+            IEntity re1 = conn.run("res:\"abcdef\"[1 4 3]\nres");
+            Assert.AreEqual("['b', 'e', 'd']", re1.getString());
+
+            IEntity re2 = conn.run("txt:((\"Now\";\" is \";\"the\";\"time\");(\"for\";\"all\";\"good\";\"folk\"))\ntxt") ;
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual("((['N', 'o', 'w'],[' ', 'i', 's', ' '],['t', 'h', 'e'],['t', 'i', 'm', 'e']),(['f', 'o', 'r'],['a', 'l', 'l'],['g', 'o', 'o', 'd'],['f', 'o', 'l', 'k']))", re2.getString());
+            conn.close();
         }
 
 

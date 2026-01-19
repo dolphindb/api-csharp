@@ -490,6 +490,79 @@ namespace dolphindb_csharp_api_test
 
         }
 
+        [TestMethod]
+        public void test_ExclusiveDBConnectionPool_ParserType_notSet()
+        {
+            pool = new ExclusiveDBConnectionPool(SERVER, PORT, USER, PASSWORD, 10, false, false, HASTREAM_GROUP, "", false, false, false);
+            IEntity re = pool.run("1+1");
+            Console.WriteLine(re.getString());
+            Assert.AreEqual("2", re.getString());
+            pool.shutdown();
+        }
+
+        [TestMethod]//Default
+        public void test_ExclusiveDBConnectionPool_ParserType_default()
+        {
+            pool = new ExclusiveDBConnectionPool(SERVER, PORT, USER, PASSWORD, 10, false, false, HASTREAM_GROUP, "", false, false, false, ParserType.Default);
+            IEntity re = pool.run("1+1");
+            Console.WriteLine(re.getString());
+            Assert.AreEqual("2", re.getString());
+            pool.shutdown();
+        }
+
+        [TestMethod]//DolphinDB
+        public void test_ExclusiveDBConnectionPool_ParserType_DolphinDB()
+        {
+            pool = new ExclusiveDBConnectionPool(SERVER, PORT, USER, PASSWORD, 10, false, false, HASTREAM_GROUP, "", false, false, false, ParserType.DolphinDB);
+            IEntity re = pool.run("1+1");
+            Console.WriteLine(re.getString());
+            Assert.AreEqual("2", re.getString());
+            pool.shutdown();
+        }
+
+        [TestMethod]//python
+        public void test_ExclusiveDBConnectionPool_ParserType_Python()
+        {
+            pool = new ExclusiveDBConnectionPool(SERVER, PORT, USER, PASSWORD, 10, false, false, HASTREAM_GROUP, "", true, false, false, ParserType.Python);
+            string script1 = null;
+            script1 += "import pandas as pd";
+            BasicDBTask task1 = new BasicDBTask(script1);
+            DBConnection db = new DBConnection();
+            db.connect(SERVER, PORT, "admin", "123456"); ;
+            BasicString version = (BasicString)db.run("version()");
+            if (version.getString().Contains("3.00"))
+            {
+                Assert.AreEqual(10, pool.getConnectionCount());
+                pool.execute(task1);
+                bool flag = task1.isSuccessful();
+                Assert.AreEqual(true, flag);
+                pool.run(script1);
+                pool.shutdown();
+            }
+            else
+            {
+                Console.WriteLine("The current version does not support Python Parser, so this case is skipped");
+            }
+            db.close();
+        }
+
+        [TestMethod]//kdb
+        public void test_ExclusiveDBConnectionPool_ParserType_KDB()
+        {
+            pool = new ExclusiveDBConnectionPool("192.168.0.54", 8848, USER, PASSWORD, 10, false, false, HASTREAM_GROUP, "", false, false, false, ParserType.KDB);
+            IEntity re = pool.run("D:`q`w`e!(1 2;3 4;5 6)\nkey D");
+            Console.WriteLine(re.getString());
+            Assert.AreEqual("[q, w, e]", re.getString());
+
+            IEntity re1 = pool.run("res:\"abcdef\"[1 4 3]\nres");
+            Assert.AreEqual("['b', 'e', 'd']", re1.getString());
+
+            IEntity re2 = pool.run("txt:((\"Now\";\" is \";\"the\";\"time\");(\"for\";\"all\";\"good\";\"folk\"))\ntxt");
+            Console.WriteLine(re2.getString());
+            Assert.AreEqual("((['N', 'o', 'w'],[' ', 'i', 's', ' '],['t', 'h', 'e'],['t', 'i', 'm', 'e']),(['f', 'o', 'r'],['a', 'l', 'l'],['g', 'o', 'o', 'd'],['f', 'o', 'l', 'k']))", re2.getString());
+            pool.shutdown();
+        }
+
 
         [TestMethod]
         public void Test_sqllist_create_dfs()

@@ -460,7 +460,7 @@ namespace dolphindb_csharp_api_test.cep_test
                     "timestamp = t\n" +
                     "}\n" +
                     "}\n" +
-                    "class MainMonitor{\n" +
+                    "class MainMonitor:CEPMonitor{\n" +
                     "def MainMonitor(){}\n" +
                     "def updateMarketData(event)\n" +
                     "def onload(){addEventListener(updateMarketData,'MarketData',,'all')}\n" +
@@ -1243,7 +1243,7 @@ namespace dolphindb_csharp_api_test.cep_test
                 re = ex.Message;
             }
             Console.WriteLine(re);
-            Assert.AreEqual(true, re.Contains("/inputTable/test1 doesn't exist."));
+            Assert.AreEqual(true, re.Contains("/inputTable/test1/ doesn't exist."));
 
         }
 
@@ -1264,7 +1264,7 @@ namespace dolphindb_csharp_api_test.cep_test
                 re = ex.Message;
             }
             Console.WriteLine(re);
-            Assert.AreEqual(true, re.Contains("/inputTable/test1 doesn't exist."));
+            Assert.AreEqual(true, re.Contains("/inputTable/test1/ doesn't exist."));
         }
 
         [TestMethod]

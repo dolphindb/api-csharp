@@ -21,6 +21,15 @@ using System.Threading.Tasks;
 namespace dolphindb
 {
 
+    public enum ParserType
+    {
+        Default = 0,
+        DolphinDB = 1,
+        Python = 2,
+        KDB = 3
+    }
+
+
     /// <summary>
     /// Sets up a connection to DolphinDB server through TCP/IP protocol
     /// Executes DolphinDB scripts
@@ -76,6 +85,7 @@ namespace dolphindb
         private bool compress_ = false;
         private bool loadBalance_ = true;
         private bool isReverseStreaming_ = false;
+        private ParserType parser_ = ParserType.Default;
 
         List<Node> nodes_ = new List<Node>();
         DBConnectionImpl conn_;
@@ -99,7 +109,7 @@ namespace dolphindb
             bool compress_ = false;
             bool isReverseStreaming_ = false;
             private string startup_;
-            private bool usePython_ = false;
+            private ParserType parser_;
             private static readonly int MAX_FORM_VALUE = Enum.GetValues(typeof(DATA_FORM)).Length - 1;
             private static readonly int MAX_TYPE_VALUE = Enum.GetValues(typeof(DATA_TYPE)).Length - 1;
             BasicEntityFactory factory = (BasicEntityFactory)BasicEntityFactory.instance();
@@ -128,20 +138,22 @@ namespace dolphindb
                     flag += 16;
                 if (compress_)
                     flag += 64;
-                if (usePython_)
+                if(parser_ == ParserType.Python)
                     flag += 2048;
+                if(parser_ == ParserType.KDB)
+                    flag += 4096;
                 if (isReverseStreaming_)
                     flag += 131072;
                 return flag;
             }
 
-            public DBConnectionImpl(bool sslEnable = false, bool asynTask = false, bool compress = false, bool usePython = false,bool isReverseStreaming = false)
+            public DBConnectionImpl(bool sslEnable = false, bool asyncTask = false, bool compress = false, bool isReverseStreaming = false, ParserType parser = ParserType.Default)
             {
                 sslEnable_ = sslEnable;
-                asynTask_ = asynTask;
+                asynTask_ = asyncTask;
                 compress_ = compress;
-                usePython_ = usePython;
                 isReverseStreaming_ = isReverseStreaming;
+                parser_ = parser;
             }
 
             public bool connect(string hostName, int port, string userId, string password, bool sslEnable,
@@ -570,14 +582,23 @@ namespace dolphindb
 
         private int lastConnNodeIndex_ = 0;
 
-        public DBConnection(bool asynchronousTask = false, bool useSSL = false, bool compress = false, bool usePython = false,bool isReverseStreaming = false)
+        public DBConnection(bool asynchronousTask = false, bool useSSL = false, bool compress = false, bool usePython = false, bool isReverseStreaming = false, ParserType parser = ParserType.Default)
         {
             asynTask_ = asynchronousTask;
             isUseSSL_ = useSSL;
+            parser_ = parser;
 
             this.compress_ = compress;
             this.isReverseStreaming_ = isReverseStreaming;
-            conn_ = new DBConnectionImpl(useSSL, asynchronousTask, compress, usePython, isReverseStreaming);
+            if(usePython && parser != ParserType.Default)
+            {
+                throw new Exception("usePython and parser cannot be set both.");
+            }
+            if (usePython)
+            {
+                parser = ParserType.Python;
+            }
+            conn_ = new DBConnectionImpl(useSSL, asynchronousTask, compress, isReverseStreaming, parser);
         }
 
         public bool isBusy()
@@ -1099,7 +1120,14 @@ namespace dolphindb
                         }
                         else
                         {
-                            table = (BasicTable)conn_.run("rpc(getControllerAlias(),getClusterPerf)");
+                            if(parser_ == ParserType.KDB)
+                            {
+                                table = (BasicTable)conn_.run("rpc[getControllerAlias[]; getClusterPerf]");
+                            }
+                            else
+                            {
+                                table = (BasicTable)conn_.run("rpc(getControllerAlias(), getClusterPerf)");
+                            }
                         }
                         break;
                     }

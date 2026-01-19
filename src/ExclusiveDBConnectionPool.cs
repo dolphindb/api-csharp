@@ -4,15 +4,16 @@
 //  Author : zhikun.luo
 //-------------------------------------------------------------------------------------------
 
+using dolphindb.data;
 using System;
 using System.Collections.Generic;
-using dolphindb.data;
 using System.Threading;
 using System.Threading.Tasks;
+using static dolphindb.DBConnection;
 
 namespace dolphindb
 {
-    public class ExclusiveDBConnectionPool:IDBConnectionPool
+    public class ExclusiveDBConnectionPool : IDBConnectionPool
     {
         private List<AsynWorker> workers_ = new List<AsynWorker>();
         private int tasksCount_ = 0;
@@ -106,15 +107,20 @@ namespace dolphindb
         }
 
 
-        public ExclusiveDBConnectionPool(string host, int port, string uid, string pwd, int count, bool loadBalance, bool highAvailability, string[] highAvailabilitySites = null, string startup = "", bool compress = false, bool useSSL = false, bool usePython = false)
+        public ExclusiveDBConnectionPool(string host, int port, string uid, string pwd, int count, bool loadBalance, bool highAvailability, string[] highAvailabilitySites = null, string startup = "", bool compress = false, bool useSSL = false, bool usePython = false, ParserType parser = ParserType.Default)
         {
             if (count <= 0)
                 throw new Exception("The thread count can not be less than 1");
+
+            if (usePython && parser != ParserType.Python && parser != ParserType.Default)
+            {
+                throw new Exception("Python flag is true, parser must be ParserType.Default or ParserType.Python.");
+            }
             if (!loadBalance)
             {
-                for(int i = 0; i < count; i++)
+                for (int i = 0; i < count; i++)
                 {
-                    DBConnection conn = new DBConnection(false, useSSL, compress, usePython);
+                    DBConnection conn = new DBConnection(false, useSSL, compress, usePython, parser: parser);
                     conn.setLoadBalance(false);
                     if (!conn.connect(host, port, uid, pwd, startup, highAvailability, highAvailabilitySites))
                         throw new Exception("Cant't connect to the specified host.");
@@ -143,7 +149,7 @@ namespace dolphindb
                 string[] hosts = new string[nodeCount];
                 int[] ports = new int[nodeCount];
                 string[] sites = new string[nodeCount];
-                for(int i = 0; i < nodeCount; i++)
+                for (int i = 0; i < nodeCount; i++)
                 {
                     string[] fields = nodes.getString(i).Split(':');
                     if (fields.Length < 2)
@@ -173,7 +179,7 @@ namespace dolphindb
                 }
                 for (int i = 0; i < count; i++)
                 {
-                    DBConnection conn = new DBConnection(false, useSSL, compress, usePython);
+                    DBConnection conn = new DBConnection(false, useSSL, compress, usePython, parser: parser);
                     conn.setLoadBalance(false);
                     if (!(conn.connect(hosts[i % nodeCount], ports[i % nodeCount], uid, pwd, startup, highAvailability, sites)))
                         throw new Exception("Can't connect to the specified host: ");
@@ -204,7 +210,8 @@ namespace dolphindb
             }
         }
 
-        public void execute(IDBTask task) {
+        public void execute(IDBTask task)
+        {
             tasksCount_++;
             lock (workItem_.taskLists_)
             {
@@ -277,12 +284,14 @@ namespace dolphindb
             }
         }
 
-        public int getConnectionCount() {
+        public int getConnectionCount()
+        {
             return workers_.Count;
         }
-        public void shutdown() {
+        public void shutdown()
+        {
             waitForThreadCompletion();
-;           foreach(AsynWorker one in workers_)
+            foreach (AsynWorker one in workers_)
             {
                 lock (one.workThread_)
                 {
@@ -301,7 +310,7 @@ namespace dolphindb
             }
             execute(tasks);
             List<IEntity> results = new List<IEntity>();
-            foreach(IDBTask dBTask in tasks)
+            foreach (IDBTask dBTask in tasks)
             {
                 if (!dBTask.isSuccessful())
                 {

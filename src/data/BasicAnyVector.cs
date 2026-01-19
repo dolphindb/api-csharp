@@ -32,12 +32,11 @@ namespace dolphindb.data
         protected internal BasicAnyVector(ExtendedDataInput @in) : base(DATA_FORM.DF_VECTOR)
         {
             int rows = @in.readInt();
-            int cols = @in.readInt();
-            int size = rows * cols;
+            @in.readInt();
             values = new List<IEntity>();
 
             BasicEntityFactory factory = new BasicEntityFactory();
-            for (int i = 0; i < size; ++i)
+            for (int i = 0; i < rows; ++i)
             {
                 short flag = @in.readShort();
                 int form = flag >> 8;
